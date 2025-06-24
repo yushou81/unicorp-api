@@ -1,0 +1,34 @@
+# 服务器相关配置
+server:
+  port: 8081 # 设置应用的端口号，避免使用常见的8080以防冲突
+  servlet:
+    context-path: /api # 设置应用的统一访问前缀，例如 /api/user/register
+
+# Spring相关配置
+spring:
+  application:
+    name: linknei-api # 应用名称
+  # 数据库连接池配置
+  datasource:
+    # 【请修改】: 将下面的URL、用户名和密码替换成你自己的
+    url: jdbc:mysql://localhost:3306/linknei_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root # 数据库用户名
+    password: 123456 # 数据库密码
+
+# MyBatis-Plus 相关配置
+mybatis-plus:
+  # Mapper XML文件的位置
+  mapper-locations: classpath:/mapper/*.xml
+  # 全局配置
+  global-config:
+    db-config:
+      # 逻辑删除配置 (推荐实践)
+      # 0代表未删除, 1代表已删除
+      logic-delete-value: 1 # 逻辑已删除值(默认为1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为0)
+  # 配置项
+  configuration:
+    # 开启驼峰命名转换：将数据库的 a_column 自动映射到实体的 aColumn 属性
+    map-underscore-to-camel-case: true
+    # 控制台打印SQL，方便开发调试
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
