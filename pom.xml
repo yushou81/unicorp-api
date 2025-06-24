@@ -44,10 +44,11 @@
         </dependency>
         <!-- MyBatis-Plus是MyBatis的增强工具，可以极大简化CRUD操作。-->
         <!-- 它已经自动包含了 mybatis-spring-boot-starter，所以我们不需要再重复引入。-->
+        <!-- https://mvnrepository.com/artifact/com.baomidou/mybatis-plus-boot-starter -->
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
-            <version>3.5.7</version>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+            <version>3.5.12</version>
         </dependency>
         <!-- Spring Boot 开发热重载工具 -->
         <dependency>
@@ -82,12 +83,12 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.mybatis.spring.boot</groupId>
-            <artifactId>mybatis-spring-boot-starter-test</artifactId>
-            <version>3.0.4</version>
-            <scope>test</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.mybatis.spring.boot</groupId>-->
+<!--            <artifactId>mybatis-spring-boot-starter-test</artifactId>-->
+<!--            <version>3.0.4</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
         <!-- Spring Security 测试支持 -->
         <dependency>
             <groupId>org.springframework.security</groupId>
