@@ -57,6 +57,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User newUser = new User();
         newUser.setUsername(userDTO.getUsername());
         newUser.setPassword(encodedPassword);
+        System.out.println(userDTO.getPhone());
         newUser.setPhone(userDTO.getPhone());
         newUser.setRole("USER"); // 设置默认角色
         newUser.setStatus(0);    // 设置默认状态为正常
