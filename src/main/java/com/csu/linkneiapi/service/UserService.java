@@ -3,18 +3,18 @@ package com.csu.linkneiapi.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.csu.linkneiapi.dto.LoginDTO;
 import com.csu.linkneiapi.dto.ProfileUpdateDTO;
-import com.csu.linkneiapi.dto.UserDTO;
+import com.csu.linkneiapi.dto.RegisterDTO;
 import com.csu.linkneiapi.entity.User;
 import com.csu.linkneiapi.vo.JwtResponseVO;
 import com.csu.linkneiapi.vo.UserProfileVO;
 
 public interface UserService extends IService<User> {
-
+    
     /**
-     * 用户注册
-     * @param userDTO 注册信息
+     * 注册新用户并创建空的个人档案
+     * @param registerDTO 注册信息
      */
-    void register(UserDTO userDTO);
+    void registerWithProfile(RegisterDTO registerDTO);
     
     /**
      * 用户登录

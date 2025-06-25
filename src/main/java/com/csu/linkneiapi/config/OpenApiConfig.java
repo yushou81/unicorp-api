@@ -22,9 +22,9 @@ public class OpenApiConfig {
         
         return new OpenAPI()
                 .info(new Info()
-                        .title("内江移动支撑项目平台 API")
-                        .description("内江移动支撑项目平台的后端API文档")
-                        .version("v1.0.0")
+                        .title("校企联盟平台 API")
+                        .description("基于V2.0数据库模型的校企联盟平台API")
+                        .version("v2.0.0")
                         .contact(new Contact()
                                 .name("中南大学开发团队")
                                 .email("support@example.com")

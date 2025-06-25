@@ -1,7 +1,7 @@
-# Linknei API 项目
+# 校企联盟平台 API 项目
 
 ## 项目概述
-Linknei API是内江移动支撑项目平台的后端API服务，基于Spring Boot框架开发，提供RESTful API接口支持前端应用。
+校企联盟平台是一个致力于优化人力资源配置、提升企业人才队伍建设的系统，基于Spring Boot框架开发，提供RESTful API接口支持前端应用。本平台大力开展人才招募、技能培训、赛事组织、内培分享等公益性、行业性活动，助推企业创新驱动发展和产业提档升级。
 
 ## 技术栈
 - **Java 17**: 编程语言
@@ -34,36 +34,48 @@ src/main/java/com/csu/linkneiapi/
   │   ├── SecurityConfig.java          # Spring Security配置
   │   └── migration/                   # 数据库迁移配置
   ├── controller/                  # 控制器层
-  │   ├── MerchantController.java  # 商户相关API
-  │   ├── UserController.java      # 用户相关API
+  │   ├── EnterpriseController.java  # 企业相关API
+  │   ├── JobPostController.java     # 招聘岗位API
+  │   ├── UserController.java        # 用户相关API
   │   └── UserProfileController.java # 用户个人资料管理API
   ├── dto/                         # 数据传输对象
   │   ├── LoginDTO.java            # 用户登录DTO
-  │   ├── ProfileUpdateDTO.java    # 用户个人资料更新DTO
+  │   ├── ProfileUpdateDTO.java    # 用户简历更新DTO
   │   └── UserDTO.java             # 用户注册DTO
   ├── entity/                      # 实体类
-  │   ├── Merchant.java            # 商户实体
-  │   ├── Product.java             # 产品实体
-  │   └── User.java                # 用户实体
+  │   ├── Enterprise.java          # 企业实体
+  │   ├── EnterpriseMember.java    # 企业成员实体
+  │   ├── JobApplication.java      # 职位申请实体
+  │   ├── JobPost.java             # 招聘岗位实体
+  │   ├── User.java                # 用户实体
+  │   └── UserProfile.java         # 用户简历/档案实体
   ├── mapper/                      # Mapper接口
-  │   ├── MerchantMapper.java      # 商户数据访问接口
-  │   ├── ProductMapper.java       # 产品数据访问接口
-  │   └── UserMapper.java          # 用户数据访问接口
+  │   ├── EnterpriseMapper.java    # 企业数据访问接口
+  │   ├── EnterpriseMemberMapper.java # 企业成员数据访问接口
+  │   ├── JobApplicationMapper.java # 职位申请数据访问接口
+  │   ├── JobPostMapper.java       # 招聘岗位数据访问接口
+  │   ├── UserMapper.java          # 用户数据访问接口
+  │   └── UserProfileMapper.java   # 用户简历数据访问接口
   ├── service/                     # 服务接口
-  │   ├── MerchantService.java     # 商户服务接口
+  │   ├── EnterpriseService.java   # 企业服务接口
+  │   ├── JobPostService.java      # 招聘岗位服务接口
   │   ├── UserService.java         # 用户服务接口
+  │   ├── UserProfileService.java  # 用户简历服务接口
   │   └── impl/                    # 服务实现
-  │       ├── MerchantServiceImpl.java   # 商户服务实现
-  │       ├── UserDetailsServiceImpl.java # Spring Security用户服务实现
-  │       └── UserServiceImpl.java       # 用户服务实现
+  │       ├── EnterpriseServiceImpl.java   # 企业服务实现
+  │       ├── JobPostServiceImpl.java      # 招聘岗位服务实现
+  │       ├── UserDetailsServiceImpl.java  # Spring Security用户服务实现
+  │       ├── UserProfileServiceImpl.java  # 用户简历服务实现
+  │       └── UserServiceImpl.java         # 用户服务实现
   └── vo/                          # 视图对象
+      ├── EnterpriseDetailVO.java  # 企业详情视图对象
+      ├── EnterpriseSummaryVO.java # 企业摘要视图对象
+      ├── JobPostDetailVO.java     # 岗位详情视图对象
+      ├── JobPostSummaryVO.java    # 岗位摘要视图对象
       ├── JwtResponseVO.java       # JWT响应对象
-      ├── MerchantDetailVO.java    # 商户详情视图对象
-      ├── MerchantSummaryVO.java   # 商户摘要视图对象
       ├── PageResultVO.java        # 分页结果视图对象
-      ├── ProductSummaryVO.java    # 产品摘要视图对象
       ├── ResultVO.java            # 统一响应结果对象
-      └── UserProfileVO.java       # 用户个人资料视图对象
+      └── UserProfileVO.java       # 用户简历视图对象
 ```
 
 resources/
@@ -75,11 +87,12 @@ resources/
 ```
 
 ## 功能特性
-- 用户注册：支持用户名和密码注册，密码采用BCrypt加密存储
-- 用户登录：基于JWT的身份验证，生成令牌
-- 个人资料管理：查看和更新用户昵称、头像和手机号等个人信息，手机号码脱敏展示
-- 数据验证：使用Spring Validation进行入参验证，确保数据合法性
-- 接口保护：只有登录用户才能访问受保护的接口
+- 用户注册与认证：支持用户名和密码注册，密码采用BCrypt加密存储，基于JWT的身份验证
+- 简历档案管理：用户可以创建和维护个人简历，包括教育背景、工作经历等
+- 企业认证管理：支持企业认证流程，多成员角色管理
+- 招聘岗位发布：企业可以发布招聘信息，设置职位要求和薪资范围
+- 求职申请流程：求职者可以在线投递简历，查看申请状态
+- 数据权限控制：基于角色的权限管理，保障企业和个人数据安全
 - 全局异常处理：统一处理系统异常，返回友好提示
 - API文档：基于OpenAPI 3.0的自动生成API文档
 
@@ -227,6 +240,38 @@ resources/
 3. 服务器验证令牌的有效性并识别用户身份
 4. 令牌默认有效期为24小时
 5. 令牌过期后，客户端需要重新登录获取新令牌
+
+## 测试说明
+项目包含完整的测试套件，用于确保功能正确性和代码质量：
+
+### 测试结构
+测试代码位于`src/test/java`目录下，主要包含：
+
+- 单元测试：测试各个组件的独立功能
+  - 服务层测试（`service/`）
+  - 控制器测试（`controller/`）
+- 集成测试：测试组件之间的协作
+
+### 测试技术
+- JUnit 5：测试框架
+- Mockito：模拟依赖对象
+- MockMvc：模拟HTTP请求
+- H2 Database：内存数据库用于测试
+
+### 运行测试
+执行所有测试：
+```bash
+mvn test
+```
+
+执行特定测试类：
+```bash
+mvn test -Dtest=AuthServiceTest
+```
+
+### 测试文档
+详细的测试文档位于`docs/`目录下：
+- 测试文档-登录注册功能.md：登录注册功能的测试用例和结果
 
 ## 部署说明
 项目打包为JAR文件，可以通过以下命令构建：

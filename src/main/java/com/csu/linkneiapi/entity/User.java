@@ -21,7 +21,7 @@ public class User {
     private Long id;
 
     /**
-     * 用户名，唯一
+     * 登录用户名，唯一
      */
     private String username;
 
@@ -31,34 +31,24 @@ public class User {
     private String password;
     
     /**
-     * 用户昵称，用于显示
+     * 用户昵称
      */
     private String nickname;
     
     /**
-     * 用户头像地址
+     * 用户头像URL
      */
     private String avatarUrl;
     
     /**
-     * 手机号码，可用于登录或通知
+     * 手机号码，唯一
      */
     private String phone;
     
     /**
-     * 用户角色: USER, MERCHANT, ADMIN
-     */
-    private String role;
-    
-    /**
-     * 账户状态: 0-正常, 1-锁定, 2-已注销
+     * 账户状态: 0-正常, 1-锁定
      */
     private Integer status;
-    
-    /**
-     * 最后登录时间
-     */
-    private LocalDateTime lastLoginTime;
     
     /**
      * 逻辑删除: 0-未删除, 1-已删除
@@ -79,9 +69,8 @@ public class User {
     private LocalDateTime updateTime;
 
     /**
-     * 关联的商户信息（非数据库字段）
-     * 当用户角色为MERCHANT时，可以通过此字段获取关联的商户信息
+     * 关联的用户档案（非数据库字段）
      */
     @TableField(exist = false)
-    private Merchant merchantInfo;
+    private UserProfile profile;
 }

@@ -44,8 +44,11 @@ springdoc:
     operations-sorter: alpha # 按字母顺序排序操作
   # 包含的路径，限制文档只显示指定路径下的API
   paths-to-match: 
+    - /auth/**
     - /user/**
-    - /merchants/**
+    - /job-applications/**
+    - /job-posts/**
+    - /enterprises/**
 
 # MyBatis-Plus 相关配置
 mybatis-plus:

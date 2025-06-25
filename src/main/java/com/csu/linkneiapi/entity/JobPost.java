@@ -8,66 +8,65 @@ import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 产品/服务实体类
+ * 招聘岗位实体类
  */
 @Data
-@TableName("product") // 指定该实体类对应数据库中的'product'表
-public class Product {
+@TableName("job_post")
+public class JobPost {
 
-    @TableId(type = IdType.AUTO) // 声明主键，并设置为自增
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
-     * 所属商户ID
+     * 发布岗位的企业ID
      */
-    private Long merchantId;
+    private Long enterpriseId;
     
     /**
-     * 产品分类ID (未来可扩展)
+     * 发布该岗位的HR或管理员ID
      */
-    private Long categoryId;
+    private Long postedByUserId;
 
     /**
-     * 产品/服务名称
+     * 岗位名称
      */
-    private String name;
-
-    /**
-     * 产品描述
-     */
-    private String description;
-
-    /**
-     * 价格
-     */
-    private BigDecimal price;
-
-    /**
-     * 产品主图地址
-     */
-    private String imageUrl;
-
-    /**
-     * 库存数量
-     */
-    private Integer stock;
+    private String title;
     
     /**
-     * 销量, 用于热门推荐排序
+     * 工作类型: FULL_TIME, PART_TIME, INTERNSHIP
      */
-    private Integer salesCount;
+    private String jobType;
     
     /**
-     * 产品状态: ON_SALE-在售, SOLD_OUT-售罄, OFF_SHELF-已下架
+     * 工作地点
+     */
+    private String location;
+    
+    /**
+     * 薪资范围, e.g., "10-15K"
+     */
+    private String salaryRange;
+    
+    /**
+     * 岗位职责
+     */
+    private String responsibilities;
+    
+    /**
+     * 任职要求
+     */
+    private String requirements;
+    
+    /**
+     * 招聘状态: HIRING-招聘中, CLOSED-已关闭
      */
     private String status;
     
     /**
-     * 逻辑删除: 0-未删除, 1-已删除
+     * 逻辑删除
      */
     @TableLogic
     private Integer isDeleted;
@@ -85,8 +84,14 @@ public class Product {
     private LocalDateTime updateTime;
     
     /**
-     * 所属商户信息（非数据库字段）
+     * 发布企业信息（非数据库字段）
      */
     @TableField(exist = false)
-    private Merchant merchantInfo;
+    private Enterprise enterprise;
+    
+    /**
+     * 发布人信息（非数据库字段）
+     */
+    @TableField(exist = false)
+    private User postedByUser;
 } 

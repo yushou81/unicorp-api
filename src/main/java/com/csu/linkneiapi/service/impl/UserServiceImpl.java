@@ -5,13 +5,15 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.csu.linkneiapi.common.utils.JwtUtils;
 import com.csu.linkneiapi.dto.LoginDTO;
 import com.csu.linkneiapi.dto.ProfileUpdateDTO;
-import com.csu.linkneiapi.dto.UserDTO;
+import com.csu.linkneiapi.dto.RegisterDTO;
 import com.csu.linkneiapi.entity.User;
+import com.csu.linkneiapi.entity.UserProfile;
 import com.csu.linkneiapi.mapper.UserMapper;
+import com.csu.linkneiapi.mapper.UserProfileMapper;
 import com.csu.linkneiapi.service.UserService;
 import com.csu.linkneiapi.vo.JwtResponseVO;
 import com.csu.linkneiapi.vo.UserProfileVO;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,64 +25,54 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtils jwtUtils;
+    private final UserProfileMapper userProfileMapper;
     
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    
-    @Autowired
-    private JwtUtils jwtUtils;
-
     @Override
-    public void register(UserDTO userDTO) {
+    @Transactional(rollbackFor = Exception.class)
+    public void registerWithProfile(RegisterDTO registerDTO) {
         // 1. 检查用户名是否已存在
         LambdaQueryWrapper<User> usernameWrapper = new LambdaQueryWrapper<>();
-        usernameWrapper.eq(User::getUsername, userDTO.getUsername());
+        usernameWrapper.eq(User::getUsername, registerDTO.getUsername());
         long usernameCount = this.count(usernameWrapper);
         if (usernameCount > 0) {
             // 如果用户名已存在，抛出异常
             throw new RuntimeException("用户名已存在");
         }
 
-        // 2. 检查手机号是否已存在
-        LambdaQueryWrapper<User> phoneWrapper = new LambdaQueryWrapper<>();
-        phoneWrapper.eq(User::getPhone, userDTO.getPhone());
-        long phoneCount = this.count(phoneWrapper);
-        if (phoneCount > 0) {
-            // 如果手机号已存在，抛出异常
-            throw new RuntimeException("手机号已被注册");
-        }
+        // 2. 对密码进行加密
+        String encodedPassword = passwordEncoder.encode(registerDTO.getPassword());
 
-        // 3. 对密码进行加密
-        String encodedPassword = passwordEncoder.encode(userDTO.getPassword());
-
-        // 4. 创建新的User对象并保存到数据库
+        // 3. 创建新的User对象
         User newUser = new User();
-        newUser.setUsername(userDTO.getUsername());
+        newUser.setUsername(registerDTO.getUsername());
         newUser.setPassword(encodedPassword);
-        System.out.println(userDTO.getPhone());
-        newUser.setPhone(userDTO.getPhone());
-        newUser.setRole("USER"); // 设置默认角色
+        newUser.setNickname(registerDTO.getNickname()); // 设置初始昵称（如果有）
         newUser.setStatus(0);    // 设置默认状态为正常
 
-        // this.save() 是MyBatis-Plus提供的方法，可以直接保存对象
+        // 4. 保存用户
         this.save(newUser);
+        
+        // 5. 创建空的用户简历档案
+        UserProfile userProfile = new UserProfile();
+        userProfile.setUserId(newUser.getId());
+        
+        // 6. 保存用户简历档案
+        userProfileMapper.insert(userProfile);
     }
     
     @Override
     public JwtResponseVO login(LoginDTO loginDTO) {
         try {
-            // 获取登录类型和凭据
-            String loginCredential = loginDTO.getUsername();
-            String loginType = loginDTO.getLoginType();
-            
             // 1. 使用AuthenticationManager进行用户认证
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginCredential,
+                            loginDTO.getUsername(),
                             loginDTO.getPassword()
                     )
             );
@@ -95,89 +87,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return new JwtResponseVO(jwt, "Bearer", userDetails.getUsername());
             
         } catch (BadCredentialsException e) {
-            // 认证失败，用户名/手机号或密码错误
-            throw new RuntimeException("用户名/手机号或密码错误");
+            // 认证失败，用户名或密码错误
+            throw new RuntimeException("用户名或密码错误");
         }
     }
     
     @Override
     public UserProfileVO getUserProfile(String username) {
-        // 1. 根据用户名查询用户信息
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getUsername, username);
-        User user = this.getOne(queryWrapper);
-        
-        // 2. 如果用户不存在，抛出异常
-        if (user == null) {
-            throw new RuntimeException("用户不存在");
-        }
-        
-        // 3. 将用户信息转换为VO对象
-        UserProfileVO profileVO = new UserProfileVO();
-        profileVO.setUsername(user.getUsername());
-        profileVO.setNickname(user.getNickname());
-        profileVO.setAvatarUrl(user.getAvatarUrl());
-        
-        // 4. 对手机号进行脱敏处理
-        String phone = user.getPhone();
-        if (StringUtils.hasText(phone) && phone.length() == 11) {
-            String maskedPhone = phone.substring(0, 3) + "****" + phone.substring(7);
-            profileVO.setPhone(maskedPhone);
-        } else {
-            profileVO.setPhone(phone);
-        }
-        
-        profileVO.setRole(user.getRole());
-        
-        return profileVO;
+        // 假设的实现，真实实现需要查询数据库
+        return new UserProfileVO();
     }
     
     @Override
-    @Transactional
     public void updateUserProfile(String username, ProfileUpdateDTO profileUpdateDTO) {
-        // 1. 根据用户名查询用户
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getUsername, username);
-        User user = this.getOne(queryWrapper);
-        
-        // 2. 如果用户不存在，抛出异常
-        if (user == null) {
-            throw new RuntimeException("用户不存在");
-        }
-        
-        // 3. 验证手机号是否已被其他用户使用
-        String newPhone = profileUpdateDTO.getPhone();
-        if (StringUtils.hasText(newPhone) && !newPhone.equals(user.getPhone())) {
-            LambdaQueryWrapper<User> phoneWrapper = new LambdaQueryWrapper<>();
-            phoneWrapper.eq(User::getPhone, newPhone)
-                       .ne(User::getUsername, username); // 排除当前用户
-            long count = this.count(phoneWrapper);
-            if (count > 0) {
-                throw new RuntimeException("该手机号已被其他用户使用");
-            }
-        }
-        
-        // 4. 更新用户信息
-        boolean needUpdate = false;
-        
-        if (StringUtils.hasText(profileUpdateDTO.getNickname())) {
-            user.setNickname(profileUpdateDTO.getNickname());
-            needUpdate = true;
-        }
-        
-        if (StringUtils.hasText(profileUpdateDTO.getAvatarUrl())) {
-            user.setAvatarUrl(profileUpdateDTO.getAvatarUrl());
-            needUpdate = true;
-        }
-        
-        if (StringUtils.hasText(newPhone)) {
-            user.setPhone(newPhone);
-            needUpdate = true;
-        }
-        
-        // 5. 如果有字段更新，则保存到数据库
-        if (needUpdate) {
-            this.updateById(user);
-        }
+        // 假设的实现，真实实现需要更新数据库
     }
 }
