@@ -1,5 +1,6 @@
 package com.csu.linkneiapi.vo;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -7,21 +8,25 @@ import lombok.Data;
  * @param <T>
  */
 @Data
+@Schema(description = "统一API响应结果")
 public class ResultVO<T> {
 
     /**
      * 业务状态码 (例如: 200代表成功, 500代表业务失败)
      */
+    @Schema(description = "业务状态码", example = "200")
     private Integer code;
 
     /**
      * 响应信息
      */
+    @Schema(description = "响应信息", example = "操作成功")
     private String message;
 
     /**
      * 响应数据
      */
+    @Schema(description = "响应数据")
     private T data;
 
     // 构造函数

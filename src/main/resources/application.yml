@@ -14,6 +14,38 @@ spring:
     url: jdbc:mysql://localhost:3306/linknei_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root # 数据库用户名
     password: 123456 # 数据库密码
+  # Flyway配置
+  flyway:
+    enabled: true # 启用Flyway
+    locations: classpath:db/migration # 迁移脚本位置
+    baseline-on-migrate: true # 如果数据库不是空的，自动执行基准迁移
+    out-of-order: false # 是否允许无序执行
+    validate-on-migrate: true # 迁移时是否校验
+    table: flyway_schema_history # Flyway元数据表名
+    # 如果需要清理数据库（开发环境可用，生产环境禁用）
+    clean-disabled: true # 禁用clean操作，防止意外删除数据
+  logging:
+     level:
+       org.flywaydb: DEBUG
+# JWT配置
+jwt:
+  secret: Oe8H9XZ3x2NpDQfY9vTr5qK6sLm7oP3aUv1wMxB2zC3yD4fE5gF6hG7jH8kJ
+  expiration: 86400000 # 24小时(毫秒)
+
+# SpringDoc配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+    tags-sorter: alpha # 按字母顺序排序标签
+    operations-sorter: alpha # 按字母顺序排序操作
+  # 包含的路径，限制文档只显示指定路径下的API
+  paths-to-match: 
+    - /user/**
+    - /merchants/**
 
 # MyBatis-Plus 相关配置
 mybatis-plus:
