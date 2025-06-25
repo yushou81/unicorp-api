@@ -17,6 +17,13 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import com.csu.linkneiapi.dto.MerchantRegisterDTO;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import jakarta.validation.Valid;
+import com.csu.linkneiapi.service.UserService;
+import com.csu.linkneiapi.entity.User;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * 商户Controller
@@ -28,6 +35,8 @@ import org.springframework.web.bind.annotation.*;
 public class MerchantController {
     
     private final MerchantService merchantService;
+    @Autowired
+    private UserService userService;
     
     public MerchantController(MerchantService merchantService) {
         this.merchantService = merchantService;
@@ -89,5 +98,42 @@ public class MerchantController {
         
         MerchantDetailVO merchantDetail = merchantService.getMerchantDetail(id);
         return ResultVO.success(merchantDetail);
+    }
+
+    /**
+     * 商户注册接口
+     */
+    @PostMapping("/register")
+    @Operation(summary = "商户注册", description = "普通用户注册为商户，需填写商户信息")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "注册成功",
+                content = @Content(mediaType = "application/json",
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "400", description = "注册失败",
+                content = @Content(mediaType = "application/json",
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    public ResultVO<?> registerMerchant(@Valid @RequestBody MerchantRegisterDTO dto) {
+        // 获取当前登录用户
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        // 这里假设用户名唯一，通过用户名查找用户ID
+        // 实际项目可优化为直接在token中存userId
+        // 这里建议你后续可将userId放入token的claims中
+        User user = null;
+        try {
+            user = userService.lambdaQuery().eq(User::getUsername, username).one();
+        } catch (Exception e) {
+            return ResultVO.error(400, "无法获取当前用户信息");
+        }
+        if (user == null) {
+            return ResultVO.error(400, "用户不存在");
+        }
+        try {
+            merchantService.registerMerchant(user.getId(), dto);
+            return ResultVO.success("商户注册成功，等待审核");
+        } catch (Exception e) {
+            return ResultVO.error(400, e.getMessage());
+        }
     }
 } 
