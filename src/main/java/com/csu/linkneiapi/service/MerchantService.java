@@ -5,6 +5,7 @@ import com.csu.linkneiapi.entity.Merchant;
 import com.csu.linkneiapi.vo.MerchantDetailVO;
 import com.csu.linkneiapi.vo.PageResultVO;
 import com.csu.linkneiapi.vo.MerchantSummaryVO;
+import com.csu.linkneiapi.dto.MerchantRegisterDTO;
 
 /**
  * 商户Service接口
@@ -25,4 +26,11 @@ public interface MerchantService extends IService<Merchant> {
      * @return 商户详情
      */
     MerchantDetailVO getMerchantDetail(Long id);
+
+    /**
+     * 商户注册
+     * @param userId 当前用户ID
+     * @param dto 商户注册信息
+     */
+    void registerMerchant(Long userId, MerchantRegisterDTO dto);
 } 

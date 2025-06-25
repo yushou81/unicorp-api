@@ -35,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         // 从请求头中获取"Authorization"
         final String authorizationHeader = request.getHeader("Authorization");
-        
+        System.out.println("用户访问API："+ request.getRequestURI());
         String username = null;
         String jwtToken = null;
         
