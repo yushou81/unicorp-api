@@ -46,6 +46,7 @@ springdoc:
   paths-to-match: 
     - /user/**
     - /merchants/**
+    - /map/**
 
 # MyBatis-Plus 相关配置
 mybatis-plus:
@@ -64,3 +65,7 @@ mybatis-plus:
     map-underscore-to-camel-case: true
     # 控制台打印SQL，方便开发调试
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# 高德地图API配置
+amap:
+  key: "6ac0fa4484bd83396be5cf7440a806c3" # 请替换为你的高德地图API key
