@@ -44,6 +44,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <!-- 数据验证依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
         <!-- MyBatis-Plus是MyBatis的增强工具，可以极大简化CRUD操作。-->
         <!-- 它已经自动包含了 mybatis-spring-boot-starter，所以我们不需要再重复引入。-->
         <!-- https://mvnrepository.com/artifact/com.baomidou/mybatis-plus-boot-starter -->
@@ -86,13 +91,11 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <!--            <version>11.9.1</version>-->
         </dependency>
         <!-- MySQL驱动的Flyway扩展，适用于MySQL 8+ -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-mysql</artifactId>
-            <!--            <version>11.9.1</version>-->
         </dependency>
         <!-- MySQL 数据库连接驱动 -->
         <dependency>
@@ -130,6 +133,13 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
+        <!-- H2内存数据库，用于单元测试 -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
 

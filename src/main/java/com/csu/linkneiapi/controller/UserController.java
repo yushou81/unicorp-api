@@ -13,9 +13,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/user") // 结合yml中的context-path，完整路径是 /api/user
 @Tag(name = "用户管理", description = "用户注册、登录和信息管理相关接口")
+@Validated
 public class UserController {
 
     @Autowired
@@ -38,11 +41,14 @@ public class UserController {
                 schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "400", description = "用户名或手机号已存在",
                 content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "422", description = "输入数据验证失败",
+                content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
     public ResultVO<?> register(
             @Parameter(description = "用户注册信息", required = true) 
-            @RequestBody UserDTO userDTO) {
+            @Valid @RequestBody UserDTO userDTO) {
         try {
             userService.register(userDTO);
             // 注册成功，返回成功信息
@@ -62,11 +68,14 @@ public class UserController {
                 schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "401", description = "用户名/手机号或密码错误",
                 content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "422", description = "输入数据验证失败",
+                content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
     public ResultVO<?> login(
             @Parameter(description = "用户登录信息", required = true) 
-            @RequestBody LoginDTO loginDTO) {
+            @Valid @RequestBody LoginDTO loginDTO) {
         try {
             // 调用Service进行登录验证，成功则返回JWT令牌
             JwtResponseVO jwtResponse = userService.login(loginDTO);

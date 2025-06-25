@@ -27,3 +27,6 @@ alwaysApply: true
 - 要求3:
 
 生成代码时请添加必要的注释
+
+- 要求4：
+创建新的文件，请在 [README.md](mdc:README.md)中的项目结构部分进行补充
