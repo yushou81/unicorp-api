@@ -6,8 +6,11 @@ import com.csu.linkneiapi.entity.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import com.csu.linkneiapi.config.TestDataSourceConfig;
+//import com.csu.linkneiapi.config.TestInitializer;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test") // 使用测试专用配置文件
 @Transactional // 测试完成后回滚事务，不影响数据库
+@Import(TestDataSourceConfig.class) // 导入测试数据源配置
 public class UserMapperTest {
 
     @Autowired

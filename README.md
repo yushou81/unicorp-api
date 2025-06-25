@@ -35,9 +35,11 @@ src/main/java/com/csu/linkneiapi/
   │   └── migration/                   # 数据库迁移配置
   ├── controller/                  # 控制器层
   │   ├── MerchantController.java  # 商户相关API
-  │   └── UserController.java      # 用户相关API
+  │   ├── UserController.java      # 用户相关API
+  │   └── UserProfileController.java # 用户个人资料管理API
   ├── dto/                         # 数据传输对象
   │   ├── LoginDTO.java            # 用户登录DTO
+  │   ├── ProfileUpdateDTO.java    # 用户个人资料更新DTO
   │   └── UserDTO.java             # 用户注册DTO
   ├── entity/                      # 实体类
   │   ├── Merchant.java            # 商户实体
@@ -60,7 +62,8 @@ src/main/java/com/csu/linkneiapi/
       ├── MerchantSummaryVO.java   # 商户摘要视图对象
       ├── PageResultVO.java        # 分页结果视图对象
       ├── ProductSummaryVO.java    # 产品摘要视图对象
-      └── ResultVO.java            # 统一响应结果对象
+      ├── ResultVO.java            # 统一响应结果对象
+      └── UserProfileVO.java       # 用户个人资料视图对象
 ```
 
 resources/
@@ -74,6 +77,7 @@ resources/
 ## 功能特性
 - 用户注册：支持用户名和密码注册，密码采用BCrypt加密存储
 - 用户登录：基于JWT的身份验证，生成令牌
+- 个人资料管理：查看和更新用户昵称、头像和手机号等个人信息，手机号码脱敏展示
 - 数据验证：使用Spring Validation进行入参验证，确保数据合法性
 - 接口保护：只有登录用户才能访问受保护的接口
 - 全局异常处理：统一处理系统异常，返回友好提示
@@ -170,6 +174,48 @@ resources/
       "code": 200,
       "message": "操作成功",
       "data": "当前登录用户: 用户名"
+    }
+    ```
+
+- 获取用户个人资料: GET /api/user/profile
+  - 请求头: 
+    ```
+    Authorization: Bearer {token}
+    ```
+  - 响应:
+    ```json
+    {
+      "code": 200,
+      "message": "操作成功",
+      "data": {
+        "username": "用户名",
+        "nickname": "用户昵称",
+        "avatarUrl": "头像URL",
+        "phone": "138****8888",
+        "role": "USER"
+      }
+    }
+    ```
+
+- 更新用户个人资料: PUT /api/user/profile
+  - 请求头: 
+    ```
+    Authorization: Bearer {token}
+    ```
+  - 请求体:
+    ```json
+    {
+      "nickname": "新昵称",
+      "avatarUrl": "新头像URL",
+      "phone": "13900000000"
+    }
+    ```
+  - 响应:
+    ```json
+    {
+      "code": 200,
+      "message": "操作成功",
+      "data": null
     }
     ```
 
