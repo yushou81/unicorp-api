@@ -47,7 +47,7 @@ public class SecurityConfig {
                 // 配置请求授权规则
                 .authorizeHttpRequests(auth -> auth
                         // 允许任何人访问登录和注册接口 (包括旧接口和新接口)
-                        .requestMatchers("/auth/register", "/auth/login").permitAll()
+                        .requestMatchers("/auth/register", "/auth/login","/map/**").permitAll()
                         // 允许访问API文档相关资源
                         .requestMatchers(
                                 "/v3/api-docs/**",

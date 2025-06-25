@@ -49,6 +49,7 @@ springdoc:
     - /job-applications/**
     - /job-posts/**
     - /enterprises/**
+    - /map/**
 
 # MyBatis-Plus 相关配置
 mybatis-plus:
