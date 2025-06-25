@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.csu.linkneiapi.mapper.MerchantMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.csu.linkneiapi.entity.Merchant">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="name" property="name" />
+        <result column="address" property="address" />
+        <result column="phone" property="phone" />
+        <result column="description" property="description" />
+        <result column="logo_url" property="logoUrl" />
+        <result column="business_hours" property="businessHours" />
+        <result column="average_rating" property="averageRating" />
+        <result column="latitude" property="latitude" />
+        <result column="longitude" property="longitude" />
+        <result column="status" property="status" />
+        <result column="is_deleted" property="isDeleted" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+    
+    <!-- 商户列表项结果映射 -->
+    <resultMap id="MerchantSummaryMap" type="com.csu.linkneiapi.vo.MerchantSummaryVO">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="address" property="address" />
+        <result column="logo_url" property="logoUrl" />
+        <result column="average_rating" property="averageRating" />
+    </resultMap>
+    
+    <!-- 商户详情结果映射（包含产品列表） -->
+    <resultMap id="MerchantDetailMap" type="com.csu.linkneiapi.entity.Merchant" extends="BaseResultMap">
+        <!-- 一对多关联查询产品列表 -->
+        <collection property="products" ofType="com.csu.linkneiapi.entity.Product">
+            <id column="product_id" property="id" />
+            <result column="product_name" property="name" />
+            <result column="product_description" property="description" />
+            <result column="product_price" property="price" />
+            <result column="product_image_url" property="imageUrl" />
+            <result column="product_stock" property="stock" />
+            <result column="product_sales_count" property="salesCount" />
+            <result column="product_status" property="status" />
+        </collection>
+    </resultMap>
+    
+    <!-- 分页查询商户列表 -->
+    <select id="selectMerchantSummaryPage" resultMap="MerchantSummaryMap">
+        SELECT 
+            id, name, address, logo_url, average_rating
+        FROM 
+            merchant
+        WHERE 
+            is_deleted = 0
+            AND status = 'OPEN'
+        ORDER BY 
+            average_rating DESC, id DESC
+    </select>
+    
+    <!-- 根据ID查询商户详情，包括产品列表 -->
+    <select id="selectMerchantDetailById" resultMap="MerchantDetailMap">
+        SELECT 
+            m.id, m.user_id, m.name, m.address, m.phone, m.description, 
+            m.logo_url, m.business_hours, m.average_rating, m.status,
+            p.id AS product_id, p.name AS product_name, p.description AS product_description, 
+            p.price AS product_price, p.image_url AS product_image_url, 
+            p.stock AS product_stock, p.sales_count AS product_sales_count, 
+            p.status AS product_status
+        FROM 
+            merchant m
+        LEFT JOIN 
+            product p ON m.id = p.merchant_id AND p.is_deleted = 0 AND p.status = 'ON_SALE'
+        WHERE 
+            m.id = #{id}
+            AND m.is_deleted = 0
+    </select>
+</mapper> 
