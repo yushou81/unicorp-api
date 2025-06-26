@@ -10,7 +10,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.csu</groupId>
-    <artifactId>linknei-api</artifactId>
+    <artifactId>unicorp-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <!-- 对于内嵌Tomcat的Spring Boot应用，jar包是更现代、更标准的打包方式，便于部署。-->
     <packaging>jar</packaging>
