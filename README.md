@@ -110,6 +110,25 @@ unicorp-api/
 2. **实名认证 (UserVerification)**：隔离存储用户实名信息，提高数据安全性
 3. **学生档案 (StudentProfile)**：存储学生特有的专业、教育水平等信息
 
+## 已实现功能
+
+### 第一次迭代 - 基础用户体系与组织管理
+- 用户登录注册体系（基于Spring Security + JWT）
+- 组织管理（学校/企业）
+- 角色权限管理
+- 用户实名认证模型
+
+已实现API:
+1. 用户登录 - POST `/v1/auth/login`
+2. 学生注册 - POST `/v1/auth/register/student`
+3. 获取当前用户信息 - GET `/v1/auth/me`
+4. 获取所有学校列表 - GET `/v1/organizations/schools`
+5. 管理员创建学校 - POST `/v1/admin/organizations/schools`
+
+系统默认账号:
+- 系统管理员账号: admin1, admin2, admin3, admin4, admin5
+- 默认密码: admin123
+
 ## 如何运行
 
 ### 环境要求

@@ -55,6 +55,22 @@ public interface UserService {
     User getByAccount(String account);
     
     /**
+     * 根据邮箱查询用户
+     * 
+     * @param email 电子邮箱
+     * @return 用户实体
+     */
+    User getByEmail(String email);
+    
+    /**
+     * 根据手机号查询用户
+     * 
+     * @param phone 手机号
+     * @return 用户实体
+     */
+    User getByPhone(String phone);
+    
+    /**
      * 获取用户角色列表
      * 
      * @param userId 用户ID

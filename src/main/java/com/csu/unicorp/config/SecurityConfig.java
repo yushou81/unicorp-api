@@ -1,6 +1,11 @@
 package com.csu.unicorp.config;
 
 import com.csu.unicorp.config.security.JwtAuthenticationFilter;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,8 +49,8 @@ public class SecurityConfig {
                     .requestMatchers("/v1/organizations/schools").permitAll()
                     // Swagger UI and API docs
                     .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                    // 管理接口需要ADMIN权限
-                    .requestMatchers("/v1/admin/**").hasRole("ADMIN")
+                    // 管理接口需要SYSADMIN权限
+                    .requestMatchers("/v1/admin/**").hasRole("SYSADMIN")
                     // 其他所有请求需要认证
                     .anyRequest().authenticated()
                 )
@@ -80,5 +85,25 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+    
+    /**
+     * OpenAPI配置（Swagger文档）
+     */
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .components(new Components()
+                        .addSecuritySchemes("bearerAuth", new SecurityScheme()
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")))
+                .info(new Info()
+                        .title("校企合作平台 API")
+                        .description("校企合作平台 RESTful API 文档")
+                        .version("1.0.0")
+                        .contact(new Contact()
+                                .name("CSU Team")
+                                .email("support@unicorp.com")));
     }
 }

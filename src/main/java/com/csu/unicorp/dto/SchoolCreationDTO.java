@@ -31,12 +31,6 @@ public class SchoolCreationDTO {
     private String website;
     
     /**
-     * 学校管理员账号
-     */
-    @NotBlank(message = "管理员账号不能为空")
-    private String adminAccount;
-    
-    /**
      * 学校管理员昵称
      */
     private String adminNickname;
@@ -51,6 +45,6 @@ public class SchoolCreationDTO {
      * 学校管理员邮箱
      */
     @NotBlank(message = "管理员邮箱不能为空")
-    @Email(message = "邮箱格式不正确")
+    @Email(message = "管理员邮箱格式不正确")
     private String adminEmail;
 } 

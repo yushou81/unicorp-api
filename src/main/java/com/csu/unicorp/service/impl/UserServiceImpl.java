@@ -1,25 +1,24 @@
 package com.csu.unicorp.service.impl;
 
 import com.csu.unicorp.common.exception.BusinessException;
+import com.csu.unicorp.common.utils.AccountGenerator;
 import com.csu.unicorp.common.utils.JwtUtil;
 import com.csu.unicorp.dto.LoginCredentialsDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
 import com.csu.unicorp.entity.Organization;
-import com.csu.unicorp.entity.Role;
 import com.csu.unicorp.entity.User;
-import com.csu.unicorp.entity.UserRole;
 import com.csu.unicorp.entity.UserVerification;
-import com.csu.unicorp.mapper.RoleMapper;
 import com.csu.unicorp.mapper.UserMapper;
-import com.csu.unicorp.mapper.UserRoleMapper;
 import com.csu.unicorp.mapper.UserVerificationMapper;
 import com.csu.unicorp.service.OrganizationService;
+import com.csu.unicorp.service.RoleService;
 import com.csu.unicorp.service.UserService;
 import com.csu.unicorp.vo.TokenVO;
 import com.csu.unicorp.vo.UserVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -39,19 +38,41 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
     
     private final UserMapper userMapper;
-    private final UserRoleMapper userRoleMapper;
     private final UserVerificationMapper userVerificationMapper;
-    private final RoleMapper roleMapper;
     private final OrganizationService organizationService;
+    private final RoleService roleService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final AccountGenerator accountGenerator;
     
     @Override
     public TokenVO login(LoginCredentialsDTO loginDto) {
-        // 使用Spring Security的AuthenticationManager进行身份验证
+        // 根据登录类型查找用户
+        User user = null;
+        switch (loginDto.getLoginType()) {
+            case "account":
+                user = userMapper.selectByAccount(loginDto.getPrincipal());
+                break;
+            case "email":
+                // 这里需要添加通过邮箱查询用户的方法
+                user = userMapper.selectByEmail(loginDto.getPrincipal());
+                break;
+            case "phone":
+                // 这里需要添加通过手机号查询用户的方法
+                user = userMapper.selectByPhone(loginDto.getPrincipal());
+                break;
+            default:
+                throw new BusinessException("不支持的登录类型");
+        }
+        
+        if (user == null) {
+            throw new BadCredentialsException("用户不存在");
+        }
+        
+        // 使用找到的用户账号和输入的密码进行认证
         Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(loginDto.getAccount(), loginDto.getPassword())
+            new UsernamePasswordAuthenticationToken(user.getAccount(), loginDto.getPassword())
         );
         
         // 如果认证通过，获取用户详情并生成JWT令牌
@@ -64,10 +85,18 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserVO registerStudent(StudentRegistrationDTO registrationDto) {
-        // 检查账号和邮箱是否已存在
-        User existingUser = userMapper.selectByAccount(registrationDto.getAccount());
-        if (existingUser != null) {
-            throw new BusinessException("账号已存在");
+        // 检查邮箱是否已存在
+        User existingUserByEmail = userMapper.selectByEmail(registrationDto.getEmail());
+        if (existingUserByEmail != null) {
+            throw new BusinessException("该邮箱已被注册");
+        }
+        
+        // 如果提供了手机号，检查是否已存在
+        if (registrationDto.getPhone() != null && !registrationDto.getPhone().isEmpty()) {
+            User existingUserByPhone = userMapper.selectByPhone(registrationDto.getPhone());
+            if (existingUserByPhone != null) {
+                throw new BusinessException("该手机号已被注册");
+            }
         }
         
         // 检查组织是否存在
@@ -84,14 +113,18 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException("所选学校未通过审核");
         }
         
+        // 生成系统账号
+        String generatedAccount = accountGenerator.generateStudentAccount(organization);
+        
         // 创建用户实体
         User user = new User();
-        user.setAccount(registrationDto.getAccount());
+        user.setAccount(generatedAccount);
         user.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
         user.setEmail(registrationDto.getEmail());
+        user.setPhone(registrationDto.getPhone());
         user.setNickname(registrationDto.getNickname() != null 
                 ? registrationDto.getNickname() 
-                : registrationDto.getAccount());
+                : registrationDto.getRealName()); // 如果未提供昵称，默认使用实名
         user.setOrganizationId(registrationDto.getOrganizationId());
         user.setStatus("active"); // 学生注册直接设置为活跃状态
         
@@ -108,7 +141,7 @@ public class UserServiceImpl implements UserService {
         userVerificationMapper.insert(verification);
         
         // 分配学生角色
-        assignRoleToUser(user.getId(), "学生");
+        roleService.assignRoleToUser(user.getId(), "学生");
         
         // 返回用户VO
         return convertToVO(user);
@@ -135,38 +168,18 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
+    public User getByEmail(String email) {
+        return userMapper.selectByEmail(email);
+    }
+    
+    @Override
+    public User getByPhone(String phone) {
+        return userMapper.selectByPhone(phone);
+    }
+    
+    @Override
     public List<String> getUserRoles(Integer userId) {
         return userMapper.selectRolesByUserId(userId);
-    }
-    
-    /**
-     * 为用户分配角色
-     * 
-     * @param userId 用户ID
-     * @param roleName 角色名称
-     */
-    private void assignRoleToUser(Integer userId, String roleName) {
-        // 根据角色名称查询角色
-        Role role = findRoleByName(roleName);
-        if (role == null) {
-            throw new BusinessException("角色[" + roleName + "]不存在");
-        }
-        
-        UserRole userRole = new UserRole();
-        userRole.setUserId(userId);
-        userRole.setRoleId(role.getId());
-        
-        userRoleMapper.insert(userRole);
-    }
-    
-    /**
-     * 根据角色名称查找角色
-     * 
-     * @param roleName 角色名称
-     * @return 角色实体
-     */
-    private Role findRoleByName(String roleName) {
-        return roleMapper.selectByRoleName(roleName);
     }
     
     /**
