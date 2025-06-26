@@ -3,9 +3,9 @@ openapi: 3.0.3
 
 # API 基本信息
 info:
-  title: "校企联盟平台 (Unicorp) API"
-  description: "为校企联盟平台提供后端服务的RESTful API。包含了用户认证、组织管理、岗位招聘、项目合作等核心功能。"
-  version: "1.0.0"
+  title: "校企联盟平台 - 第一次迭代API"
+  description: "本次迭代的核心目标是实现“管理员录入学校 -> 学生根据学校列表成功注册并登录”的完整功能闭环。"
+  version: "1.1.0-sprint1"
 
 # 服务器配置
 servers:
@@ -15,55 +15,29 @@ servers:
 # 标签定义，用于对API进行分组
 tags:
   - name: "Authentication"
-    description: "用户认证、注册与会话管理"
+    description: "登录与注册"
   - name: "Organizations"
-    description: "组织信息管理 (学校与企业)"
-  - name: "Users"
-    description: "用户个人信息管理"
-  - name: "Jobs"
-    description: "招聘岗位管理"
+    description: "组织管理 (本次迭代仅含获取学校列表)"
   - name: "Admin"
-    description: "系统管理员专属接口"
+    description: "系统管理员后台接口 (本次迭代仅含创建学校)"
 
 # API 路径定义
 paths:
   # ===============================================================
-  # Authentication 标签下的路径
+  # Authentication (登录与注册)
   # ===============================================================
-  /auth/register:
-    post:
-      tags:
-        - "Authentication"
-      summary: "用户公开注册"
-      description: "供学生或企业代表进行公开注册，注册后状态为'pending_approval'，需要管理员审核。"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserRegistration'
-      responses:
-        '201':
-          description: "注册成功，等待审核"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          description: "无效的输入，或用户名/邮箱已存在"
-
   /auth/login:
     post:
       tags:
         - "Authentication"
-      summary: "用户登录"
-      description: "用户使用用户名和密码登录，成功后返回JWT。"
+      summary: "通用登录接口"
+      description: "用户使用账号和密码登录，成功后返回JWT。后端需校验用户status为'active'。"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginCredentials'
+              $ref: '#/components/schemas/login_credentials'
       responses:
         '200':
           description: "登录成功"
@@ -76,14 +50,36 @@ paths:
                     type: string
                     description: "JWT认证令牌"
         '401':
-          description: "认证失败 (用户名或密码错误 / 账户未激活或待审核)"
+          description: "认证失败"
+
+  /auth/register/student:
+    post:
+      tags:
+        - "Authentication"
+      summary: "学生注册接口"
+      description: "学生选择已存在的学校进行注册，并提供实名信息。注册后状态直接为'active'。"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/student_registration'
+      responses:
+        '201':
+          description: "学生注册成功"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+        '400':
+          description: "无效的输入，或账号/邮箱已存在"
 
   /auth/me:
     get:
       tags:
         - "Authentication"
-      summary: "获取当前用户信息"
-      description: "根据提供的JWT获取当前登录用户的详细信息。"
+      summary: "获取当前登录用户信息"
+      description: "根据提供的JWT获取当前登录用户的详细信息，用于验证token和获取用户信息。"
       security:
         - BearerAuth: []
       responses:
@@ -92,66 +88,38 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/user'
         '401':
           description: "未授权"
 
   # ===============================================================
-  # Organizations 标签下的路径
+  # Organizations (组织管理)
   # ===============================================================
-  /organizations:
+  /organizations/schools:
     get:
       tags:
         - "Organizations"
-      summary: "获取组织列表"
-      description: "获取所有状态为 'approved' 的组织列表，支持按类型筛选。"
-      parameters:
-        - name: type
-          in: query
-          schema:
-            type: string
-            enum: [School, Enterprise]
-          description: "按组织类型筛选"
+      summary: "获取学校列表 (公开)"
+      description: "这是一个公开接口，用于获取所有已批准的学校列表，供学生注册时选择。"
       responses:
         '200':
-          description: "成功获取组织列表"
+          description: "成功获取学校列表"
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Organization'
-
-  /organizations/{id}:
-    get:
-      tags:
-        - "Organizations"
-      summary: "获取特定组织详情"
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: "成功获取组织详情"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationDetail'
-        '404':
-          description: "组织未找到"
+                  $ref: '#/components/schemas/organization_simple'
 
   # ===============================================================
-  # Admin 标签下的路径
+  # Admin (管理员后台)
   # ===============================================================
-  /admin/users:
+  /admin/organizations/schools:
     post:
       tags:
         - "Admin"
-      summary: "[Admin] 创建用户"
-      description: "由管理员直接创建用户（如教师、学校管理员），创建后用户状态直接为'active'。"
+      summary: "[Admin] 手动创建学校信息"
+      description: "由系统管理员调用，用于录入一个已合作的学校。创建后，学校和默认的学校管理员账号状态均为'approved'/'active'。"
       security:
         - BearerAuth: []
       requestBody:
@@ -159,51 +127,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdminCreateUser'
+              $ref: '#/components/schemas/school_creation'
       responses:
         '201':
-          description: "用户创建成功"
+          description: "学校及管理员账号创建成功"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-
-  /admin/approvals/users:
-    get:
-      tags:
-        - "Admin"
-      summary: "[Admin] 获取待审核用户列表"
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: "成功获取列表"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
-
-  /admin/approvals/users/{id}/approve:
-    patch:
-      tags:
-        - "Admin"
-      summary: "[Admin] 批准用户注册"
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: "用户已批准"
-        '404':
-          description: "用户未找到"
-
+                $ref: '#/components/schemas/organization'
+        '403':
+          description: "权限不足 (非系统管理员)"
 
 # 可重用组件定义
 components:
@@ -217,140 +150,129 @@ components:
   # 数据模型 (Schemas) 定义
   schemas:
     # 基础模型
-    User:
+    user:
       type: object
       properties:
-        UserID:
+        id:
           type: integer
-          example: 1
-        Username:
+        account:
           type: string
-          example: "zhangsan"
-        Email:
+          example: "zhangsan2025"
+        nickname:
+          type: string
+          example: "三哥"
+        email:
           type: string
           format: email
-          example: "zhangsan@example.com"
-        PhoneNumber:
+        phone:
           type: string
-          example: "13800138000"
-        Status:
+        status:
           type: string
-          enum: [active, inactive, pending_approval]
-        OrganizationID:
+        organization_id:
           type: integer
-        Roles:
+        roles:
           type: array
           items:
             type: string
-            example: "学生"
-        CreatedAt:
+        created_at:
           type: string
           format: date-time
 
-    Organization:
+    organization:
       type: object
       properties:
-        OrganizationID:
+        id:
           type: integer
-          example: 101
-        OrganizationName:
+        organization_name:
           type: string
-          example: "中南大学"
-        Type:
+        type:
           type: string
-          enum: [School, Enterprise]
-        Description:
+        description:
           type: string
-        Website:
+        website:
           type: string
           format: uri
+        address:
+          type: string
 
-    OrganizationDetail:
-      allOf:
-        - $ref: '#/components/schemas/Organization'
-        - type: object
-          properties:
-            Address:
-              type: string
-            SchoolDetails:
-              $ref: '#/components/schemas/SchoolDetails'
-            EnterpriseDetails:
-              $ref: '#/components/schemas/EnterpriseDetails'
-
-    SchoolDetails:
+    organization_simple:
       type: object
       properties:
-        SchoolType:
+        id:
+          type: integer
+          example: 101
+        organization_name:
           type: string
-        EducationLevels:
-          type: string
-
-    EnterpriseDetails:
-      type: object
-      properties:
-        Industry:
-          type: string
-        CompanySize:
-          type: string
+          example: "中南大学"
 
     # 请求体模型
-    UserRegistration:
+    login_credentials:
       type: object
       required:
-        - Username
-        - Password
-        - Email
-        - OrganizationName
-        - Type
+        - account
+        - password
       properties:
-        Username:
+        account:
           type: string
-        Password:
-          type: string
-          format: password
-        Email:
-          type: string
-          format: email
-        OrganizationName:
-          type: string
-          description: "用户所属组织名称，如果是新组织，系统将创建。"
-        Type:
-          type: string
-          enum: [School, Enterprise]
-          description: "组织的类型"
-
-    LoginCredentials:
-      type: object
-      required:
-        - Username
-        - Password
-      properties:
-        Username:
-          type: string
-        Password:
+        password:
           type: string
           format: password
 
-    AdminCreateUser:
+    student_registration:
       type: object
       required:
-        - Username
-        - Password
-        - Email
-        - OrganizationID
-        - RoleIDs
+        - account
+        - password
+        - email
+        - organization_id
+        - real_name
+        - id_card
       properties:
-        Username:
+        account:
           type: string
-        Password:
+        nickname:
+          type: string
+        password:
           type: string
           format: password
-        Email:
+        email:
           type: string
           format: email
-        OrganizationID:
+        organization_id:
           type: integer
-        RoleIDs:
-          type: array
-          items:
-            type: integer
+          description: "学生从下拉列表中选择的学校ID"
+        real_name:
+          type: string
+          description: "用于实名认证的真实姓名"
+        id_card:
+          type: string
+          description: "用于实名认证的身份证号"
+
+    school_creation:
+      type: object
+      description: "管理员创建学校时所需的数据"
+      required:
+        - organization_name
+        - admin_account
+        - admin_password
+        - admin_email
+      properties:
+        # 学校信息
+        organization_name:
+          type: string
+        description:
+          type: string
+        address:
+          type: string
+        website:
+          type: string
+        # 初始学校管理员信息
+        admin_account:
+          type: string
+        admin_nickname:
+          type: string
+        admin_password:
+          type: string
+        admin_email:
+          type: string
+          format: email

@@ -34,8 +34,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // 返回UserDetails对象
         // 参数说明：用户名、密码、权限列表(目前为空，后续可扩展)
         return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
-                user.getPasswordHash(),
+                user.getAccount(),
+                user.getPassword(),
                 new ArrayList<>()
         );
     }
@@ -48,13 +48,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private User findUserByUsernameOrPhone(String usernameOrPhone) {
         // 先尝试通过用户名查找
         LambdaQueryWrapper<User> usernameWrapper = new LambdaQueryWrapper<>();
-        usernameWrapper.eq(User::getUsername, usernameOrPhone);
+        usernameWrapper.eq(User::getAccount, usernameOrPhone);
         User user = userMapper.selectOne(usernameWrapper);
         
         // 如果通过用户名没找到，再尝试通过手机号查找
         if (user == null) {
             LambdaQueryWrapper<User> phoneWrapper = new LambdaQueryWrapper<>();
-            phoneWrapper.eq(User::getPhoneNumber, usernameOrPhone);
+            phoneWrapper.eq(User::getPhone, usernameOrPhone);
             user = userMapper.selectOne(phoneWrapper);
         }
         

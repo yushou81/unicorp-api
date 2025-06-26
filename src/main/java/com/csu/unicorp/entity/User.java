@@ -27,9 +27,9 @@ public class User {
     private Integer id;
     
     /**
-     * 用户名
+     * 登录账号，唯一
      */
-    private String username;
+    private String account;
     
     /**
      * 密码
@@ -45,6 +45,11 @@ public class User {
      * 手机号码
      */
     private String phone;
+    
+    /**
+     * 用户昵称
+     */
+    private String nickname;
     
     /**
      * 用户状态：active-活跃，inactive-不活跃，pending_approval-等待审批

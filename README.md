@@ -71,6 +71,7 @@ unicorp-api/
                 SchoolDetail.java # 学校详情 (school_details)
                 EnterpriseDetail.java # 企业详情 (enterprise_details)
                 User.java         # 用户实体 (users)
+                UserVerification.java # 用户实名认证 (user_verifications)
                 Role.java         # 角色实体 (roles)
                 UserRole.java     # 用户角色关联 (user_roles)
                 Permission.java   # 权限实体 (permissions)
@@ -99,7 +100,15 @@ unicorp-api/
 
 1. **表名**：使用蛇形命名法（snake_case），如 `organizations`, `user_roles`
 2. **字段名**：使用蛇形命名法，如 `organization_id`, `created_at`
-3. **主键**：所有表主键统一命名为 `id`
+3. **主键**：所有表主键统一命名为 `id`（除关联表外）
+
+## 用户身份体系
+
+平台实现了账户与实名信息分离的设计：
+
+1. **用户账户 (User)**：存储登录账号、密码、昵称等基本信息
+2. **实名认证 (UserVerification)**：隔离存储用户实名信息，提高数据安全性
+3. **学生档案 (StudentProfile)**：存储学生特有的专业、教育水平等信息
 
 ## 如何运行
 

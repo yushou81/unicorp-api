@@ -29,11 +29,6 @@ public class StudentProfile {
     private Integer userId;
     
     /**
-     * 学生全名
-     */
-    private String fullName;
-    
-    /**
      * 专业
      */
     private String major;

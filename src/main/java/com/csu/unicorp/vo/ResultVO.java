@@ -78,6 +78,18 @@ public class ResultVO<T> {
     }
     
     /**
+     * 创建失败响应（指定状态码）
+     * 
+     * @param <T> 数据类型
+     * @param code 错误状态码
+     * @param message 错误消息
+     * @return 失败响应对象
+     */
+    public static <T> ResultVO<T> error(Integer code, String message) {
+        return new ResultVO<>(code, message, null);
+    }
+    
+    /**
      * 创建失败响应（服务端错误）
      * 
      * @param <T> 数据类型

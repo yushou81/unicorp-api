@@ -1,7 +1,7 @@
 -- =================================================================
 -- 数据库名称: unicorp
 -- 项目名称: 校企联盟平台
--- 版本: 1.2 (简化命名)
+-- 版本: 1.3 (引入实名认证与账户/昵称分离)
 -- 说明: 本脚本用于创建完整的数据库、表结构及约束。
 -- =================================================================
 
@@ -40,21 +40,32 @@ CREATE TABLE `enterprise_details` (
 ) ENGINE=InnoDB COMMENT='企业专属信息表 (子类型)';
 
 -- 1.2 用户与权限实体 (User and Permission Entities)
--- 用户
+-- 用户核心认证表
 CREATE TABLE `users` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `username` VARCHAR(100) NOT NULL,
+    `account` VARCHAR(100) NOT NULL COMMENT '登录账号,唯一',
     `password` VARCHAR(255) NOT NULL COMMENT '存储加密后的密码',
     `email` VARCHAR(255) NOT NULL,
     `phone` VARCHAR(20),
+    `nickname` VARCHAR(100),
     `status` ENUM('active', 'inactive', 'pending_approval') NOT NULL DEFAULT 'pending_approval',
     `organization_id` INT,
     `is_deleted` BOOLEAN NOT NULL DEFAULT FALSE,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE (`username`),
+    UNIQUE (`account`),
     UNIQUE (`email`)
-) ENGINE=InnoDB COMMENT='用户信息表';
+) ENGINE=InnoDB COMMENT='用户核心认证与基本信息表';
+
+-- 用户实名认证信息表 (敏感数据隔离)
+CREATE TABLE `user_verifications` (
+    `user_id` INT PRIMARY KEY,
+    `real_name` VARCHAR(100) NOT NULL COMMENT '真实姓名',
+    `id_card` VARCHAR(255) NOT NULL COMMENT '身份证号 (应加密存储)',
+    `verification_status` ENUM('unverified', 'pending', 'verified', 'failed') NOT NULL DEFAULT 'unverified' COMMENT '实名认证状态',
+    `verified_at` TIMESTAMP NULL
+) ENGINE=InnoDB COMMENT='用户实名认证信息表';
+
 
 -- 角色
 CREATE TABLE `roles` (
@@ -70,7 +81,7 @@ CREATE TABLE `user_roles` (
     PRIMARY KEY (`user_id`, `role_id`)
 ) ENGINE=InnoDB COMMENT='用户与角色的多对多关系表';
 
--- 权限 (本期可不实现具体功能, 预留设计)
+-- 权限
 CREATE TABLE `permissions` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `permission_name` VARCHAR(100) NOT NULL,
@@ -89,7 +100,7 @@ CREATE TABLE `role_permissions` (
 CREATE TABLE `student_profiles` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `user_id` INT NOT NULL,
-    `full_name` VARCHAR(100),
+    -- `full_name` 已移除, 真实姓名统一从 user_verifications 表获取
     `major` VARCHAR(100),
     `education_level` VARCHAR(50),
     `resume_url` VARCHAR(255),
@@ -168,7 +179,6 @@ CREATE TABLE `audit_logs` (
 -- =================================================================
 -- 2. 外键约束创建 (Foreign Key Constraints)
 -- =================================================================
--- 把所有外键约束放在最后，可以避免因表创建顺序问题导致的错误。
 
 -- 组织子类型外键
 ALTER TABLE `school_details` ADD CONSTRAINT `fk_schooldetails_org` FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON DELETE CASCADE;
@@ -176,6 +186,7 @@ ALTER TABLE `enterprise_details` ADD CONSTRAINT `fk_enterprisedetails_org` FOREI
 
 -- 用户相关外键
 ALTER TABLE `users` ADD CONSTRAINT `fk_users_org` FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON DELETE SET NULL;
+ALTER TABLE `user_verifications` ADD CONSTRAINT `fk_userverifications_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE;
 ALTER TABLE `user_roles` ADD CONSTRAINT `fk_userroles_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE;
 ALTER TABLE `user_roles` ADD CONSTRAINT `fk_userroles_role` FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE CASCADE;
 ALTER TABLE `role_permissions` ADD CONSTRAINT `fk_rolepermissions_role` FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON DELETE CASCADE;
@@ -185,24 +196,19 @@ ALTER TABLE `student_profiles` ADD CONSTRAINT `fk_studentprofiles_user` FOREIGN 
 -- 业务实体相关外键
 ALTER TABLE `jobs` ADD CONSTRAINT `fk_jobs_org` FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON DELETE CASCADE;
 ALTER TABLE `jobs` ADD CONSTRAINT `fk_jobs_user` FOREIGN KEY (`posted_by_user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE;
-
 ALTER TABLE `applications` ADD CONSTRAINT `fk_applications_job` FOREIGN KEY (`job_id`) REFERENCES `jobs`(`id`) ON DELETE CASCADE;
 ALTER TABLE `applications` ADD CONSTRAINT `fk_applications_student` FOREIGN KEY (`student_id`) REFERENCES `users`(`id`) ON DELETE CASCADE;
-
 ALTER TABLE `projects` ADD CONSTRAINT `fk_projects_org` FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON DELETE CASCADE;
-
 ALTER TABLE `resources` ADD CONSTRAINT `fk_resources_user` FOREIGN KEY (`uploaded_by_user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE;
-
 ALTER TABLE `dual_teacher_courses` ADD CONSTRAINT `fk_courses_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `users`(`id`) ON DELETE SET NULL;
 ALTER TABLE `dual_teacher_courses` ADD CONSTRAINT `fk_courses_mentor` FOREIGN KEY (`mentor_id`) REFERENCES `users`(`id`) ON DELETE SET NULL;
-
 ALTER TABLE `audit_logs` ADD CONSTRAINT `fk_logs_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL;
 
 
 -- =================================================================
 -- 3. 初始数据插入 (Initial Data Insertion)
 -- =================================================================
--- 预置一些基础角色
+
 INSERT INTO `roles` (`role_name`) VALUES
 ('学生'),
 ('教师'),
@@ -211,11 +217,6 @@ INSERT INTO `roles` (`role_name`) VALUES
 ('学校管理员'),
 ('系统管理员');
 
--- 可以在此预置一个超级管理员账号
--- INSERT INTO `users` (`username`, `password`, `email`, `status`) VALUES ('admin', 'your_hashed_password_here', 'admin@example.com', 'active');
--- INSERT INTO `user_roles` (`user_id`, `role_id`) VALUES (1, 6);
-
 -- =================================================================
 -- 脚本结束
 -- =================================================================
-

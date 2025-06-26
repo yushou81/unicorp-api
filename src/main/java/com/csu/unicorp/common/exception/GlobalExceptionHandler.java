@@ -17,8 +17,7 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -62,8 +61,9 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ResultVO<?> handleAccessDeniedException(AccessDeniedException e) {
-        return ResultVO.error(403, "没有权限访问该资源");
+    public ResultVO<Void> handleAccessDeniedException(AccessDeniedException e) {
+        log.error("权限异常: {}", e.getMessage());
+        return ResultVO.error("权限不足");
     }
     
     /**
@@ -71,29 +71,24 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BusinessException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResultVO<?> handleBusinessException(BusinessException e) {
+    public ResultVO<Void> handleBusinessException(BusinessException e) {
         log.error("业务异常: {}", e.getMessage());
-        return ResultVO.error(e.getCode(), e.getMessage());
+        return ResultVO.error(e.getMessage());
     }
     
     /**
      * 处理请求体参数校验异常 (@Valid注解引起的异常)
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY) // 422
-    public ResultVO<?> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach(error -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        
-        String errorMsg = errors.entrySet().stream()
-                .map(entry -> entry.getKey() + ": " + entry.getValue())
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResultVO<Void> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
+        String errorMsg = fieldErrors.stream()
+                .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
-                
-        return ResultVO.error(422, "输入数据验证失败: " + errorMsg);
+        
+        log.error("参数校验异常: {}", errorMsg);
+        return ResultVO.error(errorMsg);
     }
     
     /**
@@ -113,13 +108,25 @@ public class GlobalExceptionHandler {
      * 处理绑定异常
      */
     @ExceptionHandler(BindException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST) // 400
-    public ResultVO<?> handleBindException(BindException ex) {
-        String errorMsg = ex.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResultVO<Void> handleBindException(BindException ex) {
+        List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
+        String errorMsg = fieldErrors.stream()
+                .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
-                
-        return ResultVO.error(400, "参数绑定失败: " + errorMsg);
+        
+        log.error("绑定异常: {}", errorMsg);
+        return ResultVO.error(errorMsg);
+    }
+    
+    /**
+     * 处理认证异常
+     */
+    @ExceptionHandler(BadCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResultVO<Void> handleAuthenticationException(BadCredentialsException e) {
+        log.error("认证异常: {}", e.getMessage());
+        return ResultVO.error("账号或密码错误");
     }
     
     /**
@@ -127,7 +134,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR) // 500
-    public ResultVO<?> handleAllUncaughtException(Exception ex) {
-        return ResultVO.error(500, "服务器内部错误: " + ex.getMessage());
+    public ResultVO<Void> handleException(Exception e) {
+        log.error("系统异常", e);
+        return ResultVO.serverError("系统异常，请联系管理员");
     }
 } 
