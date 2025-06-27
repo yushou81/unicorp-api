@@ -24,6 +24,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import static org.springframework.security.config.Customizer.withDefaults;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Spring Security配置类
@@ -38,11 +46,36 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     
     /**
+     * CORS配置 - 允许所有来源访问
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // 允许所有来源
+        configuration.setAllowedOriginPatterns(List.of("*"));
+        // 允许所有HTTP方法
+        configuration.setAllowedMethods(List.of("*"));
+        // 允许所有请求头
+        configuration.setAllowedHeaders(List.of("*"));
+        // 允许暴露的响应头
+        configuration.setExposedHeaders(List.of("Authorization", "Content-Type"));
+        // 允许凭证
+        configuration.setAllowCredentials(true);
+        // 缓存预检请求结果的时间（秒）
+        configuration.setMaxAge(3600L);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+    
+    /**
      * 安全过滤链配置
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                .cors(withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                     // 公共接口

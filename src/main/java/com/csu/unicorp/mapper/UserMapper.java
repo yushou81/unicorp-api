@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 用户Mapper接口
@@ -102,4 +103,38 @@ public interface UserMapper extends BaseMapper<User> {
             "AND u.is_deleted = 0")
     IPage<User> selectMentorsByOrganizationId(@Param("organizationId") Integer organizationId, 
                                              @Param("page") Page<User> page);
+    
+    /**
+     * 根据用户名(账号)查询用户
+     * 
+     * @param username 用户名(账号)
+     * @return 用户实体
+     */
+    @Select("SELECT * FROM users WHERE account = #{username} AND is_deleted = 0")
+    User findByUsername(@Param("username") String username);
+    
+    /**
+     * 检查用户是否拥有特定角色
+     * 
+     * @param userId 用户ID
+     * @param roleName 角色名称
+     * @return 是否拥有该角色
+     */
+    @Select("SELECT COUNT(*) > 0 FROM user_roles ur " +
+            "JOIN roles r ON ur.role_id = r.id " +
+            "WHERE ur.user_id = #{userId} AND r.role_name = #{roleName}")
+    boolean hasRole(@Param("userId") Integer userId, @Param("roleName") String roleName);
+    
+    /**
+     * 获取用户的实名认证信息和学生档案
+     * 
+     * @param userId 用户ID
+     * @return 用户实名信息和学生档案
+     */
+    @Select("SELECT uv.real_name, sp.major " +
+            "FROM users u " +
+            "LEFT JOIN user_verifications uv ON u.id = uv.user_id " +
+            "LEFT JOIN student_profiles sp ON u.id = sp.user_id " +
+            "WHERE u.id = #{userId}")
+    Map<String, Object> getUserVerificationAndProfile(@Param("userId") Integer userId);
 }

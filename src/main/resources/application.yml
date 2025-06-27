@@ -57,6 +57,8 @@ springdoc:
     - /v1/organizations/**
     - /v1/map/**
     - /v1/applications/**
+    - /v1/me/**
+    - /v1/project-applications/**
 
 # MyBatis-Plus 相关配置
 mybatis-plus:
