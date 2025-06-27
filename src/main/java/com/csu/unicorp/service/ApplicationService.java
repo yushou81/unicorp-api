@@ -1,7 +1,9 @@
 package com.csu.unicorp.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.csu.unicorp.dto.ApplicationStatusUpdateDTO;
 import com.csu.unicorp.vo.ApplicationDetailVO;
+import com.csu.unicorp.vo.MyApplicationDetailVO;
 import org.springframework.security.core.userdetails.UserDetails;
 
 /**
@@ -28,4 +30,24 @@ public interface ApplicationService {
      * @return 申请列表分页结果
      */
     IPage<ApplicationDetailVO> getApplicationsByJobId(Integer jobId, int page, int size, UserDetails userDetails);
+    
+    /**
+     * 更新岗位申请状态
+     * 
+     * @param id 申请ID
+     * @param statusUpdateDTO 状态更新DTO
+     * @param userDetails 当前登录用户
+     * @return 更新后的申请详情
+     */
+    ApplicationDetailVO updateApplicationStatus(Integer id, ApplicationStatusUpdateDTO statusUpdateDTO, UserDetails userDetails);
+    
+    /**
+     * 获取当前学生用户的申请列表
+     * 
+     * @param page 页码
+     * @param size 每页大小
+     * @param userDetails 当前登录用户
+     * @return 申请列表分页结果
+     */
+    IPage<MyApplicationDetailVO> getMyApplications(int page, int size, UserDetails userDetails);
 } 
