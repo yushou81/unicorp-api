@@ -14,6 +14,12 @@ spring:
     url: jdbc:mysql://localhost:3306/unicorp?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root # 数据库用户名
     password: 123456 # 数据库密码
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true # 启用文件上传
+      max-file-size: 10MB # 单个文件最大大小
+      max-request-size: 20MB # 单次请求最大大小
   # Flyway配置
   flyway:
     enabled: true # 启用Flyway
@@ -36,6 +42,11 @@ jwt:
   secret: Oe8H9XZ3x2NpDQfY9vTr5qK6sLm7oP3aUv1wMxB2zC3yD4fE5gF6hG7jH8kJ
   expiration: 86400000 # 24小时(毫秒)
 
+# 文件上传配置
+file:
+  upload-dir: upload # 文件上传目录
+  base-url: http://localhost:8081/api/v1/files # 文件访问基础URL
+
 # SpringDoc配置
 springdoc:
   api-docs:
@@ -47,7 +58,7 @@ springdoc:
     tags-sorter: alpha # 按字母顺序排序标签
     operations-sorter: alpha # 按字母顺序排序操作
   # 包含的路径，限制文档只显示指定路径下的API
-  paths-to-match: 
+  paths-to-match:
     - /v1/auth/**
     - /v1/admin/**
     - /v1/school-admin/**
@@ -59,6 +70,16 @@ springdoc:
     - /v1/applications/**
     - /v1/me/**
     - /v1/project-applications/**
+    - /v1/resources/**
+    - /v1/files/**
+  # API分组配置
+  group-configs:
+    - group: "资源共享中心"
+      paths-to-match:
+        - /v1/resources/**
+        - /v1/files/**
+      display-name: "资源共享中心API"
+      description: "包括资源的上传、浏览、管理和下载功能。"
 
 # MyBatis-Plus 相关配置
 mybatis-plus:
