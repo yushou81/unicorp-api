@@ -31,4 +31,9 @@ public class EnterpriseDetail {
      * 公司规模，如1-50人等
      */
     private String companySize;
+    
+    /**
+     * 营业执照图片URL
+     */
+    private String businessLicenseUrl;
 } 

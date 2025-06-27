@@ -54,44 +54,103 @@
 
 ```
 unicorp-api/
-  src/
-    main/
-      java/
-        com/
-          csu/
-            unicorp/
-              common/             # 公共组件
-                exception/        # 全局异常处理
-                utils/            # 工具类
-              config/             # 配置类
-              controller/         # 控制器
-              dto/                # 数据传输对象
-              entity/             # 数据库实体
-                Organization.java # 组织实体 (organizations)
-                SchoolDetail.java # 学校详情 (school_details)
-                EnterpriseDetail.java # 企业详情 (enterprise_details)
-                User.java         # 用户实体 (users)
-                UserVerification.java # 用户实名认证 (user_verifications)
-                Role.java         # 角色实体 (roles)
-                UserRole.java     # 用户角色关联 (user_roles)
-                Permission.java   # 权限实体 (permissions)
-                RolePermission.java # 角色权限关联 (role_permissions)
-                StudentProfile.java # 学生档案 (student_profiles)
-                Job.java          # 招聘岗位 (jobs)
-                Application.java  # 岗位申请 (applications)
-                Project.java      # 合作项目 (projects)
-                Resource.java     # 共享资源 (resources)
-                DualTeacherCourse.java # 双师课堂 (dual_teacher_courses)
-                AuditLog.java     # 系统日志 (audit_logs)
-              mapper/             # Mybatis 映射器
-              service/            # 服务层
-                impl/             # 服务实现
-              vo/                 # 视图对象
-                ResultVO.java     # 通用响应视图
-      resources/
-        db/migration/            # 数据库迁移脚本
-        mapper/                  # MyBatis XML映射文件
-        application.yml          # 应用配置
+  ├── src/
+  │   ├── main/
+  │   │   ├── java/
+  │   │   │   └── com/
+  │   │   │       └── csu/
+  │   │   │           └── unicorp/
+  │   │   │               ├── common/
+  │   │   │               │   ├── exception/
+  │   │   │               │   └── utils/
+  │   │   │               ├── config/
+  │   │   │               │   └── security/
+  │   │   │               ├── controller/
+  │   │   │               │   ├── AdminController.java
+  │   │   │               │   ├── ApplicationController.java
+  │   │   │               │   ├── AuthController.java
+  │   │   │               │   ├── EnterpriseAdminController.java
+  │   │   │               │   ├── JobController.java
+  │   │   │               │   ├── MapController.java
+  │   │   │               │   ├── OrganizationController.java
+  │   │   │               │   ├── ProjectController.java
+  │   │   │               │   └── SchoolAdminController.java
+  │   │   │               ├── dto/
+  │   │   │               │   ├── EnterpriseRegistrationDTO.java
+  │   │   │               │   ├── JobCreationDTO.java
+  │   │   │               │   ├── LoginCredentialsDTO.java
+  │   │   │               │   ├── OrgMemberCreationDTO.java
+  │   │   │               │   ├── ProjectCreationDTO.java
+  │   │   │               │   ├── SchoolCreationDTO.java
+  │   │   │               │   └── StudentRegistrationDTO.java
+  │   │   │               ├── entity/
+  │   │   │               │   ├── Application.java
+  │   │   │               │   ├── EnterpriseDetail.java
+  │   │   │               │   ├── Job.java
+  │   │   │               │   ├── Organization.java
+  │   │   │               │   ├── Project.java
+  │   │   │               │   ├── Role.java
+  │   │   │               │   ├── User.java
+  │   │   │               │   └── UserVerification.java
+  │   │   │               ├── mapper/
+  │   │   │               │   ├── ApplicationMapper.java
+  │   │   │               │   ├── EnterpriseDetailMapper.java
+  │   │   │               │   ├── JobMapper.java
+  │   │   │               │   ├── OrganizationMapper.java
+  │   │   │               │   ├── ProjectMapper.java
+  │   │   │               │   ├── RoleMapper.java
+  │   │   │               │   ├── UserMapper.java
+  │   │   │               │   └── UserVerificationMapper.java
+  │   │   │               ├── service/
+  │   │   │               │   ├── impl/
+  │   │   │               │   │   ├── ApplicationServiceImpl.java
+  │   │   │               │   │   ├── EnterpriseServiceImpl.java
+  │   │   │               │   │   ├── JobServiceImpl.java
+  │   │   │               │   │   ├── OrganizationServiceImpl.java
+  │   │   │               │   │   ├── ProjectServiceImpl.java
+  │   │   │               │   │   ├── RoleServiceImpl.java
+  │   │   │               │   │   └── UserServiceImpl.java
+  │   │   │               │   ├── ApplicationService.java
+  │   │   │               │   ├── EnterpriseService.java
+  │   │   │               │   ├── JobService.java
+  │   │   │               │   ├── OrganizationService.java
+  │   │   │               │   ├── ProjectService.java
+  │   │   │               │   ├── RoleService.java
+  │   │   │               │   └── UserService.java
+  │   │   │               └── vo/
+  │   │   │                   ├── ApplicationVO.java
+  │   │   │                   ├── JobVO.java
+  │   │   │                   ├── OrganizationVO.java
+  │   │   │                   ├── ProjectVO.java
+  │   │   │                   ├── ResultVO.java
+  │   │   │                   ├── TokenVO.java
+  │   │   │                   └── UserVO.java
+  │   │   └── resources/
+  │   │       ├── db/
+  │   │       │   └── migration/
+  │   │       │       ├── V1__init_schema.sql
+  │   │       │       └── V2__insert_admin_users.sql
+  │   │       ├── mapper/
+  │   │       │   ├── ApplicationMapper.xml
+  │   │       │   ├── EnterpriseDetailMapper.xml
+  │   │       │   ├── JobMapper.xml
+  │   │       │   ├── OrganizationMapper.xml
+  │   │       │   ├── ProjectMapper.xml
+  │   │       │   ├── RoleMapper.xml
+  │   │       │   ├── UserMapper.xml
+  │   │       │   └── UserVerificationMapper.xml
+  │   │       ├── static/
+  │   │       ├── templates/
+  │   │       └── application.yml
+  │   └── test/
+  │       └── java/
+  │           └── com/
+  │               └── csu/
+  │                   └── unicorp/
+  │                       ├── controller/
+  │                       ├── mapper/
+  │                       └── service/
+  └── pom.xml
 ```
 
 ## 数据库命名规范
@@ -173,3 +232,28 @@ unicorp-api/
 ## 许可证
 
 [MIT License](LICENSE) 
+
+## API实现进度
+
+### 第一次迭代
+
+- [x] 管理员录入学校
+- [x] 学生注册
+- [x] 企业注册与审核
+- [x] 用户登录（账号/邮箱/手机号）
+- [x] 获取当前用户信息
+- [x] 学校管理员创建教师账号
+- [x] 企业管理员创建企业导师账号
+
+### 第二次迭代
+
+- [x] 企业发布招聘信息
+- [x] 学生浏览招聘信息
+- [x] 学生申请职位
+- [x] 企业查看申请并处理
+
+### 第三次迭代
+
+- [x] 校企双方发布合作项目
+- [x] 校企双方管理合作项目
+- [x] 公开浏览合作项目 

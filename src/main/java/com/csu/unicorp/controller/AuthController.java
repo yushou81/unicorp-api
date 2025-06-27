@@ -1,5 +1,6 @@
 package com.csu.unicorp.controller;
 
+import com.csu.unicorp.dto.EnterpriseRegistrationDTO;
 import com.csu.unicorp.dto.LoginCredentialsDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
 import com.csu.unicorp.service.UserService;
@@ -20,6 +21,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 认证相关接口
@@ -31,6 +35,7 @@ import jakarta.validation.Valid;
 public class AuthController {
     
     private final UserService userService;
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     
     /**
      * 用户登录
@@ -65,6 +70,22 @@ public class AuthController {
     }
     
     /**
+     * 企业注册
+     */
+    @Operation(summary = "企业注册接口", description = "企业代表进行公开注册。注册后，企业和其管理员账号状态均为'pending'，需要系统管理员审核")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "202", description = "注册申请已提交，等待审核", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = UserVO.class))),
+        @ApiResponse(responseCode = "400", description = "无效的输入，或邮箱/手机号/企业名称已存在")
+    })
+    @PostMapping("/register/enterprise")
+    public ResponseEntity<ResultVO<UserVO>> registerEnterprise(@Valid @RequestBody EnterpriseRegistrationDTO registrationDto) {
+        UserVO user = userService.registerEnterprise(registrationDto);
+        return new ResponseEntity<>(ResultVO.success("企业注册申请已提交，等待审核", user), HttpStatus.ACCEPTED);
+    }
+    
+    /**
      * 获取当前用户信息
      */
     @Operation(summary = "获取当前登录用户信息", description = "根据提供的JWT获取当前登录用户的详细信息")
@@ -76,6 +97,12 @@ public class AuthController {
     })
     @GetMapping("/me")
     public ResponseEntity<ResultVO<UserVO>> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+        // 输出用户角色信息，用于调试
+        log.info("当前用户: {}, 角色: {}", userDetails.getUsername(), 
+                userDetails.getAuthorities().stream()
+                        .map(auth -> auth.getAuthority())
+                        .collect(Collectors.joining(", ")));
+        
         UserVO user = userService.getCurrentUser(userDetails);
         return ResponseEntity.ok(ResultVO.success("获取用户信息成功", user));
     }

@@ -3,20 +3,24 @@ package com.csu.unicorp.common.utils;
 import com.csu.unicorp.entity.Organization;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.UserMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 账号生成器
  * 用于系统自动生成唯一账号
  */
+@Slf4j
 @Component
 public class AccountGenerator {
     
     private final UserMapper userMapper;
+    private static final int MAX_RETRY_ATTEMPTS = 5;
     
     public AccountGenerator(UserMapper userMapper) {
         this.userMapper = userMapper;
@@ -49,13 +53,98 @@ public class AccountGenerator {
         String account = prefix + yearSuffix + sequenceStr;
         
         // 检查账号是否已存在，如果存在则重新生成
+        int attempts = 0;
         while (userMapper.selectByAccount(account) != null) {
             sequence++;
             sequenceStr = String.format("%05d", sequence);
             account = prefix + yearSuffix + sequenceStr;
+            
+            attempts++;
+            if (attempts >= MAX_RETRY_ATTEMPTS) {
+                // 如果多次尝试失败，添加随机后缀确保唯一性
+                String randomSuffix = generateRandomSuffix();
+                account = prefix + yearSuffix + sequenceStr + randomSuffix;
+                log.warn("多次尝试生成学生账号失败，添加随机后缀: {}", randomSuffix);
+                break;
+            }
         }
         
+        log.info("生成学生账号: {}", account);
         return account;
+    }
+    
+    /**
+     * 为教师生成唯一账号
+     * 生成格式：teacher_ + 学校简称 + 随机字符 + 时间戳
+     * 
+     * @param organization 学校信息
+     * @return 生成的唯一教师账号
+     */
+    public String generateTeacherAccount(Organization organization) {
+        String prefix = "teacher_" + extractOrganizationPrefix(organization.getOrganizationName());
+        return generateUniqueStaffAccount(prefix, "教师");
+    }
+    
+    /**
+     * 为企业导师生成唯一账号
+     * 生成格式：mentor_ + 企业简称 + 随机字符 + 时间戳
+     * 
+     * @param organization 企业信息
+     * @return 生成的唯一导师账号
+     */
+    public String generateMentorAccount(Organization organization) {
+        String prefix = "mentor_" + extractOrganizationPrefix(organization.getOrganizationName());
+        return generateUniqueStaffAccount(prefix, "企业导师");
+    }
+    
+    /**
+     * 生成唯一的员工账号（教师/导师）
+     * 
+     * @param prefix 账号前缀
+     * @param staffType 员工类型描述（用于日志）
+     * @return 唯一账号
+     */
+    private String generateUniqueStaffAccount(String prefix, String staffType) {
+        String account;
+        int attempts = 0;
+        
+        do {
+            // 生成随机字符和时间戳组合
+            String randomPart = generateRandomSuffix();
+            String timestamp = String.valueOf(System.currentTimeMillis() % 100000);
+            
+            account = prefix + randomPart + timestamp;
+            attempts++;
+            
+            if (attempts >= MAX_RETRY_ATTEMPTS) {
+                // 如果多次尝试失败，使用UUID确保唯一性
+                String uuid = UUID.randomUUID().toString().substring(0, 8);
+                account = prefix + uuid;
+                log.warn("多次尝试生成{}账号失败，使用UUID: {}", staffType, uuid);
+                break;
+            }
+        } while (userMapper.selectByAccount(account) != null);
+        
+        log.info("生成{}账号: {}", staffType, account);
+        return account;
+    }
+    
+    /**
+     * 生成随机后缀
+     * 
+     * @return 3位随机字符
+     */
+    private String generateRandomSuffix() {
+        // 生成3位随机字符（字母+数字）
+        StringBuilder sb = new StringBuilder();
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        
+        for (int i = 0; i < 3; i++) {
+            int index = ThreadLocalRandom.current().nextInt(chars.length());
+            sb.append(chars.charAt(index));
+        }
+        
+        return sb.toString();
     }
     
     /**

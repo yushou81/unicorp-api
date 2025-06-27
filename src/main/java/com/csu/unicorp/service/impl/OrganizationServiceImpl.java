@@ -1,6 +1,10 @@
 package com.csu.unicorp.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.utils.AccountGenerator;
 import com.csu.unicorp.dto.SchoolCreationDTO;
@@ -15,11 +19,13 @@ import com.csu.unicorp.vo.OrganizationSimpleVO;
 import com.csu.unicorp.vo.OrganizationVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 组织服务实现类
@@ -103,19 +109,31 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
     
     @Override
+    public Organization getByName(String name) {
+        LambdaQueryWrapper<Organization> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Organization::getOrganizationName, name);
+        return organizationMapper.selectOne(queryWrapper);
+    }
+    
+    @Override
     public OrganizationVO convertToVO(Organization organization) {
-        if (organization == null) {
-            return null;
-        }
-        
         OrganizationVO vo = new OrganizationVO();
-        vo.setId(organization.getId());
-        vo.setOrganizationName(organization.getOrganizationName());
-        vo.setType(organization.getType());
-        vo.setDescription(organization.getDescription());
-        vo.setWebsite(organization.getWebsite());
-        vo.setAddress(organization.getAddress());
-        
+        BeanUtils.copyProperties(organization, vo);
         return vo;
+    }
+    
+    @Override
+    public List<OrganizationVO> getPendingOrganizations() {
+        // 查询状态为pending的组织
+        QueryWrapper<Organization> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("status", "pending")
+                    .eq("type", "enterprise");
+        
+        List<Organization> pendingOrganizations = organizationMapper.selectList(queryWrapper);
+        
+        // 转换为VO列表
+        return pendingOrganizations.stream()
+                .map(this::convertToVO)
+                .collect(Collectors.toList());
     }
 } 

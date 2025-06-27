@@ -30,17 +30,17 @@ public class UserVerification {
     private String realName;
     
     /**
-     * 身份证号（应加密存储）
+     * 身份证号
      */
     private String idCard;
     
     /**
-     * 认证状态: unverified-未认证, pending-认证中, verified-已认证, failed-认证失败
+     * 认证状态：unverified-未认证，pending-待认证，verified-已认证，failed-认证失败
      */
     private String verificationStatus;
     
     /**
-     * 认证通过时间
+     * 认证时间
      */
     private LocalDateTime verifiedAt;
 } 

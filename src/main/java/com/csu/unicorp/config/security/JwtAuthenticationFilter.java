@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 /**
  * JWT认证过滤器，用于从请求中提取JWT并验证用户
@@ -63,7 +64,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    log.debug("用户{}认证成功", userAccount);
+                    
+                    // 输出用户角色信息，用于调试
+                    String roles = userDetails.getAuthorities().stream()
+                            .map(auth -> auth.getAuthority())
+                            .collect(Collectors.joining(", "));
+                    log.info("用户 {} 认证成功，角色: {}, 访问路径: {}", userAccount, roles, request.getRequestURI());
                 }
             }
         } catch (Exception e) {

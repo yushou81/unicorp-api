@@ -36,10 +36,25 @@ public interface OrganizationService {
     Organization getById(Integer id);
     
     /**
+     * 根据组织名称查询组织
+     * 
+     * @param name 组织名称
+     * @return 组织实体
+     */
+    Organization getByName(String name);
+    
+    /**
      * 将组织实体转换为VO对象
      * 
      * @param organization 组织实体
      * @return 组织VO
      */
     OrganizationVO convertToVO(Organization organization);
+    
+    /**
+     * 获取所有待审核的组织列表
+     * 
+     * @return 待审核的组织列表
+     */
+    List<OrganizationVO> getPendingOrganizations();
 } 

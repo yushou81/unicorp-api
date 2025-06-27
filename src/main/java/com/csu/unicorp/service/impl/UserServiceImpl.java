@@ -1,15 +1,20 @@
 package com.csu.unicorp.service.impl;
 
+import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.utils.AccountGenerator;
 import com.csu.unicorp.common.utils.JwtUtil;
+import com.csu.unicorp.dto.EnterpriseRegistrationDTO;
 import com.csu.unicorp.dto.LoginCredentialsDTO;
+import com.csu.unicorp.dto.OrgMemberCreationDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
+import com.csu.unicorp.entity.EnterpriseDetail;
 import com.csu.unicorp.entity.Organization;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.entity.UserVerification;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.mapper.UserVerificationMapper;
+import com.csu.unicorp.service.EnterpriseService;
 import com.csu.unicorp.service.OrganizationService;
 import com.csu.unicorp.service.RoleService;
 import com.csu.unicorp.service.UserService;
@@ -26,6 +31,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +46,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UserVerificationMapper userVerificationMapper;
     private final OrganizationService organizationService;
+    private final EnterpriseService enterpriseService;
     private final RoleService roleService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
@@ -116,17 +123,16 @@ public class UserServiceImpl implements UserService {
         // 生成系统账号
         String generatedAccount = accountGenerator.generateStudentAccount(organization);
         
-        // 创建用户实体
+        // 创建用户
         User user = new User();
         user.setAccount(generatedAccount);
         user.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
         user.setEmail(registrationDto.getEmail());
         user.setPhone(registrationDto.getPhone());
-        user.setNickname(registrationDto.getNickname() != null 
-                ? registrationDto.getNickname() 
-                : registrationDto.getRealName()); // 如果未提供昵称，默认使用实名
-        user.setOrganizationId(registrationDto.getOrganizationId());
-        user.setStatus("active"); // 学生注册直接设置为活跃状态
+        user.setNickname(registrationDto.getNickname() != null ? registrationDto.getNickname() : "学生-" + registrationDto.getRealName());
+        user.setOrganizationId(organization.getId());
+        user.setStatus("active"); // 学生账号直接设置为活跃状态
+        user.setCreatedAt(LocalDateTime.now()); // 设置创建时间
         
         // 保存用户
         userMapper.insert(user);
@@ -141,7 +147,74 @@ public class UserServiceImpl implements UserService {
         userVerificationMapper.insert(verification);
         
         // 分配学生角色
-        roleService.assignRoleToUser(user.getId(), "学生");
+        roleService.assignRoleToUser(user.getId(), RoleConstants.DB_ROLE_STUDENT);
+        
+        // 返回用户VO
+        return convertToVO(user);
+    }
+    
+    @Override
+    @Transactional
+    public UserVO registerEnterprise(EnterpriseRegistrationDTO registrationDto) {
+        // 检查邮箱是否已存在
+        User existingUserByEmail = userMapper.selectByEmail(registrationDto.getAdminEmail());
+        if (existingUserByEmail != null) {
+            throw new BusinessException("该邮箱已被注册");
+        }
+        
+        // 如果提供了手机号，检查是否已存在
+        if (registrationDto.getAdminPhone() != null && !registrationDto.getAdminPhone().isEmpty()) {
+            User existingUserByPhone = userMapper.selectByPhone(registrationDto.getAdminPhone());
+            if (existingUserByPhone != null) {
+                throw new BusinessException("该手机号已被注册");
+            }
+        }
+        
+        // 检查企业名称是否已存在
+        Organization existingOrg = organizationService.getByName(registrationDto.getOrganizationName());
+        if (existingOrg != null) {
+            throw new BusinessException("该企业名称已被注册");
+        }
+        
+        // 创建企业组织
+        Organization organization = new Organization();
+        organization.setOrganizationName(registrationDto.getOrganizationName());
+        organization.setDescription(registrationDto.getDescription());
+        organization.setAddress(registrationDto.getAddress());
+        organization.setWebsite(registrationDto.getWebsite());
+        organization.setType("Enterprise");
+        organization.setStatus("pending"); // 企业注册初始状态为待审核
+        
+        // 创建企业详情
+        EnterpriseDetail enterpriseDetail = new EnterpriseDetail();
+        enterpriseDetail.setIndustry(registrationDto.getIndustry());
+        enterpriseDetail.setCompanySize(registrationDto.getCompanySize());
+        enterpriseDetail.setBusinessLicenseUrl(registrationDto.getBusinessLicenseUrl());
+        
+        // 保存企业信息
+        Integer organizationId = enterpriseService.createEnterprise(organization, enterpriseDetail);
+        
+        // 生成企业管理员账号
+        String generatedAccount = "ent_" + accountGenerator.generateStudentAccount(organization).substring(0, 8);
+        
+        // 创建企业管理员账号
+        User user = new User();
+        user.setAccount(generatedAccount);
+        user.setPassword(passwordEncoder.encode(registrationDto.getAdminPassword()));
+        user.setEmail(registrationDto.getAdminEmail());
+        user.setPhone(registrationDto.getAdminPhone());
+        user.setNickname(registrationDto.getAdminNickname() != null 
+                ? registrationDto.getAdminNickname() 
+                : "管理员-" + registrationDto.getOrganizationName()); // 如果未提供昵称，使用默认值
+        user.setOrganizationId(organizationId);
+        user.setStatus("pending_approval"); // 企业管理员初始状态为待审核
+        user.setCreatedAt(LocalDateTime.now()); // 设置创建时间
+        
+        // 保存用户
+        userMapper.insert(user);
+        
+        // 分配企业管理员角色
+        roleService.assignRoleToUser(user.getId(), RoleConstants.DB_ROLE_ENTERPRISE_ADMIN);
         
         // 返回用户VO
         return convertToVO(user);
@@ -180,6 +253,124 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<String> getUserRoles(Integer userId) {
         return userMapper.selectRolesByUserId(userId);
+    }
+    
+    @Override
+    @Transactional
+    public UserVO createTeacher(OrgMemberCreationDTO teacherDTO, UserDetails userDetails) {
+        // 获取当前登录的学校管理员
+        User currentAdmin = userMapper.selectByAccount(userDetails.getUsername());
+        if (currentAdmin == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 验证当前用户是否为学校管理员
+        List<String> roles = getUserRoles(currentAdmin.getId());
+        if (!roles.contains(RoleConstants.DB_ROLE_SCHOOL_ADMIN)) {
+            throw new BusinessException("权限不足，只有学校管理员可以创建教师账号");
+        }
+        
+        // 获取管理员所属的学校
+        Organization school = organizationService.getById(currentAdmin.getOrganizationId());
+        if (school == null || !"School".equals(school.getType())) {
+            throw new BusinessException("管理员不属于有效的学校组织");
+        }
+        
+        // 检查邮箱是否已存在
+        User existingUserByEmail = userMapper.selectByEmail(teacherDTO.getEmail());
+        if (existingUserByEmail != null) {
+            throw new BusinessException("该邮箱已被注册");
+        }
+        
+        // 如果提供了手机号，检查是否已存在
+        if (teacherDTO.getPhone() != null && !teacherDTO.getPhone().isEmpty()) {
+            User existingUserByPhone = userMapper.selectByPhone(teacherDTO.getPhone());
+            if (existingUserByPhone != null) {
+                throw new BusinessException("该手机号已被注册");
+            }
+        }
+        
+        // 生成教师账号
+        String generatedAccount = accountGenerator.generateTeacherAccount(school);
+        
+        // 创建教师用户
+        User teacher = new User();
+        teacher.setAccount(generatedAccount);
+        teacher.setPassword(passwordEncoder.encode(teacherDTO.getPassword()));
+        teacher.setEmail(teacherDTO.getEmail());
+        teacher.setPhone(teacherDTO.getPhone());
+        teacher.setNickname(teacherDTO.getNickname() != null ? teacherDTO.getNickname() : "教师-" + school.getOrganizationName());
+        teacher.setOrganizationId(school.getId());
+        teacher.setStatus("active"); // 教师账号直接设置为活跃状态
+        teacher.setCreatedAt(LocalDateTime.now()); // 设置创建时间
+        
+        // 保存用户
+        userMapper.insert(teacher);
+        
+        // 分配教师角色
+        roleService.assignRoleToUser(teacher.getId(), RoleConstants.DB_ROLE_TEACHER);
+        
+        // 返回用户VO
+        return convertToVO(teacher);
+    }
+    
+    @Override
+    @Transactional
+    public UserVO createMentor(OrgMemberCreationDTO mentorDTO, UserDetails userDetails) {
+        // 获取当前登录的企业管理员
+        User currentAdmin = userMapper.selectByAccount(userDetails.getUsername());
+        if (currentAdmin == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 验证当前用户是否为企业管理员
+        List<String> roles = getUserRoles(currentAdmin.getId());
+        if (!roles.contains(RoleConstants.DB_ROLE_ENTERPRISE_ADMIN)) {
+            throw new BusinessException("权限不足，只有企业管理员可以创建导师账号");
+        }
+        
+        // 获取管理员所属的企业
+        Organization enterprise = organizationService.getById(currentAdmin.getOrganizationId());
+        if (enterprise == null || !"Enterprise".equals(enterprise.getType()) || !"approved".equals(enterprise.getStatus())) {
+            throw new BusinessException("管理员不属于有效的已审核企业组织");
+        }
+        
+        // 检查邮箱是否已存在
+        User existingUserByEmail = userMapper.selectByEmail(mentorDTO.getEmail());
+        if (existingUserByEmail != null) {
+            throw new BusinessException("该邮箱已被注册");
+        }
+        
+        // 如果提供了手机号，检查是否已存在
+        if (mentorDTO.getPhone() != null && !mentorDTO.getPhone().isEmpty()) {
+            User existingUserByPhone = userMapper.selectByPhone(mentorDTO.getPhone());
+            if (existingUserByPhone != null) {
+                throw new BusinessException("该手机号已被注册");
+            }
+        }
+        
+        // 生成导师账号
+        String generatedAccount = accountGenerator.generateMentorAccount(enterprise);
+        
+        // 创建导师用户
+        User mentor = new User();
+        mentor.setAccount(generatedAccount);
+        mentor.setPassword(passwordEncoder.encode(mentorDTO.getPassword()));
+        mentor.setEmail(mentorDTO.getEmail());
+        mentor.setPhone(mentorDTO.getPhone());
+        mentor.setNickname(mentorDTO.getNickname() != null ? mentorDTO.getNickname() : "导师-" + enterprise.getOrganizationName());
+        mentor.setOrganizationId(enterprise.getId());
+        mentor.setStatus("active"); // 导师账号直接设置为活跃状态
+        mentor.setCreatedAt(LocalDateTime.now()); // 设置创建时间
+        
+        // 保存用户
+        userMapper.insert(mentor);
+        
+        // 分配导师角色
+        roleService.assignRoleToUser(mentor.getId(), RoleConstants.DB_ROLE_ENTERPRISE_MENTOR);
+        
+        // 返回用户VO
+        return convertToVO(mentor);
     }
     
     /**

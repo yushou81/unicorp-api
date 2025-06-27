@@ -27,8 +27,10 @@ spring:
     # 添加修复模式，自动修复校验错误
     repair: true
   logging:
-     level:
-       org.flywaydb: DEBUG
+    level:
+      root: INFO
+      com.csu.unicorp: INFO
+      org.springframework.security: INFO
 # JWT配置
 jwt:
   secret: Oe8H9XZ3x2NpDQfY9vTr5qK6sLm7oP3aUv1wMxB2zC3yD4fE5gF6hG7jH8kJ
@@ -62,6 +64,7 @@ mybatis-plus:
     db-config:
       # 逻辑删除配置 (推荐实践)
       # 0代表未删除, 1代表已删除
+      logic-delete-field: is_deleted
       logic-delete-value: 1 # 逻辑已删除值(默认为1)
       logic-not-delete-value: 0 # 逻辑未删除值(默认为0)
   # 配置项

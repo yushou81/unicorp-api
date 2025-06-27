@@ -1,6 +1,8 @@
 package com.csu.unicorp.service;
 
+import com.csu.unicorp.dto.EnterpriseRegistrationDTO;
 import com.csu.unicorp.dto.LoginCredentialsDTO;
+import com.csu.unicorp.dto.OrgMemberCreationDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.vo.TokenVO;
@@ -29,6 +31,14 @@ public interface UserService {
      * @return 注册成功的用户信息
      */
     UserVO registerStudent(StudentRegistrationDTO registrationDto);
+    
+    /**
+     * 企业注册
+     * 
+     * @param registrationDto 企业注册信息
+     * @return 注册成功的用户信息
+     */
+    UserVO registerEnterprise(EnterpriseRegistrationDTO registrationDto);
     
     /**
      * 获取当前登录用户信息
@@ -77,4 +87,22 @@ public interface UserService {
      * @return 角色名称列表
      */
     List<String> getUserRoles(Integer userId);
+    
+    /**
+     * 创建教师账号
+     * 
+     * @param teacherDTO 教师信息
+     * @param userDetails 当前认证用户（学校管理员）
+     * @return 创建成功的教师信息
+     */
+    UserVO createTeacher(OrgMemberCreationDTO teacherDTO, UserDetails userDetails);
+    
+    /**
+     * 创建企业导师账号
+     * 
+     * @param mentorDTO 企业导师信息
+     * @param userDetails 当前认证用户（企业管理员）
+     * @return 创建成功的企业导师信息
+     */
+    UserVO createMentor(OrgMemberCreationDTO mentorDTO, UserDetails userDetails);
 } 

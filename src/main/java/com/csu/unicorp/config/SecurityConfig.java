@@ -1,5 +1,6 @@
 package com.csu.unicorp.config;
 
+import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.config.security.JwtAuthenticationFilter;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -45,12 +46,18 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                     // 公共接口
-                    .requestMatchers("/v1/auth/login", "/v1/auth/register/student").permitAll()
+                    .requestMatchers("/v1/auth/login", "/v1/auth/register/**").permitAll()
                     .requestMatchers("/v1/organizations/schools").permitAll()
+                    .requestMatchers("/v1/jobs", "/v1/jobs/**").permitAll()
+                    .requestMatchers("/v1/projects", "/v1/projects/{id}").permitAll()
                     // Swagger UI and API docs
                     .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     // 管理接口需要SYSADMIN权限
-                    .requestMatchers("/v1/admin/**").hasRole("SYSADMIN")
+                    .requestMatchers("/v1/admin/**").hasRole(RoleConstants.ROLE_SYSTEM_ADMIN)
+                    // 学校管理员接口需要SCH_ADMIN权限
+                    .requestMatchers("/v1/school-admin/**").hasRole(RoleConstants.ROLE_SCHOOL_ADMIN)
+                    // 企业管理员接口需要EN_ADMIN权限
+                    .requestMatchers("/v1/enterprise-admin/**").hasRole(RoleConstants.ROLE_ENTERPRISE_ADMIN)
                     // 其他所有请求需要认证
                     .anyRequest().authenticated()
                 )
