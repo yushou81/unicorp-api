@@ -200,7 +200,7 @@ unicorp-api/
 
 5. **API文档**
    
-   启动后访问: http://localhost:8081/api/swagger-ui.html
+   启动后访问: http://localhost:8081/api/v3/api-docs
    
    **操作指南**:
    
