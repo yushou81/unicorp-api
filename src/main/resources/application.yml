@@ -24,8 +24,6 @@ spring:
     table: flyway_schema_history # Flyway元数据表名
     # 如果需要清理数据库（开发环境可用，生产环境禁用）
     clean-disabled: true # 禁用clean操作，防止意外删除数据
-    # 添加修复模式，自动修复校验错误
-    repair: true
   logging:
     level:
       root: INFO
@@ -59,6 +57,7 @@ springdoc:
     - /v1/applications/**
     - /v1/me/**
     - /v1/project-applications/**
+    - /v1/chat/**
 
 # MyBatis-Plus 相关配置
 mybatis-plus:
