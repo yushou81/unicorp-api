@@ -1,7 +1,9 @@
 package com.csu.unicorp.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.dto.OrgMemberCreationDTO;
+import com.csu.unicorp.dto.OrgMemberUpdateDTO;
 import com.csu.unicorp.service.UserService;
 import com.csu.unicorp.vo.ResultVO;
 import com.csu.unicorp.vo.UserVO;
@@ -19,10 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 企业管理员控制器
@@ -55,5 +54,64 @@ public class EnterpriseAdminController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UserVO mentor = userService.createMentor(mentorDTO, userDetails);
         return new ResponseEntity<>(ResultVO.success("企业导师账号创建成功", mentor), HttpStatus.CREATED);
+    }
+    
+    /**
+     * 获取导师列表
+     */
+    @Operation(summary = "[企业管理员] 查询本企业导师列表", 
+            description = "由企业管理员调用，获取本企业的所有导师账号列表，支持分页。")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "成功获取导师列表", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = UserVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足(非企业管理员)")
+    })
+    @GetMapping("/mentors")
+    public ResponseEntity<ResultVO<IPage<UserVO>>> getMentors(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        IPage<UserVO> mentors = userService.getMentors(page, size, userDetails);
+        return ResponseEntity.ok(ResultVO.success("获取导师列表成功", mentors));
+    }
+    
+    /**
+     * 更新导师信息
+     */
+    @Operation(summary = "[企业管理员] 更新导师信息", 
+            description = "更新本企业指定导师的非敏感信息（如昵称、电话）。")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "更新成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = UserVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足(非企业管理员)"),
+        @ApiResponse(responseCode = "404", description = "用户未找到")
+    })
+    @PutMapping("/mentors/{id}")
+    public ResponseEntity<ResultVO<UserVO>> updateMentor(
+            @PathVariable Integer id,
+            @Valid @RequestBody OrgMemberUpdateDTO updateDTO,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UserVO mentor = userService.updateMentor(id, updateDTO, userDetails);
+        return ResponseEntity.ok(ResultVO.success("导师信息更新成功", mentor));
+    }
+    
+    /**
+     * 禁用导师账号
+     */
+    @Operation(summary = "[企业管理员] 禁用导师账号", 
+            description = "禁用本企业的某个导师账号 (将其状态更新为 'inactive')。这是一个可逆操作。")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "禁用成功"),
+        @ApiResponse(responseCode = "403", description = "权限不足(非企业管理员)"),
+        @ApiResponse(responseCode = "404", description = "用户未找到")
+    })
+    @DeleteMapping("/mentors/{id}")
+    public ResponseEntity<Void> disableMentor(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        userService.disableMentor(id, userDetails);
+        return ResponseEntity.noContent().build();
     }
 } 

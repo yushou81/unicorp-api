@@ -1,5 +1,8 @@
 package com.csu.unicorp.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.utils.AccountGenerator;
@@ -7,6 +10,7 @@ import com.csu.unicorp.common.utils.JwtUtil;
 import com.csu.unicorp.dto.EnterpriseRegistrationDTO;
 import com.csu.unicorp.dto.LoginCredentialsDTO;
 import com.csu.unicorp.dto.OrgMemberCreationDTO;
+import com.csu.unicorp.dto.OrgMemberUpdateDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
 import com.csu.unicorp.entity.EnterpriseDetail;
 import com.csu.unicorp.entity.Organization;
@@ -399,5 +403,219 @@ public class UserServiceImpl implements UserService {
         vo.setRoles(roles != null ? roles : new ArrayList<>());
         
         return vo;
+    }
+    
+    @Override
+    public IPage<UserVO> getTeachers(int page, int size, UserDetails userDetails) {
+        // 获取当前登录的学校管理员
+        User currentAdmin = userMapper.selectByAccount(userDetails.getUsername());
+        if (currentAdmin == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 验证当前用户是否为学校管理员
+        List<String> roles = getUserRoles(currentAdmin.getId());
+        if (!roles.contains(RoleConstants.DB_ROLE_SCHOOL_ADMIN)) {
+            throw new BusinessException("权限不足，只有学校管理员可以查看教师列表");
+        }
+        
+        // 获取管理员所属的学校ID
+        Integer schoolId = currentAdmin.getOrganizationId();
+        
+        // 创建分页对象
+        Page<User> pageParam = new Page<>(page, size);
+        
+        // 查询该学校的所有教师
+        IPage<User> teacherPage = userMapper.selectTeachersByOrganizationId(schoolId, pageParam);
+        
+        // 转换为VO
+        return teacherPage.convert(this::convertToVO);
+    }
+    
+    @Override
+    public UserVO updateTeacher(Integer id, OrgMemberUpdateDTO updateDTO, UserDetails userDetails) {
+        // 获取当前登录的学校管理员
+        User currentAdmin = userMapper.selectByAccount(userDetails.getUsername());
+        if (currentAdmin == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 验证当前用户是否为学校管理员
+        List<String> roles = getUserRoles(currentAdmin.getId());
+        if (!roles.contains(RoleConstants.DB_ROLE_SCHOOL_ADMIN)) {
+            throw new BusinessException("权限不足，只有学校管理员可以更新教师信息");
+        }
+        
+        // 获取要更新的教师
+        User teacher = userMapper.selectById(id);
+        if (teacher == null) {
+            throw new BusinessException("教师不存在");
+        }
+        
+        // 验证教师是否属于该学校
+        if (!teacher.getOrganizationId().equals(currentAdmin.getOrganizationId())) {
+            throw new BusinessException("权限不足，只能更新本校教师信息");
+        }
+        
+        // 验证是否为教师角色
+        List<String> teacherRoles = getUserRoles(teacher.getId());
+        if (!teacherRoles.contains(RoleConstants.DB_ROLE_TEACHER)) {
+            throw new BusinessException("该用户不是教师");
+        }
+        
+        // 更新教师信息
+        if (updateDTO.getNickname() != null) {
+            teacher.setNickname(updateDTO.getNickname());
+        }
+        if (updateDTO.getPhone() != null) {
+            teacher.setPhone(updateDTO.getPhone());
+        }
+        
+        userMapper.updateById(teacher);
+        
+        return convertToVO(teacher);
+    }
+    
+    @Override
+    public void disableTeacher(Integer id, UserDetails userDetails) {
+        // 获取当前登录的学校管理员
+        User currentAdmin = userMapper.selectByAccount(userDetails.getUsername());
+        if (currentAdmin == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 验证当前用户是否为学校管理员
+        List<String> roles = getUserRoles(currentAdmin.getId());
+        if (!roles.contains(RoleConstants.DB_ROLE_SCHOOL_ADMIN)) {
+            throw new BusinessException("权限不足，只有学校管理员可以禁用教师账号");
+        }
+        
+        // 获取要禁用的教师
+        User teacher = userMapper.selectById(id);
+        if (teacher == null) {
+            throw new BusinessException("教师不存在");
+        }
+        
+        // 验证教师是否属于该学校
+        if (!teacher.getOrganizationId().equals(currentAdmin.getOrganizationId())) {
+            throw new BusinessException("权限不足，只能禁用本校教师账号");
+        }
+        
+        // 验证是否为教师角色
+        List<String> teacherRoles = getUserRoles(teacher.getId());
+        if (!teacherRoles.contains(RoleConstants.DB_ROLE_TEACHER)) {
+            throw new BusinessException("该用户不是教师");
+        }
+        
+        // 禁用教师账号
+        teacher.setStatus("inactive");
+        userMapper.updateById(teacher);
+    }
+    
+    @Override
+    public IPage<UserVO> getMentors(int page, int size, UserDetails userDetails) {
+        // 获取当前登录的企业管理员
+        User currentAdmin = userMapper.selectByAccount(userDetails.getUsername());
+        if (currentAdmin == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 验证当前用户是否为企业管理员
+        List<String> roles = getUserRoles(currentAdmin.getId());
+        if (!roles.contains(RoleConstants.DB_ROLE_ENTERPRISE_ADMIN)) {
+            throw new BusinessException("权限不足，只有企业管理员可以查看导师列表");
+        }
+        
+        // 获取管理员所属的企业ID
+        Integer enterpriseId = currentAdmin.getOrganizationId();
+        
+        // 创建分页对象
+        Page<User> pageParam = new Page<>(page, size);
+        
+        // 查询该企业的所有导师
+        IPage<User> mentorPage = userMapper.selectMentorsByOrganizationId(enterpriseId, pageParam);
+        
+        // 转换为VO
+        return mentorPage.convert(this::convertToVO);
+    }
+    
+    @Override
+    public UserVO updateMentor(Integer id, OrgMemberUpdateDTO updateDTO, UserDetails userDetails) {
+        // 获取当前登录的企业管理员
+        User currentAdmin = userMapper.selectByAccount(userDetails.getUsername());
+        if (currentAdmin == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 验证当前用户是否为企业管理员
+        List<String> roles = getUserRoles(currentAdmin.getId());
+        if (!roles.contains(RoleConstants.DB_ROLE_ENTERPRISE_ADMIN)) {
+            throw new BusinessException("权限不足，只有企业管理员可以更新导师信息");
+        }
+        
+        // 获取要更新的导师
+        User mentor = userMapper.selectById(id);
+        if (mentor == null) {
+            throw new BusinessException("导师不存在");
+        }
+        
+        // 验证导师是否属于该企业
+        if (!mentor.getOrganizationId().equals(currentAdmin.getOrganizationId())) {
+            throw new BusinessException("权限不足，只能更新本企业导师信息");
+        }
+        
+        // 验证是否为导师角色
+        List<String> mentorRoles = getUserRoles(mentor.getId());
+        if (!mentorRoles.contains(RoleConstants.DB_ROLE_ENTERPRISE_MENTOR)) {
+            throw new BusinessException("该用户不是企业导师");
+        }
+        
+        // 更新导师信息
+        if (updateDTO.getNickname() != null) {
+            mentor.setNickname(updateDTO.getNickname());
+        }
+        if (updateDTO.getPhone() != null) {
+            mentor.setPhone(updateDTO.getPhone());
+        }
+        
+        userMapper.updateById(mentor);
+        
+        return convertToVO(mentor);
+    }
+    
+    @Override
+    public void disableMentor(Integer id, UserDetails userDetails) {
+        // 获取当前登录的企业管理员
+        User currentAdmin = userMapper.selectByAccount(userDetails.getUsername());
+        if (currentAdmin == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 验证当前用户是否为企业管理员
+        List<String> roles = getUserRoles(currentAdmin.getId());
+        if (!roles.contains(RoleConstants.DB_ROLE_ENTERPRISE_ADMIN)) {
+            throw new BusinessException("权限不足，只有企业管理员可以禁用导师账号");
+        }
+        
+        // 获取要禁用的导师
+        User mentor = userMapper.selectById(id);
+        if (mentor == null) {
+            throw new BusinessException("导师不存在");
+        }
+        
+        // 验证导师是否属于该企业
+        if (!mentor.getOrganizationId().equals(currentAdmin.getOrganizationId())) {
+            throw new BusinessException("权限不足，只能禁用本企业导师账号");
+        }
+        
+        // 验证是否为导师角色
+        List<String> mentorRoles = getUserRoles(mentor.getId());
+        if (!mentorRoles.contains(RoleConstants.DB_ROLE_ENTERPRISE_MENTOR)) {
+            throw new BusinessException("该用户不是企业导师");
+        }
+        
+        // 禁用导师账号
+        mentor.setStatus("inactive");
+        userMapper.updateById(mentor);
     }
 }

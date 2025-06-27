@@ -61,96 +61,77 @@ unicorp-api/
   │   │   │       └── csu/
   │   │   │           └── unicorp/
   │   │   │               ├── common/
+  │   │   │               │   ├── constants/
+  │   │   │               │   │   └── RoleConstants.java        # 角色常量定义
   │   │   │               │   ├── exception/
+  │   │   │               │   │   └── BusinessException.java    # 业务异常类
   │   │   │               │   └── utils/
+  │   │   │               │       ├── AccountGenerator.java     # 账号生成工具
+  │   │   │               │       └── JwtUtil.java              # JWT工具类
   │   │   │               ├── config/
+  │   │   │               │   ├── SecurityConfig.java           # Spring Security配置
   │   │   │               │   └── security/
+  │   │   │               │       ├── CustomUserDetails.java    # 自定义UserDetails实现
+  │   │   │               │       └── JwtAuthenticationFilter.java # JWT认证过滤器
   │   │   │               ├── controller/
-  │   │   │               │   ├── AdminController.java
-  │   │   │               │   ├── ApplicationController.java
-  │   │   │               │   ├── AuthController.java
-  │   │   │               │   ├── EnterpriseAdminController.java
-  │   │   │               │   ├── JobController.java
-  │   │   │               │   ├── MapController.java
-  │   │   │               │   ├── OrganizationController.java
-  │   │   │               │   ├── ProjectController.java
-  │   │   │               │   └── SchoolAdminController.java
+  │   │   │               │   ├── AdminController.java          # 系统管理员接口
+  │   │   │               │   ├── ApplicationController.java    # 项目申请接口
+  │   │   │               │   ├── AuthController.java           # 认证接口
+  │   │   │               │   ├── EnterpriseAdminController.java # 企业管理员接口
+  │   │   │               │   ├── OrganizationController.java   # 组织接口
+  │   │   │               │   └── SchoolAdminController.java    # 学校管理员接口
   │   │   │               ├── dto/
-  │   │   │               │   ├── EnterpriseRegistrationDTO.java
-  │   │   │               │   ├── JobCreationDTO.java
-  │   │   │               │   ├── LoginCredentialsDTO.java
-  │   │   │               │   ├── OrgMemberCreationDTO.java
-  │   │   │               │   ├── ProjectCreationDTO.java
-  │   │   │               │   ├── SchoolCreationDTO.java
-  │   │   │               │   └── StudentRegistrationDTO.java
+  │   │   │               │   ├── EnterpriseRegistrationDTO.java # 企业注册DTO
+  │   │   │               │   ├── LoginCredentialsDTO.java      # 登录凭证DTO
+  │   │   │               │   ├── OrgMemberCreationDTO.java     # 组织成员创建DTO
+  │   │   │               │   ├── OrgMemberUpdateDTO.java       # 组织成员更新DTO
+  │   │   │               │   ├── SchoolCreationDTO.java        # 学校创建DTO
+  │   │   │               │   └── StudentRegistrationDTO.java   # 学生注册DTO
   │   │   │               ├── entity/
-  │   │   │               │   ├── Application.java
-  │   │   │               │   ├── EnterpriseDetail.java
-  │   │   │               │   ├── Job.java
-  │   │   │               │   ├── Organization.java
-  │   │   │               │   ├── Project.java
-  │   │   │               │   ├── Role.java
-  │   │   │               │   ├── User.java
-  │   │   │               │   └── UserVerification.java
+  │   │   │               │   ├── EnterpriseDetail.java         # 企业详情实体
+  │   │   │               │   ├── Organization.java             # 组织实体
+  │   │   │               │   ├── Role.java                     # 角色实体
+  │   │   │               │   ├── User.java                     # 用户实体
+  │   │   │               │   └── UserVerification.java         # 用户验证实体
   │   │   │               ├── mapper/
-  │   │   │               │   ├── ApplicationMapper.java
-  │   │   │               │   ├── EnterpriseDetailMapper.java
-  │   │   │               │   ├── JobMapper.java
-  │   │   │               │   ├── OrganizationMapper.java
-  │   │   │               │   ├── ProjectMapper.java
-  │   │   │               │   ├── RoleMapper.java
-  │   │   │               │   ├── UserMapper.java
-  │   │   │               │   └── UserVerificationMapper.java
+  │   │   │               │   ├── EnterpriseDetailMapper.java   # 企业详情Mapper
+  │   │   │               │   ├── OrganizationMapper.java       # 组织Mapper
+  │   │   │               │   ├── RoleMapper.java               # 角色Mapper
+  │   │   │               │   ├── UserMapper.java               # 用户Mapper
+  │   │   │               │   └── UserVerificationMapper.java   # 用户验证Mapper
   │   │   │               ├── service/
-  │   │   │               │   ├── impl/
-  │   │   │               │   │   ├── ApplicationServiceImpl.java
-  │   │   │               │   │   ├── EnterpriseServiceImpl.java
-  │   │   │               │   │   ├── JobServiceImpl.java
-  │   │   │               │   │   ├── OrganizationServiceImpl.java
-  │   │   │               │   │   ├── ProjectServiceImpl.java
-  │   │   │               │   │   ├── RoleServiceImpl.java
-  │   │   │               │   │   └── UserServiceImpl.java
-  │   │   │               │   ├── ApplicationService.java
-  │   │   │               │   ├── EnterpriseService.java
-  │   │   │               │   ├── JobService.java
-  │   │   │               │   ├── OrganizationService.java
-  │   │   │               │   ├── ProjectService.java
-  │   │   │               │   ├── RoleService.java
-  │   │   │               │   └── UserService.java
+  │   │   │               │   ├── EnterpriseService.java        # 企业服务接口
+  │   │   │               │   ├── OrganizationService.java      # 组织服务接口
+  │   │   │               │   ├── RoleService.java              # 角色服务接口
+  │   │   │               │   ├── UserService.java              # 用户服务接口
+  │   │   │               │   └── impl/
+  │   │   │               │       ├── EnterpriseServiceImpl.java # 企业服务实现
+  │   │   │               │       ├── OrganizationServiceImpl.java # 组织服务实现
+  │   │   │               │       ├── RoleServiceImpl.java      # 角色服务实现
+  │   │   │               │       └── UserServiceImpl.java      # 用户服务实现
   │   │   │               └── vo/
-  │   │   │                   ├── ApplicationVO.java
-  │   │   │                   ├── JobVO.java
-  │   │   │                   ├── OrganizationVO.java
-  │   │   │                   ├── ProjectVO.java
-  │   │   │                   ├── ResultVO.java
-  │   │   │                   ├── TokenVO.java
-  │   │   │                   └── UserVO.java
+  │   │   │                   ├── OrganizationSimpleVO.java     # 组织简化VO
+  │   │   │                   ├── OrganizationVO.java           # 组织VO
+  │   │   │                   ├── ResultVO.java                 # 统一响应VO
+  │   │   │                   ├── TokenVO.java                  # 令牌VO
+  │   │   │                   └── UserVO.java                   # 用户VO
   │   │   └── resources/
-  │   │       ├── db/
-  │   │       │   └── migration/
-  │   │       │       ├── V1__init_schema.sql
-  │   │       │       └── V2__insert_admin_users.sql
-  │   │       ├── mapper/
-  │   │       │   ├── ApplicationMapper.xml
-  │   │       │   ├── EnterpriseDetailMapper.xml
-  │   │       │   ├── JobMapper.xml
-  │   │       │   ├── OrganizationMapper.xml
-  │   │       │   ├── ProjectMapper.xml
-  │   │       │   ├── RoleMapper.xml
-  │   │       │   ├── UserMapper.xml
-  │   │       │   └── UserVerificationMapper.xml
-  │   │       ├── static/
-  │   │       ├── templates/
-  │   │       └── application.yml
+  │   │       ├── application.yml                               # 应用配置文件
+  │   │       └── db/
+  │   │           └── migration/                                # Flyway数据库迁移脚本
   │   └── test/
   │       └── java/
   │           └── com/
   │               └── csu/
   │                   └── unicorp/
-  │                       ├── controller/
-  │                       ├── mapper/
-  │                       └── service/
-  └── pom.xml
+  │                       └── ...                               # 单元测试
+  ├── docs/
+  │   └── 第1次迭代/
+  │       ├── 第一次迭代API5.0.md                               # 旧版API设计文档
+  │       ├── 第一次迭代API6.0.md                               # 新版API设计文档
+  │       └── 测试计划.md                                       # 测试计划文档
+  ├── pom.xml                                                   # Maven配置文件
+  └── README.md                                                 # 项目说明文档
 ```
 
 ## 数据库命名规范
@@ -219,7 +200,34 @@ unicorp-api/
 
 5. **API文档**
    
-   启动后访问: http://localhost:8080/api/swagger-ui.html
+   启动后访问: http://localhost:8081/api/swagger-ui.html
+   
+   **操作指南**:
+   
+   1. 首先需要登录系统获取JWT令牌:
+      - 在Swagger UI界面找到 `/v1/auth/login` 接口（Authentication 标签组下）
+      - 点击"Try it out"按钮，输入以下登录信息:
+        ```json
+        {
+          "loginType": "account",
+          "principal": "admin1",
+          "password": "admin123"
+        }
+        ```
+      - 点击"Execute"执行请求
+      - 从响应中复制返回的token值
+   
+   2. 授权使用:
+      - 点击Swagger UI页面右上角的"Authorize"按钮
+      - 在弹出的窗口中，输入 `Bearer {你的token}` (将{你的token}替换为上一步复制的token值)
+      - 点击"Authorize"按钮确认
+   
+   3. 现在您已完成授权，可以调用需要权限的API了:
+      - 系统管理员可以创建学校、审核企业注册等
+      - 学校管理员可以管理教师账号
+      - 企业管理员可以管理企业导师账号
+   
+   4. 注意: JWT令牌有效期为24小时，过期后需要重新登录获取新令牌
 
 ## 贡献指南
 
@@ -257,3 +265,90 @@ unicorp-api/
 - [x] 校企双方发布合作项目
 - [x] 校企双方管理合作项目
 - [x] 公开浏览合作项目 
+
+## 功能模块
+
+### 1. 用户认证与注册
+
+- 支持账号、邮箱和手机号登录
+- 学生注册功能
+- 企业注册功能（需审核）
+- JWT令牌生成与验证
+
+### 2. 组织管理
+
+- 系统管理员创建学校
+- 获取学校列表
+- 企业注册审核
+
+### 3. 用户管理
+
+- 学校管理员管理教师账号
+  - 创建教师账号
+  - 查询教师列表
+  - 更新教师信息
+  - 禁用教师账号
+- 企业管理员管理企业导师账号
+  - 创建企业导师账号
+  - 查询导师列表
+  - 更新导师信息
+  - 禁用导师账号
+
+## API文档
+
+API文档使用Swagger UI生成，启动应用后访问：http://localhost:8080/api/swagger-ui.html
+
+## 数据库设计
+
+主要表结构：
+
+1. `users` - 用户表
+2. `roles` - 角色表
+3. `user_roles` - 用户角色关联表
+4. `organizations` - 组织表
+5. `enterprise_details` - 企业详情表
+6. `user_verifications` - 用户验证表
+
+## 开发指南
+
+### 环境要求
+
+- JDK 17+
+- Maven 3.8+
+- MySQL 8.0+
+
+### 本地运行
+
+1. 克隆项目
+```bash
+git clone <repository-url>
+cd unicorp-api
+```
+
+2. 配置数据库
+编辑 `src/main/resources/application.yml` 文件，修改数据库连接信息
+
+3. 构建并运行
+```bash
+mvn clean package
+java -jar target/unicorp-api-0.0.1-SNAPSHOT.jar
+```
+
+或者使用Maven插件运行：
+```bash
+mvn spring-boot:run
+```
+
+### 测试
+
+执行单元测试：
+```bash
+mvn test
+```
+
+API测试请参考 `docs/第1次迭代/测试计划.md` 文件，使用Postman进行测试。
+
+## 版本历史
+
+- v0.1.0 - 初始版本，实现基础认证和组织管理功能
+- v0.2.0 - 添加教师和企业导师管理功能 
