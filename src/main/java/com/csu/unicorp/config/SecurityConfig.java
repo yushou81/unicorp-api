@@ -83,6 +83,10 @@ public class SecurityConfig {
                     .requestMatchers("/v1/organizations/schools").permitAll()
                     .requestMatchers("/v1/jobs", "/v1/jobs/**").permitAll()
                     .requestMatchers("/v1/projects", "/v1/projects/{id}").permitAll()
+                    // 资源共享中心公开接口
+                    .requestMatchers("/v1/resources", "/v1/resources/{id}").permitAll()
+                    // 静态资源访问
+                    .requestMatchers("/files/**").permitAll()
                     .requestMatchers("/v1/chat/**").authenticated()
                     // Swagger UI and API docs
                     .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
