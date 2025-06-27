@@ -52,7 +52,7 @@ public class Resource {
     private String fileUrl;
     
     /**
-     * 可见性，如public
+     * 可见性，枚举值：public, private, organization_only
      */
     private String visibility;
     
@@ -66,4 +66,9 @@ public class Resource {
      * 创建时间
      */
     private LocalDateTime createdAt;
+    
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updatedAt;
 } 

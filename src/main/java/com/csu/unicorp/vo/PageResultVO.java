@@ -1,5 +1,6 @@
 package com.csu.unicorp.vo;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -42,6 +43,18 @@ public class PageResultVO<T> {
         this.current = current;
         this.size = size;
         this.list = list;
+    }
+    
+    /**
+     * 基于MyBatis-Plus的IPage构造方法
+     * @param page MyBatis-Plus分页对象
+     */
+    public PageResultVO(IPage<T> page) {
+        this.total = page.getTotal();
+        this.pages = page.getPages();
+        this.current = page.getCurrent();
+        this.size = page.getSize();
+        this.list = page.getRecords();
     }
     
     /**

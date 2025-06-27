@@ -40,7 +40,7 @@ public class AuthController {
     /**
      * 用户登录
      */
-    @Operation(summary = "通用登录接口", description = "用户使用账号和密码登录，成功后返回JWT")
+    @Operation(summary = "通用登录接口", description = "用户使用账号和密码登录，成功后返回JWT、用户昵称和角色信息")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "登录成功", 
                 content = @Content(mediaType = "application/json", 
@@ -49,8 +49,8 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<ResultVO<TokenVO>> login(@Valid @RequestBody LoginCredentialsDTO loginDto) {
-        TokenVO token = userService.login(loginDto);
-        return ResponseEntity.ok(ResultVO.success("登录成功", token));
+        TokenVO tokenResponse = userService.login(loginDto);
+        return ResponseEntity.ok(ResultVO.success("登录成功", tokenResponse));
     }
     
     /**

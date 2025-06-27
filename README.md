@@ -78,47 +78,63 @@ unicorp-api/
   │   │   │               │   ├── ApplicationController.java    # 项目申请接口
   │   │   │               │   ├── AuthController.java           # 认证接口
   │   │   │               │   ├── EnterpriseAdminController.java # 企业管理员接口
+  │   │   │               │   ├── FileController.java           # 文件上传接口
   │   │   │               │   ├── OrganizationController.java   # 组织接口
+  │   │   │               │   ├── ResourceController.java       # 资源管理接口
   │   │   │               │   └── SchoolAdminController.java    # 学校管理员接口
   │   │   │               ├── dto/
   │   │   │               │   ├── EnterpriseRegistrationDTO.java # 企业注册DTO
   │   │   │               │   ├── LoginCredentialsDTO.java      # 登录凭证DTO
   │   │   │               │   ├── OrgMemberCreationDTO.java     # 组织成员创建DTO
   │   │   │               │   ├── OrgMemberUpdateDTO.java       # 组织成员更新DTO
+  │   │   │               │   ├── ResourceCreationDTO.java      # 资源创建DTO
   │   │   │               │   ├── SchoolCreationDTO.java        # 学校创建DTO
   │   │   │               │   └── StudentRegistrationDTO.java   # 学生注册DTO
   │   │   │               ├── entity/
   │   │   │               │   ├── EnterpriseDetail.java         # 企业详情实体
   │   │   │               │   ├── Organization.java             # 组织实体
+  │   │   │               │   ├── Resource.java                 # 资源实体
   │   │   │               │   ├── Role.java                     # 角色实体
   │   │   │               │   ├── User.java                     # 用户实体
   │   │   │               │   └── UserVerification.java         # 用户验证实体
   │   │   │               ├── mapper/
   │   │   │               │   ├── EnterpriseDetailMapper.java   # 企业详情Mapper
   │   │   │               │   ├── OrganizationMapper.java       # 组织Mapper
+  │   │   │               │   ├── ResourceMapper.java           # 资源Mapper
   │   │   │               │   ├── RoleMapper.java               # 角色Mapper
   │   │   │               │   ├── UserMapper.java               # 用户Mapper
   │   │   │               │   └── UserVerificationMapper.java   # 用户验证Mapper
   │   │   │               ├── service/
   │   │   │               │   ├── EnterpriseService.java        # 企业服务接口
+  │   │   │               │   ├── FileService.java              # 文件服务接口
   │   │   │               │   ├── OrganizationService.java      # 组织服务接口
+  │   │   │               │   ├── ResourceService.java          # 资源服务接口
   │   │   │               │   ├── RoleService.java              # 角色服务接口
   │   │   │               │   ├── UserService.java              # 用户服务接口
   │   │   │               │   └── impl/
   │   │   │               │       ├── EnterpriseServiceImpl.java # 企业服务实现
+  │   │   │               │       ├── FileServiceImpl.java      # 文件服务实现
   │   │   │               │       ├── OrganizationServiceImpl.java # 组织服务实现
+  │   │   │               │       ├── ResourceServiceImpl.java  # 资源服务实现
   │   │   │               │       ├── RoleServiceImpl.java      # 角色服务实现
   │   │   │               │       └── UserServiceImpl.java      # 用户服务实现
   │   │   │               └── vo/
   │   │   │                   ├── OrganizationSimpleVO.java     # 组织简化VO
   │   │   │                   ├── OrganizationVO.java           # 组织VO
+  │   │   │                   ├── ResourceVO.java               # 资源VO
   │   │   │                   ├── ResultVO.java                 # 统一响应VO
   │   │   │                   ├── TokenVO.java                  # 令牌VO
   │   │   │                   └── UserVO.java                   # 用户VO
   │   │   └── resources/
   │   │       ├── application.yml                               # 应用配置文件
   │   │       └── db/
-  │   │           └── migration/                                # Flyway数据库迁移脚本
+  │   │           └── migration/
+  │   │               ├── V1__initial.sql                       # 初始数据库结构
+  │   │               ├── V2__admin.sql                         # 管理员数据
+  │   │               ├── V3__add_business_license_url.sql      # 添加营业执照URL
+  │   │               ├── V4__update_role_names.sql             # 更新角色名称
+  │   │               ├── V5__project_applicaiton.sql           # 项目申请表
+  │   │               └── V6__resources.sql                     # 资源表
   │   └── test/
   │       └── java/
   │           └── com/
@@ -126,10 +142,17 @@ unicorp-api/
   │                   └── unicorp/
   │                       └── ...                               # 单元测试
   ├── docs/
-  │   └── 第1次迭代/
-  │       ├── 第一次迭代API5.0.md                               # 旧版API设计文档
-  │       ├── 第一次迭代API6.0.md                               # 新版API设计文档
-  │       └── 测试计划.md                                       # 测试计划文档
+  │   ├── 第1次迭代/
+  │   │   ├── 第一次迭代API5.0.md                               # 旧版API设计文档
+  │   │   ├── 第一次迭代API6.0.md                               # 新版API设计文档
+  │   │   └── 测试计划.md                                       # 测试计划文档
+  │   ├── 第2次迭代/
+  │   │   └── 第二次迭代API1.0.md                               # 第二次迭代API设计文档
+  │   ├── 第3次迭代/
+  │   │   └── 第三次迭代API2.0.md                               # 第三次迭代API设计文档
+  │   └── 第4次迭代/
+  │       ├── 第四次迭代API1.0.md                               # 第四次迭代API设计文档
+  │       └── 测试计划.md                                       # 第四次迭代测试计划
   ├── pom.xml                                                   # Maven配置文件
   └── README.md                                                 # 项目说明文档
 ```
@@ -158,197 +181,31 @@ unicorp-api/
 - 角色权限管理
 - 用户实名认证模型
 
+### 第二次迭代 - 招聘与申请管理
+- 企业发布招聘信息
+- 学生浏览招聘信息
+- 学生申请职位
+- 企业查看申请并处理
+
+### 第三次迭代 - 项目合作管理
+- 校企双方发布合作项目
+- 校企双方管理合作项目
+- 公开浏览合作项目
+- 学生申请参与项目
+
+### 第四次迭代 - 资源共享中心
+- 文件上传与管理
+- 教师/企业导师上传共享资源
+- 公开浏览资源列表
+- 资源详情查看与下载
+- 资源所有者更新和删除资源
+
 已实现API:
 1. 用户登录 - POST `/v1/auth/login`
 2. 学生注册 - POST `/v1/auth/register/student`
-3. 获取当前用户信息 - GET `/v1/auth/me`
-4. 获取所有学校列表 - GET `/v1/organizations/schools`
-5. 管理员创建学校 - POST `/v1/admin/organizations/schools`
-
-系统默认账号:
-- 系统管理员账号: admin1, admin2, admin3, admin4, admin5
-- 默认密码: admin123
-
-## 如何运行
-
-### 环境要求
-- JDK 17+
-- MySQL 8.0+
-- Maven 3.6+
-
-### 步骤
-
-1. **克隆项目**
-   ```bash
-   git clone https://github.com/your-organization/unicorp-api.git
-   cd unicorp-api
-   ```
-
-2. **配置数据库**
-   
-   修改 `src/main/resources/application.yml` 文件中的数据库连接信息
-
-3. **构建项目**
-   ```bash
-   mvn clean package
-   ```
-
-4. **运行项目**
-   ```bash
-   java -jar target/unicorp-api-0.0.1-SNAPSHOT.jar
-   ```
-
-5. **API文档**
-   
-   启动后访问: http://localhost:8081/api/v3/api-docs
-   
-   **操作指南**:
-   
-   1. 首先需要登录系统获取JWT令牌:
-      - 在Swagger UI界面找到 `/v1/auth/login` 接口（Authentication 标签组下）
-      - 点击"Try it out"按钮，输入以下登录信息:
-        ```json
-        {
-          "loginType": "account",
-          "principal": "admin1",
-          "password": "admin123"
-        }
-        ```
-      - 点击"Execute"执行请求
-      - 从响应中复制返回的token值
-   
-   2. 授权使用:
-      - 点击Swagger UI页面右上角的"Authorize"按钮
-      - 在弹出的窗口中，输入 `Bearer {你的token}` (将{你的token}替换为上一步复制的token值)
-      - 点击"Authorize"按钮确认
-   
-   3. 现在您已完成授权，可以调用需要权限的API了:
-      - 系统管理员可以创建学校、审核企业注册等
-      - 学校管理员可以管理教师账号
-      - 企业管理员可以管理企业导师账号
-   
-   4. 注意: JWT令牌有效期为24小时，过期后需要重新登录获取新令牌
-
-## 贡献指南
-
-1. Fork 本仓库
-2. 创建您的特性分支: `git checkout -b my-new-feature`
-3. 提交您的更改: `git commit -am 'Add some feature'`
-4. 推送到分支: `git push origin my-new-feature`
-5. 提交拉取请求
-
-## 许可证
-
-[MIT License](LICENSE) 
-
-## API实现进度
-
-### 第一次迭代
-
-- [x] 管理员录入学校
-- [x] 学生注册
-- [x] 企业注册与审核
-- [x] 用户登录（账号/邮箱/手机号）
-- [x] 获取当前用户信息
-- [x] 学校管理员创建教师账号
-- [x] 企业管理员创建企业导师账号
-
-### 第二次迭代
-
-- [x] 企业发布招聘信息
-- [x] 学生浏览招聘信息
-- [x] 学生申请职位
-- [x] 企业查看申请并处理
-
-### 第三次迭代
-
-- [x] 校企双方发布合作项目
-- [x] 校企双方管理合作项目
-- [x] 公开浏览合作项目 
-
-## 功能模块
-
-### 1. 用户认证与注册
-
-- 支持账号、邮箱和手机号登录
-- 学生注册功能
-- 企业注册功能（需审核）
-- JWT令牌生成与验证
-
-### 2. 组织管理
-
-- 系统管理员创建学校
-- 获取学校列表
-- 企业注册审核
-
-### 3. 用户管理
-
-- 学校管理员管理教师账号
-  - 创建教师账号
-  - 查询教师列表
-  - 更新教师信息
-  - 禁用教师账号
-- 企业管理员管理企业导师账号
-  - 创建企业导师账号
-  - 查询导师列表
-  - 更新导师信息
-  - 禁用导师账号
-
-## API文档
-
-API文档使用Swagger UI生成，启动应用后访问：http://localhost:8080/api/swagger-ui.html
-
-## 数据库设计
-
-主要表结构：
-
-1. `users` - 用户表
-2. `roles` - 角色表
-3. `user_roles` - 用户角色关联表
-4. `organizations` - 组织表
-5. `enterprise_details` - 企业详情表
-6. `user_verifications` - 用户验证表
-
-## 开发指南
-
-### 环境要求
-
-- JDK 17+
-- Maven 3.8+
-- MySQL 8.0+
-
-### 本地运行
-
-1. 克隆项目
-```bash
-git clone <repository-url>
-cd unicorp-api
-```
-
-2. 配置数据库
-编辑 `src/main/resources/application.yml` 文件，修改数据库连接信息
-
-3. 构建并运行
-```bash
-mvn clean package
-java -jar target/unicorp-api-0.0.1-SNAPSHOT.jar
-```
-
-或者使用Maven插件运行：
-```bash
-mvn spring-boot:run
-```
-
-### 测试
-
-执行单元测试：
-```bash
-mvn test
-```
-
-API测试请参考 `docs/第1次迭代/测试计划.md` 文件，使用Postman进行测试。
-
-## 版本历史
-
-- v0.1.0 - 初始版本，实现基础认证和组织管理功能
-- v0.2.0 - 添加教师和企业导师管理功能 
+3. 文件上传 - POST `/v1/files/upload`
+4. 获取资源列表 - GET `/v1/resources`
+5. 获取资源详情 - GET `/v1/resources/{id}`
+6. 创建资源 - POST `/v1/resources`
+7. 更新资源 - PUT `/v1/resources/{id}`
+8. 删除资源 - DELETE `/v1/resources/{id}`

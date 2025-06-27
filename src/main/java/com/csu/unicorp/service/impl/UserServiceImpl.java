@@ -90,7 +90,15 @@ public class UserServiceImpl implements UserService {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String token = jwtUtil.generateToken(userDetails);
         
-        return new TokenVO(token);
+        // 获取用户角色（只有一个角色）
+        String role = getUserRoles(user.getId()).get(0);
+        
+        // 构建并返回TokenVO，包含token、nickname和role
+        return TokenVO.builder()
+                .token(token)
+                .nickname(user.getNickname())
+                .role(role)
+                .build();
     }
     
     @Override
