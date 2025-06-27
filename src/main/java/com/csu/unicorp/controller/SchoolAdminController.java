@@ -1,7 +1,9 @@
 package com.csu.unicorp.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.dto.OrgMemberCreationDTO;
+import com.csu.unicorp.dto.OrgMemberUpdateDTO;
 import com.csu.unicorp.service.UserService;
 import com.csu.unicorp.vo.ResultVO;
 import com.csu.unicorp.vo.UserVO;
@@ -19,10 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 学校管理员控制器
@@ -55,5 +54,64 @@ public class SchoolAdminController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UserVO teacher = userService.createTeacher(teacherDTO, userDetails);
         return new ResponseEntity<>(ResultVO.success("教师账号创建成功", teacher), HttpStatus.CREATED);
+    }
+    
+    /**
+     * 获取教师列表
+     */
+    @Operation(summary = "[学校管理员] 查询本校教师列表", 
+            description = "由学校管理员调用，获取本校的所有教师账号列表，支持分页。")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "成功获取教师列表", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = UserVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足(非学校管理员)")
+    })
+    @GetMapping("/teachers")
+    public ResponseEntity<ResultVO<IPage<UserVO>>> getTeachers(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        IPage<UserVO> teachers = userService.getTeachers(page, size, userDetails);
+        return ResponseEntity.ok(ResultVO.success("获取教师列表成功", teachers));
+    }
+    
+    /**
+     * 更新教师信息
+     */
+    @Operation(summary = "[学校管理员] 更新教师信息", 
+            description = "更新本校指定教师的非敏感信息（如昵称、电话）。")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "更新成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = UserVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足(非学校管理员)"),
+        @ApiResponse(responseCode = "404", description = "用户未找到")
+    })
+    @PutMapping("/teachers/{id}")
+    public ResponseEntity<ResultVO<UserVO>> updateTeacher(
+            @PathVariable Integer id,
+            @Valid @RequestBody OrgMemberUpdateDTO updateDTO,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UserVO teacher = userService.updateTeacher(id, updateDTO, userDetails);
+        return ResponseEntity.ok(ResultVO.success("教师信息更新成功", teacher));
+    }
+    
+    /**
+     * 禁用教师账号
+     */
+    @Operation(summary = "[学校管理员] 禁用教师账号", 
+            description = "禁用本校的某个教师账号 (将其状态更新为 'inactive')。这是一个可逆操作。")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "禁用成功"),
+        @ApiResponse(responseCode = "403", description = "权限不足(非学校管理员)"),
+        @ApiResponse(responseCode = "404", description = "用户未找到")
+    })
+    @DeleteMapping("/teachers/{id}")
+    public ResponseEntity<Void> disableTeacher(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        userService.disableTeacher(id, userDetails);
+        return ResponseEntity.noContent().build();
     }
 } 

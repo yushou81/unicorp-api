@@ -7,7 +7,7 @@ server:
 # Spring相关配置
 spring:
   application:
-    name: linknei-api # 应用名称
+    name: unicorp-api # 应用名称
   # 数据库连接池配置
   datasource:
     # 【请修改】: 将下面的URL、用户名和密码替换成你自己的
@@ -48,12 +48,15 @@ springdoc:
     operations-sorter: alpha # 按字母顺序排序操作
   # 包含的路径，限制文档只显示指定路径下的API
   paths-to-match: 
-    - /auth/**
-    - /user/**
-    - /job-applications/**
-    - /job-posts/**
-    - /enterprises/**
-    - /map/**
+    - /v1/auth/**
+    - /v1/admin/**
+    - /v1/school-admin/**
+    - /v1/enterprise-admin/**
+    - /v1/jobs/**
+    - /v1/projects/**
+    - /v1/organizations/**
+    - /v1/map/**
+    - /v1/applications/**
 
 # MyBatis-Plus 相关配置
 mybatis-plus:

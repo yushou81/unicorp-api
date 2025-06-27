@@ -1,6 +1,8 @@
 package com.csu.unicorp.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -66,4 +68,38 @@ public interface UserMapper extends BaseMapper<User> {
     @Select("SELECT MAX(CAST(SUBSTRING(account, LENGTH(#{prefix}) + 1) AS UNSIGNED)) " +
             "FROM users WHERE account LIKE CONCAT(#{prefix}, '%') AND is_deleted = 0")
     Integer selectMaxSequenceByPrefix(@Param("prefix") String prefix);
+    
+    /**
+     * 根据组织ID查询教师列表
+     * 
+     * @param organizationId 组织ID
+     * @param page 页码
+     * @param size 每页大小
+     * @return 教师列表
+     */
+    @Select("SELECT u.* FROM users u " +
+            "INNER JOIN user_roles ur ON u.id = ur.user_id " +
+            "INNER JOIN roles r ON ur.role_id = r.id " +
+            "WHERE u.organization_id = #{organizationId} " +
+            "AND r.role_name = 'TEACHER' " +
+            "AND u.is_deleted = 0")
+    IPage<User> selectTeachersByOrganizationId(@Param("organizationId") Integer organizationId, 
+                                              @Param("page") Page<User> page);
+    
+    /**
+     * 根据组织ID查询企业导师列表
+     * 
+     * @param organizationId 组织ID
+     * @param page 页码
+     * @param size 每页大小
+     * @return 企业导师列表
+     */
+    @Select("SELECT u.* FROM users u " +
+            "INNER JOIN user_roles ur ON u.id = ur.user_id " +
+            "INNER JOIN roles r ON ur.role_id = r.id " +
+            "WHERE u.organization_id = #{organizationId} " +
+            "AND r.role_name = 'EN_TEACHER' " +
+            "AND u.is_deleted = 0")
+    IPage<User> selectMentorsByOrganizationId(@Param("organizationId") Integer organizationId, 
+                                             @Param("page") Page<User> page);
 }

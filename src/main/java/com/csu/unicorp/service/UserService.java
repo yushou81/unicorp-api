@@ -1,8 +1,10 @@
 package com.csu.unicorp.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.csu.unicorp.dto.EnterpriseRegistrationDTO;
 import com.csu.unicorp.dto.LoginCredentialsDTO;
 import com.csu.unicorp.dto.OrgMemberCreationDTO;
+import com.csu.unicorp.dto.OrgMemberUpdateDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.vo.TokenVO;
@@ -44,7 +46,7 @@ public interface UserService {
      * 获取当前登录用户信息
      * 
      * @param userDetails 当前认证用户
-     * @return 用户信息
+     * @return 当前用户信息
      */
     UserVO getCurrentUser(UserDetails userDetails);
     
@@ -105,4 +107,60 @@ public interface UserService {
      * @return 创建成功的企业导师信息
      */
     UserVO createMentor(OrgMemberCreationDTO mentorDTO, UserDetails userDetails);
+    
+    /**
+     * 获取学校教师列表
+     *
+     * @param page 页码
+     * @param size 每页大小
+     * @param userDetails 当前认证用户（学校管理员）
+     * @return 教师列表（分页）
+     */
+    IPage<UserVO> getTeachers(int page, int size, UserDetails userDetails);
+    
+    /**
+     * 更新教师信息
+     *
+     * @param id 教师ID
+     * @param updateDTO 更新信息
+     * @param userDetails 当前认证用户（学校管理员）
+     * @return 更新后的教师信息
+     */
+    UserVO updateTeacher(Integer id, OrgMemberUpdateDTO updateDTO, UserDetails userDetails);
+    
+    /**
+     * 禁用教师账号
+     *
+     * @param id 教师ID
+     * @param userDetails 当前认证用户（学校管理员）
+     */
+    void disableTeacher(Integer id, UserDetails userDetails);
+    
+    /**
+     * 获取企业导师列表
+     *
+     * @param page 页码
+     * @param size 每页大小
+     * @param userDetails 当前认证用户（企业管理员）
+     * @return 导师列表（分页）
+     */
+    IPage<UserVO> getMentors(int page, int size, UserDetails userDetails);
+    
+    /**
+     * 更新导师信息
+     *
+     * @param id 导师ID
+     * @param updateDTO 更新信息
+     * @param userDetails 当前认证用户（企业管理员）
+     * @return 更新后的导师信息
+     */
+    UserVO updateMentor(Integer id, OrgMemberUpdateDTO updateDTO, UserDetails userDetails);
+    
+    /**
+     * 禁用导师账号
+     *
+     * @param id 导师ID
+     * @param userDetails 当前认证用户（企业管理员）
+     */
+    void disableMentor(Integer id, UserDetails userDetails);
 } 
