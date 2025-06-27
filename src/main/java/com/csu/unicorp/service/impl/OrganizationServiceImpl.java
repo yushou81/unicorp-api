@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.utils.AccountGenerator;
 import com.csu.unicorp.dto.SchoolCreationDTO;
@@ -98,7 +99,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         userMapper.insert(admin);
         
         // 分配学校管理员角色
-        roleService.assignRoleToUser(admin.getId(), "学校管理员");
+        roleService.assignRoleToUser(admin.getId(), RoleConstants.DB_ROLE_STUDENT);
         
         return convertToVO(organization);
     }
