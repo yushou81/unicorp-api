@@ -39,4 +39,19 @@ public interface ApplicationMapper extends BaseMapper<Application> {
      */
     @Select("SELECT COUNT(*) FROM applications WHERE job_id = #{jobId} AND student_id = #{studentId}")
     Integer countStudentApplication(@Param("jobId") Integer jobId, @Param("studentId") Integer studentId);
+    
+    /**
+     * 查询学生的所有申请，包含岗位和企业信息
+     * 
+     * @param page 分页参数
+     * @param studentId 学生ID
+     * @return 分页结果
+     */
+    @Select("SELECT a.*, j.title as job_title, o.organization_name " +
+            "FROM applications a " +
+            "LEFT JOIN jobs j ON a.job_id = j.id " +
+            "LEFT JOIN organizations o ON j.organization_id = o.id " +
+            "WHERE a.student_id = #{studentId} AND j.is_deleted = false " +
+            "ORDER BY a.applied_at DESC")
+    IPage<Application> selectStudentApplications(Page<Application> page, @Param("studentId") Integer studentId);
 } 
