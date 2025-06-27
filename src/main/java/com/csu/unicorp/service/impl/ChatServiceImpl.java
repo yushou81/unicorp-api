@@ -1,25 +1,26 @@
 package com.csu.unicorp.service.impl;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.csu.unicorp.entity.ChatMessage;
 import com.csu.unicorp.entity.ChatSession;
 import com.csu.unicorp.mapper.ChatMessageMapper;
 import com.csu.unicorp.mapper.ChatSessionMapper;
 import com.csu.unicorp.service.ChatService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
 
-    @Autowired
-    private ChatSessionMapper chatSessionMapper;
+    private final ChatSessionMapper chatSessionMapper;
 
-    @Autowired
-    private ChatMessageMapper chatMessageMapper;
+    private final ChatMessageMapper chatMessageMapper;
 
     @Override
     public ChatSession createOrGetSession(Long user1Id, Long user2Id) {

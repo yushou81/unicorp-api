@@ -83,7 +83,7 @@ public class SecurityConfig {
                     .requestMatchers("/v1/organizations/schools").permitAll()
                     .requestMatchers("/v1/jobs", "/v1/jobs/**").permitAll()
                     .requestMatchers("/v1/projects", "/v1/projects/{id}").permitAll()
-                    .requestMatchers("/v1/chat/**").permitAll()
+                    .requestMatchers("/v1/chat/**").authenticated()
                     // Swagger UI and API docs
                     .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     // 管理接口需要SYSADMIN权限
