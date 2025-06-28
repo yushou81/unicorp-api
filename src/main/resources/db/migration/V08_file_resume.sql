@@ -1,6 +1,4 @@
 -- 添加用户头像字段
-ALTER TABLE users
-ADD COLUMN avatar_url VARCHAR(255) DEFAULT NULL COMMENT '用户头像URL'; 
 -- =================================================================
 -- 数据库变更脚本 (Database Migration Script)
 -- 版本: 1.4

@@ -1,22 +1,29 @@
 package com.csu.unicorp.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.csu.unicorp.common.exception.BusinessException;
-import com.csu.unicorp.entity.StudentProfile;
+import com.csu.unicorp.common.constants.RoleConstants;
+import com.csu.unicorp.common.exception.ResourceNotFoundException;
+import com.csu.unicorp.dto.ProfileUpdateDTO;
+import com.csu.unicorp.entity.Organization;
+import com.csu.unicorp.entity.StudentInfo;
 import com.csu.unicorp.entity.User;
-import com.csu.unicorp.mapper.StudentProfileMapper;
+import com.csu.unicorp.mapper.OrganizationMapper;
+import com.csu.unicorp.mapper.StudentInfoMapper;
 import com.csu.unicorp.mapper.UserMapper;
+import com.csu.unicorp.service.PortfolioService;
 import com.csu.unicorp.service.ProfileService;
+import com.csu.unicorp.vo.PortfolioItemVO;
+import com.csu.unicorp.vo.StudentProfileVO;
+import com.csu.unicorp.vo.UserProfileVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 
 /**
- * 用户个人资料服务实现类
+ * 个人主页服务实现类
  */
 @Slf4j
 @Service
@@ -24,66 +31,106 @@ import java.util.List;
 public class ProfileServiceImpl implements ProfileService {
 
     private final UserMapper userMapper;
-    private final StudentProfileMapper studentProfileMapper;
-
+    private final OrganizationMapper organizationMapper;
+    private final StudentInfoMapper studentInfoMapper;
+    private final PortfolioService portfolioService;
+    
     @Override
-    @Transactional
-    public void updateAvatar(Integer userId, String avatarUrl) {
-        // 验证URL
-        if (!StringUtils.hasText(avatarUrl)) {
-            throw new BusinessException("头像URL不能为空");
-        }
-        
-        // 验证用户是否存在
+    public UserProfileVO getUserProfile(Integer userId) {
+        // 获取用户基本信息
         User user = userMapper.selectById(userId);
         if (user == null) {
-            throw new BusinessException("用户不存在");
+            throw new ResourceNotFoundException("用户不存在");
         }
         
-        // 更新用户头像URL
-        user.setAvatarUrl(avatarUrl);
+        // 构建用户档案VO
+        UserProfileVO profileVO = buildUserProfileVO(user);
+        
+        return profileVO;
+    }
+    
+    @Override
+    public UserProfileVO getCurrentUserProfile(Integer currentUserId) {
+        // 获取当前用户基本信息
+        User user = userMapper.selectById(currentUserId);
+        if (user == null) {
+            throw new ResourceNotFoundException("用户不存在");
+        }
+        
+        // 构建用户档案VO
+        UserProfileVO profileVO = buildUserProfileVO(user);
+        
+        return profileVO;
+    }
+    
+    @Override
+    @Transactional
+    public UserProfileVO updateUserProfile(Integer currentUserId, ProfileUpdateDTO profileUpdateDTO) {
+        // 获取当前用户基本信息
+        User user = userMapper.selectById(currentUserId);
+        if (user == null) {
+            throw new ResourceNotFoundException("用户不存在");
+        }
+        
+        // 更新用户信息
+        if (profileUpdateDTO.getNickname() != null) {
+            user.setNickname(profileUpdateDTO.getNickname());
+        }
+
+        if (profileUpdateDTO.getAvatar() != null) {
+            user.setAvatar(profileUpdateDTO.getAvatar());
+        }
+        
+        // 保存更新
         userMapper.updateById(user);
         
-        log.info("用户 {} 更新了头像: {}", userId, avatarUrl);
+        // 返回更新后的用户档案
+        return buildUserProfileVO(user);
     }
-
-    @Override
-    @Transactional
-    public void updateResume(Integer userId, String resumeUrl) {
-        // 验证URL
-        if (!StringUtils.hasText(resumeUrl)) {
-            throw new BusinessException("简历URL不能为空");
+    
+    /**
+     * 构建用户档案VO
+     * 
+     * @param user 用户实体
+     * @return 用户档案VO
+     */
+    private UserProfileVO buildUserProfileVO(User user) {
+        UserProfileVO profileVO = new UserProfileVO();
+        
+        // 复制基本信息
+        profileVO.setId(user.getId());
+        profileVO.setAccount(user.getAccount());
+        profileVO.setNickname(user.getNickname());
+        profileVO.setAvatarUrl(user.getAvatar());
+        
+        // 获取组织信息
+        if (user.getOrganizationId() != null) {
+            Organization organization = organizationMapper.selectById(user.getOrganizationId());
+            if (organization != null) {
+                profileVO.setOrganizationName(organization.getOrganizationName());
+            }
         }
         
-        // 验证用户是否存在
-        User user = userMapper.selectById(userId);
-        if (user == null) {
-            throw new BusinessException("用户不存在");
+        // 获取用户角色
+        String role = userMapper.selectRoleByUserId(user.getId());
+        profileVO.setRole(role);
+        
+        // 如果是学生角色，添加学生特有信息
+        if (RoleConstants.DB_ROLE_STUDENT.equals(role)) {
+            // 获取学生档案信息
+            StudentInfo studentInfo = studentInfoMapper.selectByUserId(user.getId());
+            if (studentInfo != null) {
+                StudentProfileVO studentProfileVO = new StudentProfileVO();
+                studentProfileVO.setMajor(studentInfo.getMajor());
+                studentProfileVO.setEducationLevel(studentInfo.getEducationLevel());
+                profileVO.setStudentProfile(studentProfileVO);
+            }
+            
+            // 获取作品集列表
+            List<PortfolioItemVO> portfolioItems = portfolioService.getPortfolioItems(user.getId());
+            profileVO.setPortfolio(portfolioItems);
         }
         
-        // 验证用户是否为学生
-        List<String> roles = userMapper.selectRolesByUserId(userId);
-        if (roles == null || !roles.contains("STUDENT")) {
-            throw new BusinessException("只有学生用户可以上传简历");
-        }
-        
-        // 查找或创建学生档案
-        LambdaQueryWrapper<StudentProfile> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(StudentProfile::getUserId, userId);
-        StudentProfile profile = studentProfileMapper.selectOne(queryWrapper);
-        
-        if (profile == null) {
-            // 创建新的学生档案
-            profile = new StudentProfile();
-            profile.setUserId(userId);
-            profile.setResumeUrl(resumeUrl);
-            studentProfileMapper.insert(profile);
-        } else {
-            // 更新现有档案
-            profile.setResumeUrl(resumeUrl);
-            studentProfileMapper.updateById(profile);
-        }
-        
-        log.info("学生 {} 更新了简历: {}", userId, resumeUrl);
+        return profileVO;
     }
 } 

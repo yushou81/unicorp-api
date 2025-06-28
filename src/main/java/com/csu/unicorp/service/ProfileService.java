@@ -1,23 +1,35 @@
 package com.csu.unicorp.service;
 
+import com.csu.unicorp.dto.ProfileUpdateDTO;
+import com.csu.unicorp.vo.UserProfileVO;
+
 /**
- * 用户个人资料服务接口
+ * 个人主页服务接口
  */
 public interface ProfileService {
     
     /**
-     * 更新用户头像
+     * 获取指定用户的公开主页信息
      * 
      * @param userId 用户ID
-     * @param avatarUrl 头像URL
+     * @return 用户主页信息
      */
-    void updateAvatar(Integer userId, String avatarUrl);
+    UserProfileVO getUserProfile(Integer userId);
     
     /**
-     * 更新学生简历
+     * 获取当前登录用户的完整档案信息
      * 
-     * @param userId 用户ID
-     * @param resumeUrl 简历URL
+     * @param currentUserId 当前登录用户ID
+     * @return 用户档案信息
      */
-    void updateResume(Integer userId, String resumeUrl);
+    UserProfileVO getCurrentUserProfile(Integer currentUserId);
+    
+    /**
+     * 更新当前登录用户的基本档案
+     * 
+     * @param currentUserId 当前登录用户ID
+     * @param profileUpdateDTO 更新信息
+     * @return 更新后的用户档案信息
+     */
+    UserProfileVO updateUserProfile(Integer currentUserId, ProfileUpdateDTO profileUpdateDTO);
 } 
