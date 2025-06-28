@@ -24,6 +24,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -255,7 +256,7 @@ public class ProjectApplicationServiceImpl extends ServiceImpl<ProjectApplicatio
         MyProjectApplicationDetailVO vo = new MyProjectApplicationDetailVO();
         vo.setApplicationId((Integer) map.get("application_id"));
         vo.setStatus((String) map.get("status"));
-        vo.setAppliedAt((LocalDateTime) map.get("applied_at"));
+        vo.setAppliedAt((Timestamp) map.get("applied_at"));
         
         MyProjectApplicationDetailVO.ProjectInfoVO projectInfo = new MyProjectApplicationDetailVO.ProjectInfoVO();
         projectInfo.setProjectId((Integer) map.get("project_id"));
