@@ -117,16 +117,17 @@ public class JobController {
     
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('EN_ADMIN', 'EN_TEACHER')")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "[企业] 删除岗位", description = "由企业管理员或企业导师调用，用于删除已发布的岗位",
             security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "删除成功"),
+            @ApiResponse(responseCode = "200", description = "删除成功",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ResultVO.class))),
             @ApiResponse(responseCode = "403", description = "权限不足",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    public void deleteJob(
+    public ResultVO<Void> deleteJob(
             @Parameter(description = "岗位ID") @PathVariable Integer id,
             @AuthenticationPrincipal UserDetails userDetails) {
         // 从UserDetails中获取用户ID和组织ID
@@ -134,6 +135,7 @@ public class JobController {
         Integer orgId = getOrgIdFromUserDetails(userDetails);
         
         jobService.deleteJob(id, userId, orgId);
+        return ResultVO.success("岗位删除成功");
     }
     
     /**

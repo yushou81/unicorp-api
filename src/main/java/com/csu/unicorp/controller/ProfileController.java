@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,15 +34,15 @@ public class ProfileController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "成功获取用户主页信息",
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = UserProfileVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "404", description = "用户未找到",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @GetMapping("/v1/profiles/{userId}")
-    public ResponseEntity<ResultVO<UserProfileVO>> getUserProfile(@PathVariable Integer userId) {
+    public ResultVO<UserProfileVO> getUserProfile(@PathVariable Integer userId) {
         UserProfileVO userProfile = profileService.getUserProfile(userId);
-        return ResponseEntity.ok(ResultVO.success("获取用户主页信息成功", userProfile));
+        return ResultVO.success("获取用户主页信息成功", userProfile);
     }
     
     /**
@@ -53,16 +52,16 @@ public class ProfileController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "成功获取档案信息",
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = UserProfileVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "401", description = "未授权",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/v1/me/profile")
-    public ResponseEntity<ResultVO<UserProfileVO>> getMyProfile(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResultVO<UserProfileVO> getMyProfile(@AuthenticationPrincipal CustomUserDetails userDetails) {
         UserProfileVO userProfile = profileService.getCurrentUserProfile(userDetails.getUser().getId());
-        return ResponseEntity.ok(ResultVO.success("获取个人档案信息成功", userProfile));
+        return ResultVO.success("获取个人档案信息成功", userProfile);
     }
     
     /**
@@ -72,17 +71,17 @@ public class ProfileController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "档案更新成功",
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = UserProfileVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "401", description = "未授权",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/v1/me/profile")
-    public ResponseEntity<ResultVO<UserProfileVO>> updateMyProfile(
+    public ResultVO<UserProfileVO> updateMyProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody ProfileUpdateDTO profileUpdateDTO) {
         UserProfileVO updatedProfile = profileService.updateUserProfile(userDetails.getUser().getId(), profileUpdateDTO);
-        return ResponseEntity.ok(ResultVO.success("个人档案更新成功", updatedProfile));
+        return ResultVO.success("个人档案更新成功", updatedProfile);
     }
 } 

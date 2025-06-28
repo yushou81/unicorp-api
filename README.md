@@ -69,7 +69,7 @@ unicorp-api/
   │   │   │               │       ├── AccountGenerator.java     # 账号生成工具
   │   │   │               │       └── JwtUtil.java              # JWT工具类
   │   │   │               ├── config/
-  │   │   │               │   ├── SecurityConfig.java           # Spring Security配置
+  │   │   │               │   ├── SecurityConfig.java           # Spring Security配置及OpenAPI配置
   │   │   │               │   └── security/
   │   │   │               │       ├── CustomUserDetails.java    # 自定义UserDetails实现
   │   │   │               │       └── JwtAuthenticationFilter.java # JWT认证过滤器
@@ -241,3 +241,55 @@ unicorp-api/
 18. 取消收藏岗位 - DELETE `/v1/jobs/{id}/favorite`
 19. 更新用户个人信息 - PUT `/v1/auth/profile`
 20. 修改用户密码 - PUT `/v1/auth/password`
+
+## 技术特点
+
+### 统一响应格式与API文档生成
+
+项目使用 `ResultVO<T>` 作为统一的API响应格式，同时通过自定义 `ModelConverter` 实现了在 SpringDoc 文档中准确展示泛型响应类型：
+
+```java
+/**
+ * 自定义ModelConverter，处理ResultVO泛型类型
+ */
+@Bean
+public ModelConverter resultVOModelConverter() {
+    return new ModelConverter() {
+        @Override
+        public Schema resolve(AnnotatedType type, ModelConverterContext context, Iterator<ModelConverter> chain) {
+            JavaType javaType = Json.mapper().constructType(type.getType());
+            if (javaType != null && ResultVO.class.isAssignableFrom(javaType.getRawClass())) {
+                if (javaType.hasGenericTypes()) {
+                    // 获取泛型参数类型并创建复合模式
+                    JavaType genericType = javaType.getBindings().getBoundType(0);
+                    if (genericType != null) {
+                        Schema schema = new ObjectSchema();
+                        schema.setDescription("统一API响应结果");
+                        
+                        // 添加基本属性
+                        schema.addProperty("code", new IntegerSchema().example(200).description("业务状态码"));
+                        schema.addProperty("message", new StringSchema().example("操作成功").description("响应信息"));
+                        
+                        // 添加数据属性，使用泛型类型
+                        Schema dataSchema = context.resolve(new AnnotatedType(genericType.getRawClass()));
+                        schema.addProperty("data", dataSchema);
+                        
+                        return schema;
+                    }
+                }
+            }
+            
+            // 对于其他类型，使用默认转换器
+            if (chain.hasNext()) {
+                return chain.next().resolve(type, context, chain);
+            } else {
+                return null;
+            }
+        }
+        
+        // 其他必要方法实现...
+    };
+}
+```
+
+这种实现方式使得API文档中能够准确展示统一响应中的具体数据类型，提高了文档的可读性和准确性。
