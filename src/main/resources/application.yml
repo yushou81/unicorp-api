@@ -35,17 +35,23 @@ spring:
   logging:
     level:
       root: INFO
-      com.csu.unicorp: INFO
-      org.springframework.security: INFO
+      com.csu.unicorp: DEBUG  # 将应用代码日志级别设为DEBUG
+      com.csu.unicorp.config.security: TRACE  # 安全配置相关日志设为TRACE
+      org.springframework.security: DEBUG  # 安全相关日志设为DEBUG
+      org.springframework.web: DEBUG  # Web相关日志设为DEBUG
+      org.hibernate.SQL: DEBUG  # 显示SQL语句
+      org.hibernate.type.descriptor.sql: TRACE  # 显示SQL参数绑定值
 # JWT配置
 jwt:
   secret: Oe8H9XZ3x2NpDQfY9vTr5qK6sLm7oP3aUv1wMxB2zC3yD4fE5gF6hG7jH8kJ
   expiration: 86400000 # 24小时(毫秒)
 
 # 文件上传配置
-file:
-  upload-dir: upload # 文件上传目录
-  base-url: http://localhost:8081/api/v1/files # 文件访问基础URL
+app:
+  upload:
+    dir: upload
+    max-size: 10485760  # 10MB
+  base-url: http://localhost:8081
 
 # SpringDoc配置
 springdoc:
@@ -54,32 +60,22 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
-    disable-swagger-default-url: true
-    tags-sorter: alpha # 按字母顺序排序标签
-    operations-sorter: alpha # 按字母顺序排序操作
-  # 包含的路径，限制文档只显示指定路径下的API
+    tags-sorter: alpha
+    operations-sorter: alpha
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.csu.unicorp.controller
+  default-flat-param-object: true
   paths-to-match:
     - /v1/auth/**
+    - /v1/organizations/**
     - /v1/admin/**
     - /v1/school-admin/**
     - /v1/enterprise-admin/**
-    - /v1/jobs/**
-    - /v1/projects/**
-    - /v1/organizations/**
-    - /v1/map/**
-    - /v1/applications/**
-    - /v1/me/**
-    - /v1/project-applications/**
     - /v1/resources/**
     - /v1/files/**
-  # API分组配置
-  group-configs:
-    - group: "资源共享中心"
-      paths-to-match:
-        - /v1/resources/**
-        - /v1/files/**
-      display-name: "资源共享中心API"
-      description: "包括资源的上传、浏览、管理和下载功能。"
+    - /v1/me/**
 
 # MyBatis-Plus 相关配置
 mybatis-plus:
@@ -97,7 +93,7 @@ mybatis-plus:
   configuration:
     # 开启驼峰命名转换：将数据库的 a_column 自动映射到实体的 aColumn 属性
     map-underscore-to-camel-case: true
-    # 控制台打印SQL，方便开发调试
+    # 控制台打印SQL，方便开发调试（设置为更详细的输出）
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 amap:
   key: "6ac0fa4484bd83396be5cf7440a806c3"
