@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.BusinessException;
+import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.common.utils.AccountGenerator;
 import com.csu.unicorp.dto.SchoolCreationDTO;
 import com.csu.unicorp.entity.Organization;
@@ -43,8 +44,14 @@ public class OrganizationServiceImpl implements OrganizationService {
     private final AccountGenerator accountGenerator;
     
     @Override
-    public List<OrganizationSimpleVO> getAllSchools() {
-        return organizationMapper.selectAllApprovedSchools();
+    public List<?> getAllSchools(String view) {
+        // 根据view参数返回不同详细程度的学校列表
+        if ("detailed".equals(view)) {
+            return organizationMapper.selectAllApprovedSchoolsDetailed();
+        } else {
+            // 默认返回简化版
+            return organizationMapper.selectAllApprovedSchools();
+        }
     }
     
     @Override
@@ -136,5 +143,40 @@ public class OrganizationServiceImpl implements OrganizationService {
         return pendingOrganizations.stream()
                 .map(this::convertToVO)
                 .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<?> getAllEnterprises(String view) {
+        // 根据view参数返回不同详细程度的企业列表
+        if ("detailed".equals(view)) {
+            return organizationMapper.selectAllApprovedEnterprisesDetailed();
+        } else {
+            // 默认返回简化版
+            return organizationMapper.selectAllApprovedEnterprises();
+        }
+    }
+    
+    @Override
+    public OrganizationVO getSchoolById(Integer id) {
+        // 查询学校并验证类型
+        Organization organization = organizationMapper.selectById(id);
+        if (organization == null || !"School".equals(organization.getType()) || !"approved".equals(organization.getStatus())) {
+            throw new ResourceNotFoundException("学校不存在或未通过审核");
+        }
+        
+        // 转换为VO并返回
+        return OrganizationVO.fromEntity(organization);
+    }
+    
+    @Override
+    public OrganizationVO getEnterpriseById(Integer id) {
+        // 查询企业并验证类型
+        Organization organization = organizationMapper.selectById(id);
+        if (organization == null || !"Enterprise".equals(organization.getType()) || !"approved".equals(organization.getStatus())) {
+            throw new ResourceNotFoundException("企业不存在或未通过审核");
+        }
+        
+        // 转换为VO并返回
+        return OrganizationVO.fromEntity(organization);
     }
 } 

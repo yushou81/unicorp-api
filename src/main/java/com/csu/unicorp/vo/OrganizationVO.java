@@ -1,5 +1,6 @@
 package com.csu.unicorp.vo;
 
+import com.csu.unicorp.entity.Organization;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -45,4 +46,25 @@ public class OrganizationVO {
      */
     @Schema(description = "组织地址")
     private String address;
+    
+    /**
+     * 将Organization实体转换为OrganizationVO
+     * 
+     * @param organization 组织实体
+     * @return 组织视图对象
+     */
+    public static OrganizationVO fromEntity(Organization organization) {
+        if (organization == null) {
+            return null;
+        }
+        
+        OrganizationVO vo = new OrganizationVO();
+        vo.setId(organization.getId());
+        vo.setOrganizationName(organization.getOrganizationName());
+        vo.setType(organization.getType());
+        vo.setDescription(organization.getDescription());
+        vo.setWebsite(organization.getWebsite());
+        vo.setAddress(organization.getAddress());
+        return vo;
+    }
 } 

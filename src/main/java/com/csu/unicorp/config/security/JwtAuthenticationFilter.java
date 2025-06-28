@@ -37,9 +37,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
         
-        // 如果不是Bearer token或为空，则跳过认证
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        // 如果不是Bearer token或为空，则检查格式
+        if (authHeader == null) {
             filterChain.doFilter(request, response);
+            return;
+        }
+        
+        // 检查令牌格式
+        if (!authHeader.startsWith("Bearer ")) {
+            log.warn("令牌格式错误: {}", authHeader);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"code\":401,\"message\":\"令牌格式错误，请使用 'Bearer token' 格式\",\"data\":null}");
             return;
         }
 
@@ -47,9 +56,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt = authHeader.substring(7);
         
         try {
-            // 从JWT中提取用户名（账号）
+            // 从JWT中提取账号
             final String userAccount = jwtUtil.extractUsername(jwt);
             
+            log.info("userToken: {}", jwt);
+            log.info("userAccount: {}", userAccount);
+
             // 如果用户名不为空，且当前SecurityContext中没有认证信息
             if (userAccount != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userAccount);
@@ -69,6 +81,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     String roles = userDetails.getAuthorities().stream()
                             .map(auth -> auth.getAuthority())
                             .collect(Collectors.joining(", "));
+                    System.out.println("用户 " + userAccount + " 认证成功，角色: " + roles + "，访问路径: " + request.getRequestURI());
                     log.info("用户 {} 认证成功，角色: {}, 访问路径: {}", userAccount, roles, request.getRequestURI());
                 }
             }

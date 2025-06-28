@@ -52,6 +52,11 @@ public class User {
     private String nickname;
     
     /**
+     * 用户头像URL
+     */
+    private String avatarUrl;
+    
+    /**
      * 用户状态：active-活跃，inactive-不活跃，pending_approval-等待审批
      */
     private String status;
