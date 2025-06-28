@@ -62,7 +62,7 @@ public class ProjectController {
     })
     @PostMapping
     @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER')")
+//    @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER')")
     public ResponseEntity<ResultVO<ProjectVO>> createProject(
             @Valid @RequestBody ProjectCreationDTO projectCreationDTO,
             @AuthenticationPrincipal UserDetails userDetails) {

@@ -13,11 +13,36 @@ import java.util.List;
 public interface OrganizationService {
     
     /**
-     * 获取所有学校列表（简化版，用于下拉菜单）
+     * 获取所有学校列表
      * 
-     * @return 学校列表
+     * @param view 视图类型，决定返回数据的详细程度（simple或detailed）
+     * @return 学校列表，根据view参数返回不同的VO类型
      */
-    List<OrganizationSimpleVO> getAllSchools();
+    List<?> getAllSchools(String view);
+    
+    /**
+     * 获取所有企业列表
+     * 
+     * @param view 视图类型，决定返回数据的详细程度（simple或detailed）
+     * @return 企业列表，根据view参数返回不同的VO类型
+     */
+    List<?> getAllEnterprises(String view);
+    
+    /**
+     * 根据ID获取学校详情
+     * 
+     * @param id 学校ID
+     * @return 学校详细信息
+     */
+    OrganizationVO getSchoolById(Integer id);
+    
+    /**
+     * 根据ID获取企业详情
+     * 
+     * @param id 企业ID
+     * @return 企业详细信息
+     */
+    OrganizationVO getEnterpriseById(Integer id);
     
     /**
      * 创建学校及其管理员

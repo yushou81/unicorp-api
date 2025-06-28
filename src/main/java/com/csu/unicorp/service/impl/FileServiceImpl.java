@@ -13,35 +13,53 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 /**
- * 文件服务实现类
+ * 文件上传服务实现类
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
+
+    @Value("${app.upload.dir:upload/resources}")
+    private String uploadBaseDir;
     
-    // 文件上传目录
-    @Value("${file.upload-dir:upload}")
-    private String uploadDir;
+    @Value("${app.upload.max-size:10485760}")
+    private long maxFileSize; // 默认10MB
     
-    // 文件访问基础URL
-    @Value("${file.base-url:http://localhost:8081/api/files}")
+    @Value("${app.base-url:http://localhost:8081}")
     private String baseUrl;
-    
+
     @Override
-    public String uploadFile(MultipartFile file) {
-        if (file.isEmpty()) {
+    public String uploadFile(MultipartFile file, String type) {
+        // 文件为空检查
+        if (file == null || file.isEmpty()) {
             throw new BusinessException("上传的文件不能为空");
         }
         
+        // 文件大小检查
+        if (file.getSize() > maxFileSize) {
+            throw new BusinessException("文件大小超过限制，最大允许" + (maxFileSize / 1024 / 1024) + "MB");
+        }
+        
+        // 确定文件存储目录
+        String subDir;
+        if ("avatar".equals(type)) {
+            subDir = "avatars";
+        } else if ("resume".equals(type)) {
+            subDir = "resumes";
+        } else {
+            // 默认为资源文件
+            subDir = "resources";
+        }
+        
         try {
-            // 创建上传目录（如果不存在）
+            // 创建目录
+            String uploadDir = uploadBaseDir + "/" + subDir;
             Path uploadPath = Paths.get(uploadDir);
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
@@ -49,46 +67,20 @@ public class FileServiceImpl implements FileService {
             
             // 生成唯一文件名
             String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-            String fileExtension = getFileExtension(originalFilename);
-            String uniqueFilename = generateUniqueFilename(fileExtension);
-            
-            // 按日期组织目录结构
-            String dateDir = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-            Path datePath = uploadPath.resolve(dateDir);
-            if (!Files.exists(datePath)) {
-                Files.createDirectories(datePath);
-            }
+            String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+            String uniqueFilename = UUID.randomUUID().toString().substring(0, 8) + "_" + timestamp + fileExtension;
             
             // 保存文件
-            Path targetLocation = datePath.resolve(uniqueFilename);
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+            Path filePath = uploadPath.resolve(uniqueFilename);
+            Files.copy(file.getInputStream(), filePath);
             
-            // 返回文件访问URL
-            String relativePath = dateDir + "/" + uniqueFilename;
-            String fileUrl = baseUrl + "/" + relativePath;
+            // 返回文件URL
+            return baseUrl + "/api/v1/files/" + subDir + "/" + uniqueFilename;
             
-            log.info("文件上传成功: {}", fileUrl);
-            return fileUrl;
-        } catch (IOException ex) {
-            log.error("文件上传失败", ex);
-            throw new BusinessException("文件上传失败: " + ex.getMessage());
+        } catch (IOException e) {
+            log.error("文件上传失败", e);
+            throw new BusinessException("文件上传失败: " + e.getMessage());
         }
-    }
-    
-    /**
-     * 获取文件扩展名
-     */
-    private String getFileExtension(String filename) {
-        if (filename.lastIndexOf(".") != -1) {
-            return filename.substring(filename.lastIndexOf("."));
-        }
-        return "";
-    }
-    
-    /**
-     * 生成唯一文件名
-     */
-    private String generateUniqueFilename(String fileExtension) {
-        return UUID.randomUUID().toString() + fileExtension;
     }
 } 
