@@ -19,12 +19,20 @@ public class CustomUserDetails implements UserDetails {
     private final User user;
     private final List<GrantedAuthority> authorities;
     
-    public CustomUserDetails(User user, List<String> roles) {
+    public CustomUserDetails(User user, String role) {
         this.user = user;
-        this.authorities = roles.stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                .collect(Collectors.toList());
+        this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
     }
+    
+    /**
+     * 获取用户所属组织ID
+     * 
+     * @return 组织ID
+     */
+    public Integer getOrganizationId() {
+        return user.getOrganizationId();
+    }
+    
     
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -41,6 +49,10 @@ public class CustomUserDetails implements UserDetails {
         return user.getAccount();
     }
     
+    public Integer getUserId() {
+        return user.getId();
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;

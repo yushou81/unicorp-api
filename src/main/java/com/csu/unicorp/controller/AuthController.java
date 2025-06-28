@@ -3,6 +3,8 @@ package com.csu.unicorp.controller;
 import com.csu.unicorp.dto.EnterpriseRegistrationDTO;
 import com.csu.unicorp.dto.LoginCredentialsDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
+import com.csu.unicorp.dto.UserProfileUpdateDTO;
+import com.csu.unicorp.dto.PasswordUpdateDTO;
 import com.csu.unicorp.service.UserService;
 import com.csu.unicorp.vo.ResultVO;
 import com.csu.unicorp.vo.TokenVO;
@@ -105,5 +107,43 @@ public class AuthController {
         
         UserVO user = userService.getCurrentUser(userDetails);
         return ResponseEntity.ok(ResultVO.success("获取用户信息成功", user));
+    }
+    
+    /**
+     * 更新用户个人信息
+     */
+    @Operation(summary = "更新用户个人信息", description = "允许用户修改自己的邮箱、手机号和昵称")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "信息更新成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = UserVO.class))),
+        @ApiResponse(responseCode = "400", description = "无效的输入，或邮箱/手机号已被其他用户使用"),
+        @ApiResponse(responseCode = "401", description = "未授权")
+    })
+    @PutMapping("/profile")
+    public ResponseEntity<ResultVO<UserVO>> updateUserProfile(
+            @Valid @RequestBody UserProfileUpdateDTO profileUpdateDTO,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UserVO updatedUser = userService.updateUserProfile(profileUpdateDTO, userDetails);
+        return ResponseEntity.ok(ResultVO.success("个人信息更新成功", updatedUser));
+    }
+    
+    /**
+     * 修改密码
+     */
+    @Operation(summary = "修改用户密码", description = "允许用户修改自己的登录密码，需要提供原密码进行验证")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "密码修改成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "400", description = "原密码不正确"),
+        @ApiResponse(responseCode = "401", description = "未授权")
+    })
+    @PutMapping("/password")
+    public ResponseEntity<ResultVO<Void>> updatePassword(
+            @Valid @RequestBody PasswordUpdateDTO passwordUpdateDTO,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        userService.updatePassword(passwordUpdateDTO, userDetails);
+        return ResponseEntity.ok(ResultVO.success("密码修改成功"));
     }
 } 

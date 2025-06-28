@@ -62,20 +62,64 @@ springdoc:
     path: /swagger-ui.html
     tags-sorter: alpha
     operations-sorter: alpha
-  group-configs:
-    - group: 'default'
-      paths-to-match: '/**'
-      packages-to-scan: com.csu.unicorp.controller
-  default-flat-param-object: true
+    display-request-duration: true
+    doc-expansion: none
   paths-to-match:
     - /v1/auth/**
-    - /v1/organizations/**
     - /v1/admin/**
-    - /v1/school-admin/**
-    - /v1/enterprise-admin/**
-    - /v1/resources/**
+    - /v1/organizations/**
+    - /v1/schools/**
+    - /v1/enterprises/**
+    - /v1/jobs/**
+    - /v1/applications/**
     - /v1/files/**
-    - /v1/me/**
+    - /v1/students/**
+    - /v1/teachers/**
+    - /v1/mentors/**
+  default-flat-param-object: true
+  group-configs:
+    - group: '认证与用户管理'
+      paths-to-match: 
+        - /v1/auth/**
+        - /v1/admin/**
+        - /v1/school-admin/**
+        - /v1/enterprise-admin/**
+        - /v1/profiles/**
+        - /v1/me/**
+      packages-to-scan: com.csu.unicorp.controller
+    - group: '组织与机构管理'
+      paths-to-match: 
+        - /v1/organizations/**
+      packages-to-scan: com.csu.unicorp.controller
+    - group: '招聘与应聘'
+      paths-to-match: 
+        - /v1/jobs/**
+        - /v1/applications/**
+        - /v1/me/applications/**
+      packages-to-scan: com.csu.unicorp.controller
+    - group: '项目与合作'
+      paths-to-match: 
+        - /v1/projects/**
+        - /v1/project-applications/**
+      packages-to-scan: com.csu.unicorp.controller
+    - group: '资源与文件'
+      paths-to-match: 
+        - /v1/resources/**
+        - /v1/files/**
+      packages-to-scan: com.csu.unicorp.controller
+    - group: '个人作品集'
+      paths-to-match: 
+        - /v1/me/portfolio/**
+      packages-to-scan: com.csu.unicorp.controller
+    - group: '收藏功能'
+      paths-to-match: 
+        - /v1/me/favorites/**
+        - /v1/jobs/*/favorite
+      packages-to-scan: com.csu.unicorp.controller
+    - group: '地图服务'
+      paths-to-match: 
+        - /v1/map/**
+      packages-to-scan: com.csu.unicorp.controller
 
 # MyBatis-Plus 相关配置
 mybatis-plus:

@@ -3,7 +3,6 @@ package com.csu.unicorp.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.csu.unicorp.dto.ResourceCreationDTO;
 import com.csu.unicorp.service.ResourceService;
-import com.csu.unicorp.vo.PageResultVO;
 import com.csu.unicorp.vo.ResourceVO;
 import com.csu.unicorp.vo.ResultVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,18 +37,16 @@ public class ResourceController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "成功获取资源列表", 
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = PageResultVO.class)))
+                schema = @Schema(implementation = ResultVO.class)))
     })
     @GetMapping
-    public ResponseEntity<ResultVO<PageResultVO<ResourceVO>>> getResources(
+    public ResultVO<IPage<ResourceVO>> getResources(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword) {
         
         IPage<ResourceVO> resources = resourceService.getResources(page, size, keyword);
-        PageResultVO<ResourceVO> pageResult = new PageResultVO<>(resources);
-        
-        return ResponseEntity.ok(ResultVO.success("获取资源列表成功", pageResult));
+        return ResultVO.success("获取资源列表成功", resources);
     }
     
     /**

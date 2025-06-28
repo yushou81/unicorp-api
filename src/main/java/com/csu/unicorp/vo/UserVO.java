@@ -59,7 +59,7 @@ public class UserVO {
      * 用户角色列表
      */
     @Schema(description = "用户角色列表")
-    private List<String> roles;
+    private String role;
     
     /**
      * 创建时间

@@ -56,7 +56,7 @@ public interface UserMapper extends BaseMapper<User> {
     @Select("SELECT r.role_name FROM roles r " +
             "INNER JOIN user_roles ur ON r.id = ur.role_id " +
             "WHERE ur.user_id = #{userId}")
-    List<String> selectRolesByUserId(@Param("userId") Integer userId);
+    String selectRoleByUserId(@Param("userId") Integer userId);
     
     /**
      * 根据前缀查询最大序号
@@ -137,4 +137,28 @@ public interface UserMapper extends BaseMapper<User> {
             "LEFT JOIN student_profiles sp ON u.id = sp.user_id " +
             "WHERE u.id = #{userId}")
     Map<String, Object> getUserVerificationAndProfile(@Param("userId") Integer userId);
+
+    /**
+     * 根据组织ID查询所有用户
+     *
+     * @param organizationId 组织ID
+     * @param page 分页参数
+     * @return 用户分页列表
+     */
+    @Select("SELECT * FROM users WHERE organization_id = #{organizationId}")
+    Page<User> selectUsersByOrganizationId(@Param("organizationId") Integer organizationId, Page<User> page);
+    
+    /**
+     * 根据组织ID和角色ID查询用户
+     *
+     * @param organizationId 组织ID
+     * @param roleId 角色ID
+     * @param page 分页参数
+     * @return 用户分页列表
+     */
+    @Select("SELECT u.* FROM users u JOIN user_roles ur ON u.id = ur.user_id " +
+            "WHERE u.organization_id = #{organizationId} AND ur.role_id = #{roleId}")
+    Page<User> selectUsersByOrganizationIdAndRoleId(@Param("organizationId") Integer organizationId, 
+                                                   @Param("roleId") Integer roleId, 
+                                                   Page<User> page);
 }

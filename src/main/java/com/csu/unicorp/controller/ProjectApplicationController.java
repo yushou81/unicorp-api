@@ -53,7 +53,7 @@ public class ProjectApplicationController {
     @PostMapping("/v1/projects/{id}/apply")
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<ResultVO<ProjectApplicationDetailVO>> applyForProject(
+    public ResultVO<ProjectApplicationDetailVO> applyForProject(
             @PathVariable("id") Integer projectId,
             @Valid @RequestBody(required = false) ProjectApplicationCreationDTO dto,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -63,7 +63,7 @@ public class ProjectApplicationController {
         }
         
         ProjectApplicationDetailVO result = projectApplicationService.applyForProject(projectId, dto, userDetails);
-        return new ResponseEntity<>(ResultVO.success("申请提交成功", result), HttpStatus.CREATED);
+        return ResultVO.success("申请提交成功", result);
     }
     
     /**
@@ -81,12 +81,12 @@ public class ProjectApplicationController {
     @GetMapping("/v1/projects/{id}/applications")
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER')")
-    public ResponseEntity<ResultVO<List<ProjectApplicationDetailVO>>> getProjectApplications(
+    public ResultVO<List<ProjectApplicationDetailVO>> getProjectApplications(
             @PathVariable("id") Integer projectId,
             @AuthenticationPrincipal UserDetails userDetails) {
         
         List<ProjectApplicationDetailVO> applications = projectApplicationService.getProjectApplications(projectId, userDetails);
-        return ResponseEntity.ok(ResultVO.success("获取申请列表成功", applications));
+        return ResultVO.success("获取申请列表成功", applications);
     }
     
     /**
@@ -110,13 +110,13 @@ public class ProjectApplicationController {
     @PatchMapping("/v1/project-applications/{id}")
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER')")
-    public ResponseEntity<ResultVO<ProjectApplicationDetailVO>> updateApplicationStatus(
+    public ResultVO<ProjectApplicationDetailVO> updateApplicationStatus(
             @PathVariable("id") Integer applicationId,
             @Valid @RequestBody ProjectApplicationStatusUpdateDTO dto,
             @AuthenticationPrincipal UserDetails userDetails) {
         
         ProjectApplicationDetailVO result = projectApplicationService.updateApplicationStatus(applicationId, dto, userDetails);
-        return ResponseEntity.ok(ResultVO.success("申请状态更新成功", result));
+        return ResultVO.success("申请状态更新成功", result);
     }
     
     /**
@@ -134,12 +134,12 @@ public class ProjectApplicationController {
     @GetMapping("/v1/me/project-applications")
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<ResultVO<IPage<MyProjectApplicationDetailVO>>> getMyApplications(
+    public ResultVO<IPage<MyProjectApplicationDetailVO>> getMyApplications(
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @AuthenticationPrincipal UserDetails userDetails) {
         
         IPage<MyProjectApplicationDetailVO> applications = projectApplicationService.getMyApplications(page, size, userDetails);
-        return ResponseEntity.ok(ResultVO.success("获取申请列表成功", applications));
+        return ResultVO.success("获取申请列表成功", applications);
     }
 } 
