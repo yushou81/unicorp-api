@@ -51,6 +51,7 @@ public class JobController {
             @Parameter(description = "最高薪资") @RequestParam(required = false) Integer salaryMax,
             @Parameter(description = "排序方式", schema = @Schema(allowableValues = {"latest", "salary_asc", "salary_desc"})) 
             @RequestParam(required = false, defaultValue = "latest") String sortBy) {
+        System.out.println("pages:"+page);
         IPage<JobVO> jobList = jobService.pageJobs(page, size, keyword, location, jobType, educationRequirement, salaryMin, salaryMax, sortBy);
         return ResultVO.success("获取岗位列表成功", jobList);
     }
