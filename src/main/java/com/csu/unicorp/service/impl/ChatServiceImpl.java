@@ -75,7 +75,7 @@ public class ChatServiceImpl implements ChatService {
             if (otherUser != null) {
                 vo.setUserId(otherUserId);
                 vo.setUserName(otherUser.getNickname());
-                // vo.setUserAvatar(otherUser.getAvatarUrl());
+                vo.setUserAvatar(otherUser.getAvatar());
             }
             
             // 获取最近一条消息
@@ -124,7 +124,7 @@ public class ChatServiceImpl implements ChatService {
         if (otherUser != null) {
             vo.setUserId(otherUserId);
             vo.setUserName(otherUser.getNickname());
-            // vo.setUserAvatar(otherUser.getAvatarUrl());
+            vo.setUserAvatar(otherUser.getAvatar());
         }
         
         // 获取最近一条消息
