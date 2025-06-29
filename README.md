@@ -54,115 +54,39 @@
 
 ```
 unicorp-api/
-  ├── src/
-  │   ├── main/
-  │   │   ├── java/
-  │   │   │   └── com/
-  │   │   │       └── csu/
-  │   │   │           └── unicorp/
-  │   │   │               ├── common/
-  │   │   │               │   ├── constants/
-  │   │   │               │   │   └── RoleConstants.java        # 角色常量定义
-  │   │   │               │   ├── exception/
-  │   │   │               │   │   └── BusinessException.java    # 业务异常类
-  │   │   │               │   └── utils/
-  │   │   │               │       ├── AccountGenerator.java     # 账号生成工具
-  │   │   │               │       └── JwtUtil.java              # JWT工具类
-  │   │   │               ├── config/
-  │   │   │               │   ├── SecurityConfig.java           # Spring Security配置及OpenAPI配置
-  │   │   │               │   └── security/
-  │   │   │               │       ├── CustomUserDetails.java    # 自定义UserDetails实现
-  │   │   │               │       └── JwtAuthenticationFilter.java # JWT认证过滤器
-  │   │   │               ├── controller/
-  │   │   │               │   ├── AdminController.java          # 系统管理员接口
-  │   │   │               │   ├── ApplicationController.java    # 项目申请接口
-  │   │   │               │   ├── AuthController.java           # 认证接口
-  │   │   │               │   ├── EnterpriseAdminController.java # 企业管理员接口
-  │   │   │               │   ├── FileController.java           # 文件上传接口
-  │   │   │               │   ├── OrganizationController.java   # 组织接口
-  │   │   │               │   ├── ResourceController.java       # 资源管理接口
-  │   │   │               │   └── SchoolAdminController.java    # 学校管理员接口
-  │   │   │               ├── dto/
-  │   │   │               │   ├── EnterpriseRegistrationDTO.java # 企业注册DTO
-  │   │   │               │   ├── LoginCredentialsDTO.java      # 登录凭证DTO
-  │   │   │               │   ├── OrgMemberCreationDTO.java     # 组织成员创建DTO
-  │   │   │               │   ├── OrgMemberUpdateDTO.java       # 组织成员更新DTO
-  │   │   │               │   ├── PasswordUpdateDTO.java        # 密码更新DTO
-  │   │   │               │   ├── ResourceCreationDTO.java      # 资源创建DTO
-  │   │   │               │   ├── SchoolCreationDTO.java        # 学校创建DTO
-  │   │   │               │   ├── StudentRegistrationDTO.java   # 学生注册DTO
-  │   │   │               │   └── UserProfileUpdateDTO.java     # 用户个人信息更新DTO
-  │   │   │               ├── entity/
-  │   │   │               │   ├── EnterpriseDetail.java         # 企业详情实体
-  │   │   │               │   ├── Organization.java             # 组织实体
-  │   │   │               │   ├── Resource.java                 # 资源实体
-  │   │   │               │   ├── Role.java                     # 角色实体
-  │   │   │               │   ├── User.java                     # 用户实体
-  │   │   │               │   └── UserVerification.java         # 用户验证实体
-  │   │   │               ├── mapper/
-  │   │   │               │   ├── EnterpriseDetailMapper.java   # 企业详情Mapper
-  │   │   │               │   ├── OrganizationMapper.java       # 组织Mapper
-  │   │   │               │   ├── ResourceMapper.java           # 资源Mapper
-  │   │   │               │   ├── RoleMapper.java               # 角色Mapper
-  │   │   │               │   ├── UserMapper.java               # 用户Mapper
-  │   │   │               │   └── UserVerificationMapper.java   # 用户验证Mapper
-  │   │   │               ├── service/
-  │   │   │               │   ├── EnterpriseService.java        # 企业服务接口
-  │   │   │               │   ├── FileService.java              # 文件服务接口
-  │   │   │               │   ├── OrganizationService.java      # 组织服务接口
-  │   │   │               │   ├── ResourceService.java          # 资源服务接口
-  │   │   │               │   ├── RoleService.java              # 角色服务接口
-  │   │   │               │   ├── UserService.java              # 用户服务接口
-  │   │   │               │   └── impl/
-  │   │   │               │       ├── EnterpriseServiceImpl.java # 企业服务实现
-  │   │   │               │       ├── FileServiceImpl.java      # 文件服务实现
-  │   │   │               │       ├── OrganizationServiceImpl.java # 组织服务实现
-  │   │   │               │       ├── ResourceServiceImpl.java  # 资源服务实现
-  │   │   │               │       ├── RoleServiceImpl.java      # 角色服务实现
-  │   │   │               │       └── UserServiceImpl.java      # 用户服务实现
-  │   │   │               └── vo/
-  │   │   │                   ├── OrganizationSimpleVO.java     # 组织简化VO
-  │   │   │                   ├── OrganizationVO.java           # 组织VO
-  │   │   │                   ├── ResourceVO.java               # 资源VO
-  │   │   │                   ├── ResultVO.java                 # 统一响应VO
-  │   │   │                   ├── TokenVO.java                  # 令牌VO
-  │   │   │                   └── UserVO.java                   # 用户VO
-  │   │   └── resources/
-  │   │       ├── application.yml                               # 应用配置文件
-  │   │       └── db/
-  │   │           └── migration/
-  │   │               ├── V1__initial.sql                       # 初始数据库结构
-  │   │               ├── V2__admin.sql                         # 管理员数据
-  │   │               ├── V3__add_business_license_url.sql      # 添加营业执照URL
-  │   │               ├── V4__update_role_names.sql             # 更新角色名称
-  │   │               ├── V5__project_applicaiton.sql           # 项目申请表
-  │   │               └── V6__resources.sql                     # 资源表
-  │   └── test/
-  │       └── java/
-  │           └── com/
-  │               └── csu/
-  │                   └── unicorp/
-  │                       └── ...                               # 单元测试
-  ├── docs/
-  │   ├── 第1次迭代/
-  │   │   ├── 第一次迭代API5.0.md                               # 旧版API设计文档
-  │   │   ├── 第一次迭代API6.0.md                               # 新版API设计文档
-  │   │   └── 测试计划.md                                       # 测试计划文档
-  │   ├── 第2次迭代/
-  │   │   └── 第二次迭代API1.0.md                               # 第二次迭代API设计文档
-  │   ├── 第3次迭代/
-  │   │   └── 第三次迭代API2.0.md                               # 第三次迭代API设计文档
-  │   ├── 第4次迭代/
-  │   │   ├── 第四次迭代API1.0.md                               # 第四次迭代API设计文档
-  │   │   └── 测试计划.md                                       # 第四次迭代测试计划
-  │   └── 第5次迭代/
-  │       ├── 第五次迭代API1.0.md                               # 第五次迭代API设计文档
-  │       └── 测试计划.md                                       # 第五次迭代测试计划
-  │   └── 第7次迭代/
-  │       ├── API文档1.0.md                                     # 第七次迭代API设计文档
-  │       └── 测试计划.md                                       # 第七次迭代测试计划
-  ├── pom.xml                                                   # Maven配置文件
-  └── README.md                                                 # 项目说明文档
+├── docs/                        # 项目文档
+│   ├── 第1次迭代/
+│   ├── 第2次迭代/
+│   ├── 第3次迭代/
+│   ├── 第4次迭代/
+│   ├── 第5次迭代/
+│   ├── 第6次迭代/
+│   └── 第7次迭代/
+│       ├── 用户管理接口测试计划.md  # 用户管理接口测试计划
+│       └── 企业管理员接口测试计划.md # 企业管理员接口测试计划
+├── src/                         # 源代码
+│   ├── main/
+│   │   ├── java/com/csu/unicorp/
+│   │   │   ├── common/          # 通用工具和常量
+│   │   │   ├── config/          # 配置类
+│   │   │   ├── controller/      # 控制器层
+│   │   │   ├── dto/             # 数据传输对象
+│   │   │   │   ├── UserStatusUpdateDTO.java  # 用户状态更新DTO
+│   │   │   │   └── UserUpdateDTO.java        # 用户基本信息更新DTO
+│   │   │   ├── entity/          # 实体类
+│   │   │   ├── mapper/          # MyBatis Mapper接口
+│   │   │   ├── service/         # 服务接口
+│   │   │   │   └── impl/        # 服务实现类
+│   │   │   └── vo/              # 视图对象
+│   │   └── resources/
+│   │       ├── db/migration/    # Flyway数据库迁移脚本
+│   │       ├── mapper/          # MyBatis XML映射文件
+│   │       ├── application.yml  # 应用配置文件
+│   │       └── ...
+│   └── test/                    # 测试代码
+├── upload/                      # 文件上传目录
+├── pom.xml                      # Maven项目配置文件
+└── README.md                    # 项目说明文档
 ```
 
 ## 数据库命名规范
@@ -241,55 +165,10 @@ unicorp-api/
 18. 取消收藏岗位 - DELETE `/v1/jobs/{id}/favorite`
 19. 更新用户个人信息 - PUT `/v1/auth/profile`
 20. 修改用户密码 - PUT `/v1/auth/password`
-
-## 技术特点
-
-### 统一响应格式与API文档生成
-
-项目使用 `ResultVO<T>` 作为统一的API响应格式，同时通过自定义 `ModelConverter` 实现了在 SpringDoc 文档中准确展示泛型响应类型：
-
-```java
-/**
- * 自定义ModelConverter，处理ResultVO泛型类型
- */
-@Bean
-public ModelConverter resultVOModelConverter() {
-    return new ModelConverter() {
-        @Override
-        public Schema resolve(AnnotatedType type, ModelConverterContext context, Iterator<ModelConverter> chain) {
-            JavaType javaType = Json.mapper().constructType(type.getType());
-            if (javaType != null && ResultVO.class.isAssignableFrom(javaType.getRawClass())) {
-                if (javaType.hasGenericTypes()) {
-                    // 获取泛型参数类型并创建复合模式
-                    JavaType genericType = javaType.getBindings().getBoundType(0);
-                    if (genericType != null) {
-                        Schema schema = new ObjectSchema();
-                        schema.setDescription("统一API响应结果");
-                        
-                        // 添加基本属性
-                        schema.addProperty("code", new IntegerSchema().example(200).description("业务状态码"));
-                        schema.addProperty("message", new StringSchema().example("操作成功").description("响应信息"));
-                        
-                        // 添加数据属性，使用泛型类型
-                        Schema dataSchema = context.resolve(new AnnotatedType(genericType.getRawClass()));
-                        schema.addProperty("data", dataSchema);
-                        
-                        return schema;
-                    }
-                }
-            }
-            
-            // 对于其他类型，使用默认转换器
-            if (chain.hasNext()) {
-                return chain.next().resolve(type, context, chain);
-            } else {
-                return null;
-            }
-        }
-        
-        // 其他必要方法实现...
-    };
-}
-```
-
-这种实现方式使得API文档中能够准确展示统一响应中的具体数据类型，提高了文档的可读性和准确性。
+21. 获取所有顶级岗位分类 - GET `/v1/admin/job-categories/root`
+22. 获取指定分类的子分类 - GET `/v1/admin/job-categories/{id}/children`
+23. 获取所有岗位分类 - GET `/v1/admin/job-categories`
+24. 获取岗位分类详情 - GET `/v1/admin/job-categories/{id}`
+25. 创建岗位分类 - POST `/v1/admin/job-categories`
+26. 更新岗位分类 - PUT `/v1/admin/job-categories/{id}`
+27. 删除岗位分类 - DELETE `/v1/admin/job-categories/{id}`

@@ -8,6 +8,7 @@ import com.csu.unicorp.dto.OrgMemberUpdateDTO;
 import com.csu.unicorp.dto.PasswordUpdateDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
 import com.csu.unicorp.dto.UserProfileUpdateDTO;
+import com.csu.unicorp.dto.UserUpdateDTO;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.vo.TokenVO;
 import com.csu.unicorp.vo.UserVO;
@@ -182,4 +183,32 @@ public interface UserService {
      * @param userDetails 当前认证用户
      */
     void updatePassword(PasswordUpdateDTO passwordUpdateDTO, UserDetails userDetails);
+    
+    /**
+     * 根据角色获取用户列表（系统管理员使用）
+     * 
+     * @param page 页码
+     * @param size 每页大小
+     * @param role 角色名称（可选）
+     * @return 用户列表（分页）
+     */
+    IPage<UserVO> getUsersByRole(int page, int size, String role);
+    
+    /**
+     * 更新用户状态（系统管理员使用）
+     * 
+     * @param id 用户ID
+     * @param status 新状态
+     * @return 更新后的用户信息
+     */
+    UserVO updateUserStatus(Integer id, String status);
+    
+    /**
+     * 更新用户基本信息（系统管理员使用）
+     * 
+     * @param id 用户ID
+     * @param userUpdateDTO 用户更新信息
+     * @return 更新后的用户信息
+     */
+    UserVO updateUserByAdmin(Integer id, UserUpdateDTO userUpdateDTO);
 } 

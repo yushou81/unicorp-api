@@ -56,6 +56,12 @@ public class UserVO {
     private Integer organizationId;
     
     /**
+     * 所属组织名称
+     */
+    @Schema(description = "所属组织名称")
+    private String organizationName;
+    
+    /**
      * 用户角色列表
      */
     @Schema(description = "用户角色列表")

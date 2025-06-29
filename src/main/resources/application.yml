@@ -76,12 +76,18 @@ springdoc:
     - /v1/students/**
     - /v1/teachers/**
     - /v1/mentors/**
+    - /v1/admin/job-categories/**
+    - /v1/job-categories/**
+    - /v1/admin/users/**
+    - /v1/enterprise-admin/**
+    - /v1/school-admin/**
   default-flat-param-object: true
   group-configs:
     - group: '认证与用户管理'
       paths-to-match: 
         - /v1/auth/**
         - /v1/admin/**
+        - /v1/admin/users/**
         - /v1/school-admin/**
         - /v1/enterprise-admin/**
         - /v1/profiles/**
@@ -96,6 +102,8 @@ springdoc:
         - /v1/jobs/**
         - /v1/applications/**
         - /v1/me/applications/**
+        - /v1/admin/job-categories/**
+        - /v1/job-categories/**
       packages-to-scan: com.csu.unicorp.controller
     - group: '项目与合作'
       paths-to-match: 

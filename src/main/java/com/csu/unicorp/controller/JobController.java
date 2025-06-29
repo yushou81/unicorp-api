@@ -34,7 +34,7 @@ public class JobController {
     private final JobService jobService;
     
     @GetMapping
-    @Operation(summary = "获取岗位列表", description = "获取所有状态为 'open' 的岗位列表，支持分页和搜索")
+    @Operation(summary = "获取岗位列表", description = "获取所有状态为 'open' 的岗位列表，支持分页和多条件筛选")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "成功获取岗位列表",
                     content = @Content(mediaType = "application/json",
@@ -43,8 +43,15 @@ public class JobController {
     public ResultVO<IPage<JobVO>> getJobs(
             @Parameter(description = "页码") @RequestParam(defaultValue = "0") Integer page,
             @Parameter(description = "每页大小") @RequestParam(defaultValue = "10") Integer size,
-            @Parameter(description = "搜索关键词") @RequestParam(required = false) String keyword) {
-        IPage<JobVO> jobList = jobService.pageJobs(page, size, keyword);
+            @Parameter(description = "搜索关键词") @RequestParam(required = false) String keyword,
+            @Parameter(description = "城市筛选") @RequestParam(required = false) String location,
+            @Parameter(description = "工作类型筛选",schema = @Schema(allowableValues = {"full_time", "part_time", "internship", "remote"})) @RequestParam(required = false) String jobType,
+            @Parameter(description = "学历要求筛选",schema = @Schema(allowableValues = {"bachelor", "master", "doctor","any"})) @RequestParam(required = false) String educationRequirement,
+            @Parameter(description = "最低薪资") @RequestParam(required = false) Integer salaryMin,
+            @Parameter(description = "最高薪资") @RequestParam(required = false) Integer salaryMax,
+            @Parameter(description = "排序方式", schema = @Schema(allowableValues = {"latest", "salary_asc", "salary_desc"})) 
+            @RequestParam(required = false, defaultValue = "latest") String sortBy) {
+        IPage<JobVO> jobList = jobService.pageJobs(page, size, keyword, location, jobType, educationRequirement, salaryMin, salaryMax, sortBy);
         return ResultVO.success("获取岗位列表成功", jobList);
     }
     

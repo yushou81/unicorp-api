@@ -104,16 +104,6 @@ public class Job {
     private String experienceRequirement;
     
     /**
-     * 职能分类
-     */
-    private String jobCategory;
-    
-    /**
-     * 技能标签 (以逗号分隔)
-     */
-    private String skillTags;
-    
-    /**
      * 申请截止日期
      */
     private LocalDate applicationDeadline;
@@ -122,4 +112,9 @@ public class Job {
      * 浏览量
      */
     private Integer viewCount;
+    
+    /**
+     * 企业自定义的岗位亮点标签 (逗号分隔)
+     */
+    private String tags;
 } 

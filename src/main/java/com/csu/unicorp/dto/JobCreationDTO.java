@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 岗位创建DTO
@@ -78,16 +79,16 @@ public class JobCreationDTO {
     private String experienceRequirement = "any";
     
     /**
-     * 职能分类
+     * 企业自定义的岗位亮点标签 (逗号分隔)
      */
-    @Schema(description = "职能分类")
-    private String jobCategory;
+    @Schema(description = "企业自定义的岗位亮点标签 (逗号分隔)")
+    private String tags;
     
     /**
-     * 技能标签 (以逗号分隔)
+     * 岗位分类ID列表
      */
-    @Schema(description = "技能标签 (以逗号分隔)")
-    private String skillTags;
+    @Schema(description = "岗位分类ID列表")
+    private List<Integer> categoryIds;
     
     /**
      * 申请截止日期
