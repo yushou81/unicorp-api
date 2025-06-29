@@ -14,6 +14,7 @@ import com.csu.unicorp.dto.OrgMemberUpdateDTO;
 import com.csu.unicorp.dto.PasswordUpdateDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
 import com.csu.unicorp.dto.UserProfileUpdateDTO;
+import com.csu.unicorp.dto.UserUpdateDTO;
 import com.csu.unicorp.entity.EnterpriseDetail;
 import com.csu.unicorp.entity.Organization;
 import com.csu.unicorp.entity.User;
@@ -485,6 +486,15 @@ public class UserServiceImpl implements UserService {
         String role = getUserRole(user.getId());
         vo.setRole(role);
         
+        // 获取组织名称
+        if (user.getOrganizationId() != null) {
+            Organization organization = organizationService.getById(user.getOrganizationId());
+            log.info("organization: {}", organization);
+            if (organization != null) {
+                vo.setOrganizationName(organization.getOrganizationName());
+            }
+        }
+        
         return vo;
     }
     
@@ -700,5 +710,97 @@ public class UserServiceImpl implements UserService {
         // 禁用导师账号
         mentor.setStatus("inactive");
         userMapper.updateById(mentor);
+    }
+    
+    @Override
+    public IPage<UserVO> getUsersByRole(int page, int size, String role) {
+        // 创建分页对象，注意页码从1开始，需要转换为从0开始
+        Page<User> pageParam = new Page<>(page, size);
+        
+        // 查询用户列表
+        IPage<User> userPage;
+        if (role != null && !role.isEmpty()) {
+            // 根据角色查询用户
+            Integer roleId = roleService.getByRoleName(role).getId();
+            userPage = userMapper.selectUsersByRoleId(roleId, pageParam);
+        } else {
+            // 查询所有用户，但排除系统管理员
+            Integer sysAdminRoleId = roleService.getByRoleName(RoleConstants.DB_ROLE_SYSTEM_ADMIN).getId();
+            userPage = userMapper.selectUsersExcludeRole(sysAdminRoleId, pageParam);
+        }
+        
+        // 转换为VO
+        return userPage.convert(this::convertToVO);
+    }
+    
+    @Override
+    @Transactional
+    public UserVO updateUserStatus(Integer id, String status) {
+        // 获取用户
+        User user = userMapper.selectById(id);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 检查是否为系统管理员
+        String role = getUserRole(user.getId());
+        if (RoleConstants.DB_ROLE_SYSTEM_ADMIN.equals(role)) {
+            throw new BusinessException("不能修改系统管理员状态");
+        }
+        
+        // 更新状态
+        user.setStatus(status);
+        user.setUpdatedAt(LocalDateTime.now());
+        userMapper.updateById(user);
+        
+        return convertToVO(user);
+    }
+    
+    @Override
+    @Transactional
+    public UserVO updateUserByAdmin(Integer id, UserUpdateDTO userUpdateDTO) {
+        // 获取用户
+        User user = userMapper.selectById(id);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 检查是否为系统管理员
+        String role = getUserRole(user.getId());
+        if (RoleConstants.DB_ROLE_SYSTEM_ADMIN.equals(role)) {
+            throw new BusinessException("不能修改系统管理员信息");
+        }
+        
+        // 检查邮箱是否被其他用户使用
+        if (userUpdateDTO.getEmail() != null && !userUpdateDTO.getEmail().equals(user.getEmail())) {
+            User existingUserByEmail = userMapper.selectByEmail(userUpdateDTO.getEmail());
+            if (existingUserByEmail != null && !Objects.equals(existingUserByEmail.getId(), user.getId())) {
+                throw new BusinessException("该邮箱已被其他用户使用");
+            }
+            user.setEmail(userUpdateDTO.getEmail());
+        }
+        
+        // 检查手机号是否被其他用户使用
+        if (userUpdateDTO.getPhone() != null && !userUpdateDTO.getPhone().equals(user.getPhone())) {
+            User existingUserByPhone = userMapper.selectByPhone(userUpdateDTO.getPhone());
+            if (existingUserByPhone != null && !Objects.equals(existingUserByPhone.getId(), user.getId())) {
+                throw new BusinessException("该手机号已被其他用户使用");
+            }
+            user.setPhone(userUpdateDTO.getPhone());
+        }
+        
+        // 更新昵称
+        if (userUpdateDTO.getNickname() != null) {
+            user.setNickname(userUpdateDTO.getNickname());
+        }
+        
+        // 更新时间
+        user.setUpdatedAt(LocalDateTime.now());
+        
+        // 保存更新
+        userMapper.updateById(user);
+        
+        // 返回更新后的用户信息
+        return convertToVO(user);
     }
 }

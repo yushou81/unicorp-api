@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,7 +42,7 @@ public class FileController {
     })
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/upload")
-    public ResponseEntity<ResultVO<Map<String, String>>> uploadFile(
+    public ResultVO<Map<String, String>> uploadFile(
             @Parameter(description = "要上传的文件") @RequestParam("file") MultipartFile file,
             @Parameter(description = "文件类型标识 (e.g., avatar, resume, resource)") @RequestParam(value = "type", required = false, defaultValue = "resource") String type) {
         
@@ -52,6 +51,6 @@ public class FileController {
         Map<String, String> result = new HashMap<>();
         result.put("file_url", fileUrl);
         
-        return ResponseEntity.ok(ResultVO.success("文件上传成功", result));
+        return ResultVO.success("文件上传成功", result);
     }
 } 

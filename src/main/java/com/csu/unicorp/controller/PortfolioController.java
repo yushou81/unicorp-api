@@ -14,8 +14,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,17 +37,17 @@ public class PortfolioController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "成功获取作品集列表",
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = PortfolioItemVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足 (非学生用户)",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping
-    public ResponseEntity<ResultVO<List<PortfolioItemVO>>> getMyPortfolioItems(
+    public ResultVO<List<PortfolioItemVO>> getMyPortfolioItems(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<PortfolioItemVO> portfolioItems = portfolioService.getPortfolioItems(userDetails.getUser().getId());
-        return ResponseEntity.ok(ResultVO.success("获取作品集列表成功", portfolioItems));
+        return ResultVO.success("获取作品集列表成功", portfolioItems);
     }
     
     /**
@@ -57,22 +55,21 @@ public class PortfolioController {
      */
     @Operation(summary = "[学生] 添加新的作品集项目", description = "添加一个新的作品集项目到当前登录学生的作品集中。")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "作品集项目创建成功",
+        @ApiResponse(responseCode = "200", description = "作品集项目创建成功",
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = PortfolioItemVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping
-    public ResponseEntity<ResultVO<PortfolioItemVO>> addPortfolioItem(
+    public ResultVO<PortfolioItemVO> addPortfolioItem(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody PortfolioItemCreationDTO portfolioItemCreationDTO) {
         PortfolioItemVO portfolioItem = portfolioService.addPortfolioItem(
                 userDetails.getUser().getId(), portfolioItemCreationDTO);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ResultVO.success("作品集项目创建成功", portfolioItem));
+        return ResultVO.success("作品集项目创建成功", portfolioItem);
     }
     
     /**
@@ -82,7 +79,7 @@ public class PortfolioController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "更新成功",
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = PortfolioItemVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class))),
@@ -92,13 +89,13 @@ public class PortfolioController {
     })
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/{itemId}")
-    public ResponseEntity<ResultVO<PortfolioItemVO>> updatePortfolioItem(
+    public ResultVO<PortfolioItemVO> updatePortfolioItem(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Integer itemId,
             @Valid @RequestBody PortfolioItemCreationDTO portfolioItemCreationDTO) {
         PortfolioItemVO portfolioItem = portfolioService.updatePortfolioItem(
                 userDetails.getUser().getId(), itemId, portfolioItemCreationDTO);
-        return ResponseEntity.ok(ResultVO.success("作品集项目更新成功", portfolioItem));
+        return ResultVO.success("作品集项目更新成功", portfolioItem);
     }
     
     /**
@@ -106,17 +103,19 @@ public class PortfolioController {
      */
     @Operation(summary = "[学生] 删除一个作品集项目", description = "删除当前登录学生的一个作品集项目。")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "删除成功"),
+        @ApiResponse(responseCode = "200", description = "删除成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{itemId}")
-    public ResponseEntity<Void> deletePortfolioItem(
+    public ResultVO<Void> deletePortfolioItem(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Integer itemId) {
         portfolioService.deletePortfolioItem(userDetails.getUser().getId(), itemId);
-        return ResponseEntity.noContent().build();
+        return ResultVO.success("作品集项目删除成功");
     }
 } 

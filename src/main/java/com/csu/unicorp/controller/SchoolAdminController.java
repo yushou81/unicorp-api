@@ -68,25 +68,22 @@ public class SchoolAdminController {
      */
     @Operation(summary = "创建教师账号", description = "由学校管理员调用，为自己的学校创建新的教师账号。后端自动生成账号，状态为'active'。")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "教师账号创建成功",
+        @ApiResponse(responseCode = "200", description = "教师账号创建成功",
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = UserVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/teachers")
-    public ResponseEntity<ResultVO<UserVO>> createTeacher(
+    public ResultVO<UserVO> createTeacher(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody TeacherCreationDTO teacherCreationDTO) {
         
-        UserVO teacher = schoolAdminService.createTeacher(
-                userDetails.getOrganizationId(), teacherCreationDTO);
+        UserVO teacher = schoolAdminService.createTeacher(userDetails.getOrganizationId(), teacherCreationDTO);
         
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ResultVO.success("教师账号创建成功", teacher));
+        return ResultVO.success("教师账号创建成功", teacher);
     }
     
     /**
@@ -206,20 +203,22 @@ public class SchoolAdminController {
     @Deprecated
     @Operation(summary = "禁用教师账号", description = "禁用本校的某个教师账号 (将其状态更新为 'inactive')。这是一个可逆操作。")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "禁用成功"),
+        @ApiResponse(responseCode = "200", description = "禁用成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/teachers/{id}")
-    public ResponseEntity<Void> disableTeacher(
+    public ResultVO<Void> disableTeacher(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Integer id) {
         
         schoolAdminService.updateUserStatus(userDetails.getOrganizationId(), id, "inactive");
         
-        return ResponseEntity.noContent().build();
+        return ResultVO.success("教师账号禁用成功");
     }
     
     /**
@@ -257,7 +256,7 @@ public class SchoolAdminController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "更新成功",
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = UserVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class))),
@@ -267,7 +266,7 @@ public class SchoolAdminController {
     })
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/teachers/{id}")
-    public ResponseEntity<ResultVO<UserVO>> updateTeacher(
+    public ResultVO<UserVO> updateTeacher(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Integer id,
             @RequestBody TeacherUpdateDTO teacherUpdateDTO) {
@@ -280,6 +279,6 @@ public class SchoolAdminController {
         // 调用通用的更新方法
         UserVO teacher = schoolAdminService.updateUserInfo(userDetails.getOrganizationId(), id, userUpdateDTO);
         
-        return ResponseEntity.ok(ResultVO.success("教师信息更新成功", teacher));
+        return ResultVO.success("教师信息更新成功", teacher);
     }
 } 

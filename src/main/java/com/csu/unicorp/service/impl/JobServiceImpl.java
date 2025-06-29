@@ -9,12 +9,17 @@ import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.dto.JobCreationDTO;
 import com.csu.unicorp.entity.Job;
+import com.csu.unicorp.entity.JobCategory;
+import com.csu.unicorp.entity.JobCategoryRelation;
 import com.csu.unicorp.entity.Organization;
 import com.csu.unicorp.entity.User;
+import com.csu.unicorp.mapper.JobCategoryMapper;
+import com.csu.unicorp.mapper.JobCategoryRelationMapper;
 import com.csu.unicorp.mapper.JobMapper;
 import com.csu.unicorp.mapper.OrganizationMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.JobService;
+import com.csu.unicorp.vo.JobCategoryVO;
 import com.csu.unicorp.vo.JobVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +28,13 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 岗位服务实现类
@@ -37,6 +47,8 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
     private final JobMapper jobMapper;
     private final UserMapper userMapper;
     private final OrganizationMapper organizationMapper;
+    private final JobCategoryMapper jobCategoryMapper;
+    private final JobCategoryRelationMapper jobCategoryRelationMapper;
     
     /**
      * 分页查询岗位列表
@@ -46,7 +58,45 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
         Page<JobVO> pageParam = new Page<>(page, size);
         pageParam.setSearchCount(true);
         IPage<JobVO> jobList = jobMapper.pageJobs(pageParam, keyword);
+        
+        // 为每个岗位加载分类信息
+        loadCategoriesForJobs(jobList.getRecords());
+        
         log.info("pageParam: {}", jobList);
+        return jobList;
+    }
+    
+    /**
+     * 分页查询岗位列表（增强版，支持多条件筛选）
+     */
+    @Override
+    public IPage<JobVO> pageJobs(int page, int size, String keyword, String location, 
+                                String jobType, String educationRequirement, 
+                                Integer salaryMin, Integer salaryMax, String sortBy) {
+        Page<JobVO> pageParam = new Page<>(page, size);
+        pageParam.setSearchCount(true);
+        IPage<JobVO> jobList = jobMapper.pageJobsWithFilters(
+                pageParam, keyword, location, jobType, educationRequirement, salaryMin, salaryMax, sortBy);
+        
+        // 为每个岗位加载分类信息
+        loadCategoriesForJobs(jobList.getRecords());
+        
+        log.info("pageParam with filters and sorting: {}, sortBy: {}", jobList, sortBy);
+        return jobList;
+    }
+    
+    /**
+     * 根据分类ID分页查询岗位列表
+     */
+    @Override
+    public IPage<JobVO> pageJobsByCategory(int page, int size, Integer categoryId) {
+        Page<JobVO> pageParam = new Page<>(page, size);
+        pageParam.setSearchCount(true);
+        IPage<JobVO> jobList = jobMapper.pageJobsByCategory(pageParam, categoryId);
+        
+        // 为每个岗位加载分类信息
+        loadCategoriesForJobs(jobList.getRecords());
+        
         return jobList;
     }
     
@@ -67,6 +117,12 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
         job.setViewCount(0);
         
         save(job);
+        
+        // 保存岗位分类关系
+        if (!CollectionUtils.isEmpty(dto.getCategoryIds())) {
+            updateJobCategories(job.getId(), dto.getCategoryIds());
+        }
+        
         return job.getId();
     }
     
@@ -82,6 +138,9 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
         
         // 增加浏览量
         jobMapper.incrementViewCount(id);
+        
+        // 加载分类信息
+        jobVO.setCategories(getJobCategories(id));
         
         return jobVO;
     }
@@ -103,7 +162,14 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
         }
         
         BeanUtils.copyProperties(dto, job);
-        return updateById(job);
+        boolean updated = updateById(job);
+        
+        // 更新岗位分类关系
+        if (!CollectionUtils.isEmpty(dto.getCategoryIds())) {
+            updateJobCategories(id, dto.getCategoryIds());
+        }
+        
+        return updated;
     }
     
     /**
@@ -121,6 +187,11 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
         if (!job.getOrganizationId().equals(orgId)) {
             throw new BusinessException("无权限删除此岗位");
         }
+        
+        // 删除岗位分类关系
+        LambdaQueryWrapper<JobCategoryRelation> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(JobCategoryRelation::getJobId, id);
+        jobCategoryRelationMapper.delete(queryWrapper);
         
         return removeById(id);
     }
@@ -169,6 +240,114 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
             }
         }
         
+        // 加载分类信息
+        vo.setCategories(getJobCategories(job.getId()));
+        
+        return vo;
+    }
+    
+    /**
+     * 获取岗位关联的分类列表
+     */
+    @Override
+    public List<JobCategoryVO> getJobCategories(Integer jobId) {
+        // 获取岗位关联的分类ID列表
+        List<Integer> categoryIds = jobCategoryRelationMapper.selectCategoryIdsByJobId(jobId);
+        if (categoryIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        // 查询分类详情
+        List<JobCategory> categories = jobCategoryMapper.selectBatchIds(categoryIds);
+        return categories.stream().map(this::convertToCategoryVO).collect(Collectors.toList());
+    }
+    
+    /**
+     * 更新岗位关联的分类
+     */
+    @Override
+    @Transactional
+    public boolean updateJobCategories(Integer jobId, List<Integer> categoryIds) {
+        // 先删除现有关联
+        LambdaQueryWrapper<JobCategoryRelation> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(JobCategoryRelation::getJobId, jobId);
+        jobCategoryRelationMapper.delete(queryWrapper);
+        
+        // 添加新的关联
+        if (!CollectionUtils.isEmpty(categoryIds)) {
+            for (Integer categoryId : categoryIds) {
+                JobCategoryRelation relation = new JobCategoryRelation();
+                relation.setJobId(jobId);
+                relation.setCategoryId(categoryId);
+                jobCategoryRelationMapper.insert(relation);
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
+     * 为岗位列表加载分类信息
+     */
+    private void loadCategoriesForJobs(List<JobVO> jobs) {
+        if (CollectionUtils.isEmpty(jobs)) {
+            return;
+        }
+        
+        // 获取所有岗位ID
+        List<Integer> jobIds = jobs.stream().map(JobVO::getId).collect(Collectors.toList());
+        
+        // 批量查询岗位分类关系
+        LambdaQueryWrapper<JobCategoryRelation> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(JobCategoryRelation::getJobId, jobIds);
+        List<JobCategoryRelation> relations = jobCategoryRelationMapper.selectList(queryWrapper);
+        
+        // 按岗位ID分组
+        Map<Integer, List<Integer>> jobCategoryMap = relations.stream()
+                .collect(Collectors.groupingBy(JobCategoryRelation::getJobId,
+                        Collectors.mapping(JobCategoryRelation::getCategoryId, Collectors.toList())));
+        
+        // 查询所有相关的分类
+        List<Integer> allCategoryIds = relations.stream()
+                .map(JobCategoryRelation::getCategoryId)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        if (!CollectionUtils.isEmpty(allCategoryIds)) {
+            LambdaQueryWrapper<JobCategory> categoryQueryWrapper = new LambdaQueryWrapper<>();
+            categoryQueryWrapper.in(JobCategory::getId, allCategoryIds);
+            List<JobCategory> allCategories = jobCategoryMapper.selectList(categoryQueryWrapper);
+            
+            // 转换为VO并按ID映射
+            Map<Integer, JobCategoryVO> categoryMap = allCategories.stream()
+                    .map(this::convertToCategoryVO)
+                    .collect(Collectors.toMap(JobCategoryVO::getId, category -> category));
+            
+            // 为每个岗位设置分类
+            for (JobVO job : jobs) {
+                List<Integer> categoryIds = jobCategoryMap.get(job.getId());
+                if (!CollectionUtils.isEmpty(categoryIds)) {
+                    List<JobCategoryVO> categories = new ArrayList<>();
+                    for (Integer categoryId : categoryIds) {
+                        JobCategoryVO category = categoryMap.get(categoryId);
+                        if (category != null) {
+                            categories.add(category);
+                        }
+                    }
+                    job.setCategories(categories);
+                } else {
+                    job.setCategories(new ArrayList<>());
+                }
+            }
+        }
+    }
+    
+    /**
+     * 将分类实体转换为VO
+     */
+    private JobCategoryVO convertToCategoryVO(JobCategory category) {
+        JobCategoryVO vo = new JobCategoryVO();
+        BeanUtils.copyProperties(category, vo);
         return vo;
     }
     
