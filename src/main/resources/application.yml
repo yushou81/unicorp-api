@@ -70,6 +70,12 @@ springdoc:
     - group: 'default'
       paths-to-match: '/**'
       packages-to-scan: com.csu.unicorp.controller
+    - group: "资源共享中心"
+      paths-to-match:
+        - /v1/resources/**
+        - /v1/files/**
+      display-name: "资源共享中心API"
+      description: "包括资源的上传、浏览、管理和下载功能。"
   default-flat-param-object: true
   paths-to-match:
     - /v1/auth/**
@@ -85,18 +91,8 @@ springdoc:
     - /v1/projects/**
     - /v1/map/**
     - /v1/applications/**
-    - /v1/me/**
     - /v1/project-applications/**
-    - /v1/resources/**
-    - /v1/files/**
-  # API分组配置
-  group-configs:
-    - group: "资源共享中心"
-      paths-to-match:
-        - /v1/resources/**
-        - /v1/files/**
-      display-name: "资源共享中心API"
-      description: "包括资源的上传、浏览、管理和下载功能。"
+    - /v1/docs/**
 
 # MyBatis-Plus 相关配置
 mybatis-plus:
