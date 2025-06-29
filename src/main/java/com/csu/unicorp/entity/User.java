@@ -54,7 +54,11 @@ public class User {
     /**
      * 用户头像URL
      */
+<<<<<<< HEAD
     //private String avatarUrl;
+=======
+    private String avatar;
+>>>>>>> 773f5fcdc44bfff1781b8e08efdf79317051f849
     
     /**
      * 用户状态：active-活跃，inactive-不活跃，pending_approval-等待审批

@@ -5,7 +5,9 @@ import com.csu.unicorp.dto.EnterpriseRegistrationDTO;
 import com.csu.unicorp.dto.LoginCredentialsDTO;
 import com.csu.unicorp.dto.OrgMemberCreationDTO;
 import com.csu.unicorp.dto.OrgMemberUpdateDTO;
+import com.csu.unicorp.dto.PasswordUpdateDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
+import com.csu.unicorp.dto.UserProfileUpdateDTO;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.vo.TokenVO;
 import com.csu.unicorp.vo.UserVO;
@@ -88,7 +90,7 @@ public interface UserService {
      * @param userId 用户ID
      * @return 角色名称列表
      */
-    List<String> getUserRoles(Integer userId);
+    String getUserRole(Integer userId);
     
     /**
      * 创建教师账号
@@ -163,4 +165,21 @@ public interface UserService {
      * @param userDetails 当前认证用户（企业管理员）
      */
     void disableMentor(Integer id, UserDetails userDetails);
+    
+    /**
+     * 更新用户个人信息
+     * 
+     * @param profileUpdateDTO 个人信息更新DTO
+     * @param userDetails 当前认证用户
+     * @return 更新后的用户信息
+     */
+    UserVO updateUserProfile(UserProfileUpdateDTO profileUpdateDTO, UserDetails userDetails);
+    
+    /**
+     * 修改用户密码
+     * 
+     * @param passwordUpdateDTO 密码更新DTO
+     * @param userDetails 当前认证用户
+     */
+    void updatePassword(PasswordUpdateDTO passwordUpdateDTO, UserDetails userDetails);
 } 

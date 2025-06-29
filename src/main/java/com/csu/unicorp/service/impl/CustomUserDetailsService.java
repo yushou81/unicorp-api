@@ -30,9 +30,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
         
         // 查询用户角色
-        List<String> roles = userMapper.selectRolesByUserId(user.getId());
+        String role = userMapper.selectRoleByUserId(user.getId());
         
         // 创建并返回自定义UserDetails对象
-        return new CustomUserDetails(user, roles);
+        return new CustomUserDetails(user, role);
     }
 } 

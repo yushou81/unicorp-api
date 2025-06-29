@@ -3,6 +3,7 @@ package com.csu.unicorp.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.dto.ProjectCreationDTO;
 import com.csu.unicorp.entity.Organization;
@@ -161,7 +162,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public boolean hasProjectPermission(Project project, UserDetails userDetails) {
         // 系统管理员有所有权限
-        if (userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_SYSADMIN"))) {
+        if (userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_" + RoleConstants.ROLE_SYSTEM_ADMIN))) {
             return true;
         }
         
@@ -171,9 +172,9 @@ public class ProjectServiceImpl implements ProjectService {
         // 同一组织的教师、企业管理员或企业导师可以操作
         if (currentUser.getOrganizationId() != null 
                 && currentUser.getOrganizationId().equals(project.getOrganizationId())
-                && (userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_TEACHER")) ||
-                    userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_EN_ADMIN")) ||
-                    userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_EN_TEACHER")))) {
+                && (userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_" + RoleConstants.ROLE_TEACHER)) ||
+                    userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_" + RoleConstants.ROLE_ENTERPRISE_ADMIN)) ||
+                    userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_" + RoleConstants.ROLE_ENTERPRISE_MENTOR)))) {
             return true;
         }
         

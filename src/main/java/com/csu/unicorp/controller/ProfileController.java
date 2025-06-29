@@ -1,10 +1,10 @@
 package com.csu.unicorp.controller;
 
 import com.csu.unicorp.config.security.CustomUserDetails;
-import com.csu.unicorp.dto.AvatarUpdateDTO;
-import com.csu.unicorp.dto.ResumeUpdateDTO;
+import com.csu.unicorp.dto.ProfileUpdateDTO;
 import com.csu.unicorp.service.ProfileService;
 import com.csu.unicorp.vo.ResultVO;
+import com.csu.unicorp.vo.UserProfileVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,71 +12,77 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
 
 /**
- * 用户个人资料控制器
+ * 个人主页控制器
  */
-@Tag(name = "Me", description = "与当前登录用户相关的功能")
+@Tag(name = "Profiles", description = "用户个人主页与档案管理")
 @RestController
-@RequestMapping("/v1/me/profile")
 @RequiredArgsConstructor
 public class ProfileController {
     
     private final ProfileService profileService;
     
     /**
-     * 上传/更新用户头像
+     * 获取指定用户的公开主页信息
      */
-    @Operation(summary = "上传/更新我的头像", description = "为当前登录用户设置或更新头像。前端需先调用/files/upload获取URL。")
+    @Operation(summary = "获取指定用户的公开主页信息", description = "获取一个用户的公开展示信息，返回的数据结构会根据用户角色有所不同。")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "头像更新成功",
+        @ApiResponse(responseCode = "200", description = "成功获取用户主页信息",
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = ResultVO.class))),
-        @ApiResponse(responseCode = "400", description = "无效的URL",
+                schema = @Schema(implementation = UserProfileVO.class))),
+        @ApiResponse(responseCode = "404", description = "用户未找到",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
-    @SecurityRequirement(name = "bearerAuth")
-    @PostMapping("/avatar")
-    public ResponseEntity<ResultVO<Void>> updateAvatar(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody AvatarUpdateDTO avatarUpdateDTO) {
-        
-//        profileService.updateAvatar(userDetails.getId(), avatarUpdateDTO.getAvatarUrl());
-        return ResponseEntity.ok(ResultVO.success("头像更新成功"));
+    @GetMapping("/v1/profiles/{userId}")
+    public ResponseEntity<ResultVO<UserProfileVO>> getUserProfile(@PathVariable Integer userId) {
+        UserProfileVO userProfile = profileService.getUserProfile(userId);
+        return ResponseEntity.ok(ResultVO.success("获取用户主页信息成功", userProfile));
     }
     
     /**
-     * 上传/更新学生简历
+     * 获取我自己的详细档案信息
      */
-    @Operation(summary = "上传/更新我的简历", description = "为当前登录的学生用户设置或更新简历文件。前端需先调用/files/upload获取URL。")
+    @Operation(summary = "获取我自己的详细档案信息", description = "获取当前登录用户的完整档案信息，用于编辑个人主页页面。")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "简历更新成功",
+        @ApiResponse(responseCode = "200", description = "成功获取档案信息",
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = ResultVO.class))),
-        @ApiResponse(responseCode = "400", description = "无效的URL",
-                content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = ResultVO.class))),
-        @ApiResponse(responseCode = "403", description = "权限不足 (非学生用户)",
+                schema = @Schema(implementation = UserProfileVO.class))),
+        @ApiResponse(responseCode = "401", description = "未授权",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @SecurityRequirement(name = "bearerAuth")
-    @PostMapping("/resume")
-    public ResponseEntity<ResultVO<Void>> updateResume(
+    @GetMapping("/v1/me/profile")
+    public ResponseEntity<ResultVO<UserProfileVO>> getMyProfile(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        UserProfileVO userProfile = profileService.getCurrentUserProfile(userDetails.getUser().getId());
+        return ResponseEntity.ok(ResultVO.success("获取个人档案信息成功", userProfile));
+    }
+    
+    /**
+     * 更新我自己的基本档案
+     */
+    @Operation(summary = "更新我自己的基本档案", description = "更新当前登录用户的基本信息，如昵称、简介、头像等。")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "档案更新成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = UserProfileVO.class))),
+        @ApiResponse(responseCode = "401", description = "未授权",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    @PutMapping("/v1/me/profile")
+    public ResponseEntity<ResultVO<UserProfileVO>> updateMyProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody ResumeUpdateDTO resumeUpdateDTO) {
-        
-//        profileService.updateResume(userDetails.getId(), resumeUpdateDTO.getResumeUrl());
-        return ResponseEntity.ok(ResultVO.success("简历更新成功"));
+            @Valid @RequestBody ProfileUpdateDTO profileUpdateDTO) {
+        UserProfileVO updatedProfile = profileService.updateUserProfile(userDetails.getUser().getId(), profileUpdateDTO);
+        return ResponseEntity.ok(ResultVO.success("个人档案更新成功", updatedProfile));
     }
 } 

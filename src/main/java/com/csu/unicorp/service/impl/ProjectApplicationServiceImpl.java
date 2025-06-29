@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.dto.ProjectApplicationCreationDTO;
 import com.csu.unicorp.dto.ProjectApplicationStatusUpdateDTO;
 import com.csu.unicorp.entity.Project;
@@ -56,8 +57,8 @@ public class ProjectApplicationServiceImpl extends ServiceImpl<ProjectApplicatio
         }
 
         // 检查用户是否有学生角色
-        boolean isStudent = userMapper.hasRole(currentUser.getId(), "STUDENT");
-        if (!isStudent) {
+        String role = userMapper.selectRoleByUserId(currentUser.getId());
+        if (!RoleConstants.DB_ROLE_STUDENT.equals(role)) {
             throw new AccessDeniedException("只有学生用户可以申请项目");
         }
 
@@ -206,8 +207,8 @@ public class ProjectApplicationServiceImpl extends ServiceImpl<ProjectApplicatio
         }
         
         // 检查用户是否有学生角色
-        boolean isStudent = userMapper.hasRole(currentUser.getId(), "STUDENT");
-        if (!isStudent) {
+        String role = userMapper.selectRoleByUserId(currentUser.getId());
+        if (!RoleConstants.DB_ROLE_STUDENT.equals(role)) {
             throw new AccessDeniedException("只有学生用户可以查看自己的申请");
         }
         

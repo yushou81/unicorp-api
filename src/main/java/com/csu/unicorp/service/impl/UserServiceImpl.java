@@ -11,7 +11,9 @@ import com.csu.unicorp.dto.EnterpriseRegistrationDTO;
 import com.csu.unicorp.dto.LoginCredentialsDTO;
 import com.csu.unicorp.dto.OrgMemberCreationDTO;
 import com.csu.unicorp.dto.OrgMemberUpdateDTO;
+import com.csu.unicorp.dto.PasswordUpdateDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
+import com.csu.unicorp.dto.UserProfileUpdateDTO;
 import com.csu.unicorp.entity.EnterpriseDetail;
 import com.csu.unicorp.entity.Organization;
 import com.csu.unicorp.entity.User;
@@ -38,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 用户服务实现类
@@ -80,7 +83,7 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             throw new BadCredentialsException("用户不存在");
         }
-        
+        log.info("user: {}", user);
         // 使用找到的用户账号和输入的密码进行认证
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(user.getAccount(), loginDto.getPassword())
@@ -88,10 +91,11 @@ public class UserServiceImpl implements UserService {
         
         // 如果认证通过，获取用户详情并生成JWT令牌
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
         String token = jwtUtil.generateToken(userDetails);
         
         // 获取用户角色（只有一个角色）
-        String role = getUserRoles(user.getId()).get(0);
+        String role = getUserRole(user.getId());
         
         // 构建并返回TokenVO，包含token、nickname和role
         return TokenVO.builder()
@@ -263,8 +267,8 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    public List<String> getUserRoles(Integer userId) {
-        return userMapper.selectRolesByUserId(userId);
+    public String getUserRole(Integer userId) {
+        return userMapper.selectRoleByUserId(userId);
     }
     
     @Override
@@ -277,8 +281,8 @@ public class UserServiceImpl implements UserService {
         }
         
         // 验证当前用户是否为学校管理员
-        List<String> roles = getUserRoles(currentAdmin.getId());
-        if (!roles.contains(RoleConstants.DB_ROLE_SCHOOL_ADMIN)) {
+        String role = getUserRole(currentAdmin.getId());
+        if (!RoleConstants.DB_ROLE_SCHOOL_ADMIN.equals(role)) {
             throw new BusinessException("权限不足，只有学校管理员可以创建教师账号");
         }
         
@@ -336,8 +340,8 @@ public class UserServiceImpl implements UserService {
         }
         
         // 验证当前用户是否为企业管理员
-        List<String> roles = getUserRoles(currentAdmin.getId());
-        if (!roles.contains(RoleConstants.DB_ROLE_ENTERPRISE_ADMIN)) {
+        String role = getUserRole(currentAdmin.getId());
+        if (!RoleConstants.DB_ROLE_ENTERPRISE_ADMIN.equals(role)) {
             throw new BusinessException("权限不足，只有企业管理员可以创建导师账号");
         }
         
@@ -385,6 +389,77 @@ public class UserServiceImpl implements UserService {
         return convertToVO(mentor);
     }
     
+    @Override
+    @Transactional
+    public UserVO updateUserProfile(UserProfileUpdateDTO profileUpdateDTO, UserDetails userDetails) {
+        // 获取当前登录用户
+        User currentUser = userMapper.selectByAccount(userDetails.getUsername());
+        if (currentUser == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 检查邮箱是否被其他用户使用
+        if (profileUpdateDTO.getEmail() != null && !profileUpdateDTO.getEmail().equals(currentUser.getEmail())) {
+            User existingUserByEmail = userMapper.selectByEmail(profileUpdateDTO.getEmail());
+            if (existingUserByEmail != null && !Objects.equals(existingUserByEmail.getId(), currentUser.getId())) {
+                throw new BusinessException("该邮箱已被其他用户使用");
+            }
+            currentUser.setEmail(profileUpdateDTO.getEmail());
+        }
+        
+        // 检查手机号是否被其他用户使用
+        if (profileUpdateDTO.getPhone() != null && !profileUpdateDTO.getPhone().equals(currentUser.getPhone())) {
+            User existingUserByPhone = userMapper.selectByPhone(profileUpdateDTO.getPhone());
+            if (existingUserByPhone != null && !Objects.equals(existingUserByPhone.getId(), currentUser.getId())) {
+                throw new BusinessException("该手机号已被其他用户使用");
+            }
+            currentUser.setPhone(profileUpdateDTO.getPhone());
+        }
+        
+        // 更新昵称
+        if (profileUpdateDTO.getNickname() != null) {
+            currentUser.setNickname(profileUpdateDTO.getNickname());
+        }
+        
+        // 更新时间
+        currentUser.setUpdatedAt(LocalDateTime.now());
+        
+        // 保存更新
+        userMapper.updateById(currentUser);
+        
+        // 返回更新后的用户信息
+        return convertToVO(currentUser);
+    }
+    
+    @Override
+    @Transactional
+    public void updatePassword(PasswordUpdateDTO passwordUpdateDTO, UserDetails userDetails) {
+        // 获取当前登录用户
+        User currentUser = userMapper.selectByAccount(userDetails.getUsername());
+        if (currentUser == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 验证原密码是否正确
+        if (!passwordEncoder.matches(passwordUpdateDTO.getOldPassword(), currentUser.getPassword())) {
+            throw new BusinessException("原密码不正确");
+        }
+        
+        // 验证新密码和确认密码是否一致
+        if (!passwordUpdateDTO.getNewPassword().equals(passwordUpdateDTO.getConfirmPassword())) {
+            throw new BusinessException("新密码和确认密码不一致");
+        }
+        
+        // 更新密码
+        currentUser.setPassword(passwordEncoder.encode(passwordUpdateDTO.getNewPassword()));
+        
+        // 更新时间
+        currentUser.setUpdatedAt(LocalDateTime.now());
+        
+        // 保存更新
+        userMapper.updateById(currentUser);
+    }
+    
     /**
      * 将User实体转换为UserVO
      * 
@@ -407,8 +482,8 @@ public class UserServiceImpl implements UserService {
         vo.setCreatedAt(user.getCreatedAt());
         
         // 获取用户角色
-        List<String> roles = getUserRoles(user.getId());
-        vo.setRoles(roles != null ? roles : new ArrayList<>());
+        String role = getUserRole(user.getId());
+        vo.setRole(role);
         
         return vo;
     }
@@ -422,8 +497,8 @@ public class UserServiceImpl implements UserService {
         }
         
         // 验证当前用户是否为学校管理员
-        List<String> roles = getUserRoles(currentAdmin.getId());
-        if (!roles.contains(RoleConstants.DB_ROLE_SCHOOL_ADMIN)) {
+        String role = getUserRole(currentAdmin.getId());
+        if (!RoleConstants.DB_ROLE_SCHOOL_ADMIN.equals(role)) {
             throw new BusinessException("权限不足，只有学校管理员可以查看教师列表");
         }
         
@@ -449,8 +524,8 @@ public class UserServiceImpl implements UserService {
         }
         
         // 验证当前用户是否为学校管理员
-        List<String> roles = getUserRoles(currentAdmin.getId());
-        if (!roles.contains(RoleConstants.DB_ROLE_SCHOOL_ADMIN)) {
+        String role = getUserRole(currentAdmin.getId());
+        if (!RoleConstants.DB_ROLE_SCHOOL_ADMIN.equals(role)) {
             throw new BusinessException("权限不足，只有学校管理员可以更新教师信息");
         }
         
@@ -466,8 +541,8 @@ public class UserServiceImpl implements UserService {
         }
         
         // 验证是否为教师角色
-        List<String> teacherRoles = getUserRoles(teacher.getId());
-        if (!teacherRoles.contains(RoleConstants.DB_ROLE_TEACHER)) {
+        String teacherRole = getUserRole(teacher.getId());
+        if (!RoleConstants.DB_ROLE_TEACHER.equals(teacherRole)) {
             throw new BusinessException("该用户不是教师");
         }
         
@@ -493,8 +568,8 @@ public class UserServiceImpl implements UserService {
         }
         
         // 验证当前用户是否为学校管理员
-        List<String> roles = getUserRoles(currentAdmin.getId());
-        if (!roles.contains(RoleConstants.DB_ROLE_SCHOOL_ADMIN)) {
+        String role = getUserRole(currentAdmin.getId());
+        if (!RoleConstants.DB_ROLE_SCHOOL_ADMIN.equals(role)) {
             throw new BusinessException("权限不足，只有学校管理员可以禁用教师账号");
         }
         
@@ -510,8 +585,8 @@ public class UserServiceImpl implements UserService {
         }
         
         // 验证是否为教师角色
-        List<String> teacherRoles = getUserRoles(teacher.getId());
-        if (!teacherRoles.contains(RoleConstants.DB_ROLE_TEACHER)) {
+        String teacherRole = getUserRole(teacher.getId());
+        if (!RoleConstants.DB_ROLE_TEACHER.equals(teacherRole)) {
             throw new BusinessException("该用户不是教师");
         }
         
@@ -529,8 +604,8 @@ public class UserServiceImpl implements UserService {
         }
         
         // 验证当前用户是否为企业管理员
-        List<String> roles = getUserRoles(currentAdmin.getId());
-        if (!roles.contains(RoleConstants.DB_ROLE_ENTERPRISE_ADMIN)) {
+        String role = getUserRole(currentAdmin.getId());
+        if (!RoleConstants.DB_ROLE_ENTERPRISE_ADMIN.equals(role)) {
             throw new BusinessException("权限不足，只有企业管理员可以查看导师列表");
         }
         
@@ -556,8 +631,8 @@ public class UserServiceImpl implements UserService {
         }
         
         // 验证当前用户是否为企业管理员
-        List<String> roles = getUserRoles(currentAdmin.getId());
-        if (!roles.contains(RoleConstants.DB_ROLE_ENTERPRISE_ADMIN)) {
+        String role = getUserRole(currentAdmin.getId());
+        if (!RoleConstants.DB_ROLE_ENTERPRISE_ADMIN.equals(role)) {
             throw new BusinessException("权限不足，只有企业管理员可以更新导师信息");
         }
         
@@ -573,8 +648,8 @@ public class UserServiceImpl implements UserService {
         }
         
         // 验证是否为导师角色
-        List<String> mentorRoles = getUserRoles(mentor.getId());
-        if (!mentorRoles.contains(RoleConstants.DB_ROLE_ENTERPRISE_MENTOR)) {
+        String mentorRole = getUserRole(mentor.getId());
+        if (!RoleConstants.DB_ROLE_ENTERPRISE_MENTOR.equals(mentorRole)) {
             throw new BusinessException("该用户不是企业导师");
         }
         
@@ -600,8 +675,8 @@ public class UserServiceImpl implements UserService {
         }
         
         // 验证当前用户是否为企业管理员
-        List<String> roles = getUserRoles(currentAdmin.getId());
-        if (!roles.contains(RoleConstants.DB_ROLE_ENTERPRISE_ADMIN)) {
+        String role = getUserRole(currentAdmin.getId());
+        if (!RoleConstants.DB_ROLE_ENTERPRISE_ADMIN.equals(role)) {
             throw new BusinessException("权限不足，只有企业管理员可以禁用导师账号");
         }
         
@@ -617,8 +692,8 @@ public class UserServiceImpl implements UserService {
         }
         
         // 验证是否为导师角色
-        List<String> mentorRoles = getUserRoles(mentor.getId());
-        if (!mentorRoles.contains(RoleConstants.DB_ROLE_ENTERPRISE_MENTOR)) {
+        String mentorRole = getUserRole(mentor.getId());
+        if (!RoleConstants.DB_ROLE_ENTERPRISE_MENTOR.equals(mentorRole)) {
             throw new BusinessException("该用户不是企业导师");
         }
         

@@ -3,40 +3,66 @@ package com.csu.unicorp.vo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.util.List;
+
 /**
- * 用户个人资料视图对象
+ * 用户个人主页VO
  */
 @Data
-@Schema(description = "用户个人资料")
+@Schema(description = "用户个人主页VO")
 public class UserProfileVO {
     
     /**
-     * 用户名 (不可修改)
+     * 用户ID
      */
-    @Schema(description = "用户名", example = "zhangsan")
-    private String username;
+    @Schema(description = "用户ID")
+    private Integer id;
+    
+    /**
+     * 用户账号
+     */
+    @Schema(description = "用户账号")
+    private String account;
     
     /**
      * 用户昵称
      */
-    @Schema(description = "用户昵称", example = "爱吃烧烤的张三")
+    @Schema(description = "用户昵称")
     private String nickname;
     
     /**
-     * 用户头像URL
+     * 头像URL
      */
-    @Schema(description = "用户头像URL", example = "https://example.com/avatar.jpg")
+    @Schema(description = "头像URL")
     private String avatarUrl;
     
     /**
-     * 手机号码 (部分脱敏处理)
+     * 个人简介
      */
-    @Schema(description = "手机号码", example = "138****8888")
-    private String phone;
+    @Schema(description = "个人简介")
+    private String bio;
     
     /**
-     * 用户角色
+     * 所属组织名称
      */
-    @Schema(description = "用户角色", example = "USER")
+    @Schema(description = "所属组织名称")
+    private String organizationName;
+    
+    /**
+     * 用户角色列表
+     */
+    @Schema(description = "用户角色列表")
     private String role;
+    
+    /**
+     * 学生档案信息（仅学生角色有此字段）
+     */
+    @Schema(description = "学生档案信息（仅学生角色有此字段）")
+    private StudentProfileVO studentProfile;
+    
+    /**
+     * 作品集列表（仅学生角色有此字段）
+     */
+    @Schema(description = "作品集列表（仅学生角色有此字段）")
+    private List<PortfolioItemVO> portfolio;
 } 
