@@ -1,50 +1,56 @@
 # 服务器相关配置
 server:
-  port: 8081 # 设置应用的端口号，避免使用常见的8080以防冲突
+  port: 8081 # 设置应用的�??口号，避免使用常见的8080以防冲突
   servlet:
-    context-path: /api # 设置应用的统一访问前缀，例如 /api/user/register
+    context-path: /api # 设置应用的统一访问前缀，例�? /api/user/register
 
 # Spring相关配置
 spring:
+  # ����Bean����
+  main:
+    allow-bean-definition-overriding: true
   application:
     name: unicorp-api # 应用名称
   # 数据库连接池配置
   datasource:
-    # 【请修改】: 将下面的URL、用户名和密码替换成你自己的
+    # 【�修改�: 将下面的URL、用户名和密码替换成你自己的
     url: jdbc:mysql://localhost:3306/unicorp?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root # 数据库用户名
-    password: 123456 # 数据库密码
+    password: 123456 # 数据库密�
   # 文件上传配置
   servlet:
     multipart:
-      enabled: true # 启用文件上传
-      max-file-size: 10MB # 单个文件最大大小
-      max-request-size: 20MB # 单次请求最大大小
+      enabled: true # �?用文件上�?
+      max-file-size: 10MB # 单个文件最大大�?
+      max-request-size: 20MB # 单�?��?�求最大大�?
   # Flyway配置
   flyway:
-    enabled: true # 启用Flyway
+    enabled: true # �?用Flyway
     locations: classpath:db/migration # 迁移脚本位置
-    baseline-on-migrate: true # 如果数据库不是空的，自动执行基准迁移
-    out-of-order: false # 是否允许无序执行
-    validate-on-migrate: false # 临时禁用迁移验证，解决校验和问题
-    table: flyway_schema_history # Flyway元数据表名
-    # 如果需要清理数据库（开发环境可用，生产环境禁用）
-    clean-disabled: true # 禁用clean操作，防止意外删除数据
-    # 添加修复模式，自动修复校验错误
+    baseline-on-migrate: true # 如果数据库不�?空的，自动执行基准迁�?
+    out-of-order: false # �?否允许无序执�?
+    validate-on-migrate: false # 临时禁用迁移验证，解决校验和�?�?
+    table: flyway_schema_history # Flyway元数�?表名
+    # 如果需要清理数�?库（开发环境可�?，生产环境�?�用�?
+    clean-disabled: true # 禁用clean操作，防止意外删除数�?
+    # 添加�?复模式，�?动修复校验错�?
     repair: true
   logging:
     level:
       root: INFO
-      com.csu.unicorp: DEBUG  # 将应用代码日志级别设为DEBUG
+      com.csu.unicorp: DEBUG  # 将应用代码日志级�?设为DEBUG
+      com.csu.unicorp.config: TRACE  # WebSocket配置相关日志设为TRACE
+      org.springframework.web.socket: DEBUG  # WebSocket相关日志设为DEBUG
+      org.springframework.messaging: DEBUG  # Spring消息相关日志设为DEBUG
       com.csu.unicorp.config.security: TRACE  # 安全配置相关日志设为TRACE
       org.springframework.security: DEBUG  # 安全相关日志设为DEBUG
       org.springframework.web: DEBUG  # Web相关日志设为DEBUG
-      org.hibernate.SQL: DEBUG  # 显示SQL语句
-      org.hibernate.type.descriptor.sql: TRACE  # 显示SQL参数绑定值
+      org.hibernate.SQL: DEBUG  # 显示SQL�?�?
+      org.hibernate.type.descriptor.sql: TRACE  # 显示SQL参数绑定�?
 # JWT配置
 jwt:
   secret: Oe8H9XZ3x2NpDQfY9vTr5qK6sLm7oP3aUv1wMxB2zC3yD4fE5gF6hG7jH8kJ
-  expiration: 86400000 # 24小时(毫秒)
+  expiration: 86400000 # 24小时(�?�?)
 
 # 文件上传配置
 app:
@@ -76,22 +82,28 @@ springdoc:
     - /v1/resources/**
     - /v1/files/**
     - /v1/me/**
+    - /v1/chat/**
+    - /v1/jobs/**
+    - /v1/projects/**
+    - /v1/map/**
+    - /v1/applications/**
+    - /v1/docs/**
 
 # MyBatis-Plus 相关配置
 mybatis-plus:
-  # Mapper XML文件的位置
+  # Mapper XML文件的位�?
   mapper-locations: classpath:/mapper/*.xml
   # 全局配置
   global-config:
     db-config:
       # 逻辑删除配置 (推荐实践)
-      # 0代表未删除, 1代表已删除
+      # 0代表�?删除, 1代表已删�?
       logic-delete-field: is_deleted
-      logic-delete-value: 1 # 逻辑已删除值(默认为1)
-      logic-not-delete-value: 0 # 逻辑未删除值(默认为0)
-  # 配置项
+      logic-delete-value: 1 # 逻辑已删除�?(默�?�为1)
+      logic-not-delete-value: 0 # 逻辑�?删除�?(默�?�为0)
+  # 配置�?
   configuration:
-    # 开启驼峰命名转换：将数据库的 a_column 自动映射到实体的 aColumn 属性
+    # 开�?驼峰命名�?�?：将数据库的 a_column �?动映射到实体�? aColumn 属�?
     map-underscore-to-camel-case: true
     # 控制台打印SQL，方便开发调试（设置为更详细的输出）
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

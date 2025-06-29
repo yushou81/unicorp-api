@@ -1,23 +1,24 @@
 package com.csu.unicorp.vo;
 
+import java.util.List;
+
 import com.baomidou.mybatisplus.core.metadata.IPage;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.util.List;
-
 /**
  * 分页结果视图对象
- * @param <T> 列表项类型
+ * @param <T> 列表项类�?
  */
 @Data
 @Schema(description = "分页结果视图对象")
 public class PageResultVO<T> {
     
-    @Schema(description = "总记录数", example = "100")
+    @Schema(description = "总�?�录�?", example = "100")
     private Long total;
     
-    @Schema(description = "总页数", example = "10")
+    @Schema(description = "总页�?", example = "10")
     private Long pages;
     
     @Schema(description = "当前页码", example = "1")
@@ -30,9 +31,9 @@ public class PageResultVO<T> {
     private List<T> list;
     
     /**
-     * 构造方法
-     * @param total 总记录数
-     * @param pages 总页数
+     * 构造方�?
+     * @param total 总�?�录�?
+     * @param pages 总页�?
      * @param current 当前页码
      * @param size 每页大小
      * @param list 数据列表
@@ -46,7 +47,7 @@ public class PageResultVO<T> {
     }
     
     /**
-     * 基于MyBatis-Plus的IPage构造方法
+     * 基于MyBatis-Plus的IPage构造方�?
      * @param page MyBatis-Plus分页对象
      */
     public PageResultVO(IPage<T> page) {
@@ -58,7 +59,7 @@ public class PageResultVO<T> {
     }
     
     /**
-     * 空构造方法
+     * 空构造方�?
      */
     public PageResultVO() {
     }
