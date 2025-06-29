@@ -87,9 +87,11 @@ unicorp-api/
   │   │   │               │   ├── LoginCredentialsDTO.java      # 登录凭证DTO
   │   │   │               │   ├── OrgMemberCreationDTO.java     # 组织成员创建DTO
   │   │   │               │   ├── OrgMemberUpdateDTO.java       # 组织成员更新DTO
+  │   │   │               │   ├── PasswordUpdateDTO.java        # 密码更新DTO
   │   │   │               │   ├── ResourceCreationDTO.java      # 资源创建DTO
   │   │   │               │   ├── SchoolCreationDTO.java        # 学校创建DTO
-  │   │   │               │   └── StudentRegistrationDTO.java   # 学生注册DTO
+  │   │   │               │   ├── StudentRegistrationDTO.java   # 学生注册DTO
+  │   │   │               │   └── UserProfileUpdateDTO.java     # 用户个人信息更新DTO
   │   │   │               ├── entity/
   │   │   │               │   ├── EnterpriseDetail.java         # 企业详情实体
   │   │   │               │   ├── Organization.java             # 组织实体
@@ -150,9 +152,15 @@ unicorp-api/
   │   │   └── 第二次迭代API1.0.md                               # 第二次迭代API设计文档
   │   ├── 第3次迭代/
   │   │   └── 第三次迭代API2.0.md                               # 第三次迭代API设计文档
-  │   └── 第4次迭代/
-  │       ├── 第四次迭代API1.0.md                               # 第四次迭代API设计文档
-  │       └── 测试计划.md                                       # 第四次迭代测试计划
+  │   ├── 第4次迭代/
+  │   │   ├── 第四次迭代API1.0.md                               # 第四次迭代API设计文档
+  │   │   └── 测试计划.md                                       # 第四次迭代测试计划
+  │   └── 第5次迭代/
+  │       ├── 第五次迭代API1.0.md                               # 第五次迭代API设计文档
+  │       └── 测试计划.md                                       # 第五次迭代测试计划
+  │   └── 第7次迭代/
+  │       ├── API文档1.0.md                                     # 第七次迭代API设计文档
+  │       └── 测试计划.md                                       # 第七次迭代测试计划
   ├── pom.xml                                                   # Maven配置文件
   └── README.md                                                 # 项目说明文档
 ```
@@ -200,6 +208,18 @@ unicorp-api/
 - 资源详情查看与下载
 - 资源所有者更新和删除资源
 
+### 第五次迭代 - 个人主页与作品集管理
+- 用户个人主页的展示与编辑
+- 学生作品集管理（创建、更新、删除）
+- 个人档案信息维护
+- 用户头像和个人简介管理
+
+### 第七次迭代 - 岗位收藏功能
+- 学生用户收藏招聘岗位
+- 学生用户取消收藏岗位
+- 学生用户查看已收藏岗位列表
+- 岗位收藏权限控制
+
 已实现API:
 1. 用户登录 - POST `/v1/auth/login`
 2. 学生注册 - POST `/v1/auth/register/student`
@@ -209,3 +229,15 @@ unicorp-api/
 6. 创建资源 - POST `/v1/resources`
 7. 更新资源 - PUT `/v1/resources/{id}`
 8. 删除资源 - DELETE `/v1/resources/{id}`
+9. 获取用户主页 - GET `/v1/profiles/{userId}`
+10. 获取个人档案 - GET `/v1/me/profile`
+11. 更新个人档案 - PUT `/v1/me/profile`
+12. 获取作品集列表 - GET `/v1/me/portfolio`
+13. 添加作品集项目 - POST `/v1/me/portfolio`
+14. 更新作品集项目 - PUT `/v1/me/portfolio/{itemId}`
+15. 删除作品集项目 - DELETE `/v1/me/portfolio/{itemId}`
+16. 获取收藏岗位列表 - GET `/v1/me/favorites/jobs`
+17. 收藏岗位 - POST `/v1/jobs/{id}/favorite`
+18. 取消收藏岗位 - DELETE `/v1/jobs/{id}/favorite`
+19. 更新用户个人信息 - PUT `/v1/auth/profile`
+20. 修改用户密码 - PUT `/v1/auth/password`

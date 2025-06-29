@@ -61,6 +61,11 @@
             <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
             <version>3.5.12</version>
         </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-jsqlparser</artifactId>
+            <version>3.5.12</version>
+        </dependency>
         <!-- JWT依赖 - 用于生成和验证JWT令牌 -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

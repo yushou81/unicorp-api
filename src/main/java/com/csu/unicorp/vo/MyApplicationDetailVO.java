@@ -6,10 +6,10 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 我的岗位申请详情VO，用于学生查看自己的申请记录
+ * 我的岗位申请详情VO
  */
 @Data
-@Schema(description = "我的岗位申请详情")
+@Schema(description = "我的岗位申请详情VO")
 public class MyApplicationDetailVO {
     
     /**
@@ -21,7 +21,7 @@ public class MyApplicationDetailVO {
     /**
      * 申请状态
      */
-    @Schema(description = "申请状态", example = "submitted")
+    @Schema(description = "申请状态")
     private String status;
     
     /**
@@ -34,14 +34,15 @@ public class MyApplicationDetailVO {
      * 岗位信息
      */
     @Schema(description = "岗位信息")
-    private JobInfo jobInfo;
+    private JobInfoVO jobInfo;
     
     /**
-     * 岗位信息内部类
+     * 岗位信息VO
      */
     @Data
-    @Schema(description = "岗位基本信息")
-    public static class JobInfo {
+    @Schema(description = "岗位信息VO")
+    public static class JobInfoVO {
+        
         /**
          * 岗位ID
          */
@@ -51,13 +52,13 @@ public class MyApplicationDetailVO {
         /**
          * 岗位标题
          */
-        @Schema(description = "岗位标题", example = "Java开发工程师")
+        @Schema(description = "岗位标题")
         private String jobTitle;
         
         /**
-         * 企业名称
+         * 组织名称
          */
-        @Schema(description = "企业名称", example = "阿里巴巴")
+        @Schema(description = "组织名称")
         private String organizationName;
     }
 } 

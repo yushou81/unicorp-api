@@ -39,15 +39,15 @@ public class ProjectController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "成功获取项目列表", 
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = ProjectVO.class)))
+                schema = @Schema(implementation = ResultVO.class)))
     })
     @GetMapping
-    public ResponseEntity<ResultVO<IPage<ProjectVO>>> getProjects(
+    public ResultVO<IPage<ProjectVO>> getProjects(
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String keyword) {
         IPage<ProjectVO> projects = projectService.getProjectList(page, size, keyword);
-        return ResponseEntity.ok(ResultVO.success("获取项目列表成功", projects));
+        return ResultVO.success("获取项目列表成功", projects);
     }
     
     /**
@@ -62,7 +62,7 @@ public class ProjectController {
     })
     @PostMapping
     @SecurityRequirement(name = "bearerAuth")
-//    @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER')")
+   @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER')")
     public ResponseEntity<ResultVO<ProjectVO>> createProject(
             @Valid @RequestBody ProjectCreationDTO projectCreationDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -77,13 +77,13 @@ public class ProjectController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "成功获取项目详情", 
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = ProjectVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "404", description = "项目未找到")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<ResultVO<ProjectVO>> getProject(@PathVariable Integer id) {
+    public ResultVO<ProjectVO> getProject(@PathVariable Integer id) {
         ProjectVO project = projectService.getProjectById(id);
-        return ResponseEntity.ok(ResultVO.success("获取项目详情成功", project));
+        return ResultVO.success("获取项目详情成功", project);
     }
     
     /**
