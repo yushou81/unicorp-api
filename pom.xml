@@ -33,6 +33,9 @@
         <java.version>17</java.version>
         <jjwt.version>0.11.5</jjwt.version>
         <springdoc.version>2.8.9</springdoc.version>
+        <flyway.url>jdbc:mysql://localhost:3306/unicorp?useUnicode=true&amp;characterEncoding=utf-8&amp;serverTimezone=Asia/Shanghai</flyway.url>
+        <flyway.user>root</flyway.user>
+        <flyway.password>123456</flyway.password>
     </properties>
     <dependencies>
         <!-- Spring Security 依赖，用于密码加密和后续的用户认证 -->
@@ -157,6 +160,12 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- WebSocket支持 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -184,6 +193,15 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <configuration>
+                    <url>${flyway.url}</url>
+                    <user>${flyway.user}</user>
+                    <password>${flyway.password}</password>
                 </configuration>
             </plugin>
         </plugins>

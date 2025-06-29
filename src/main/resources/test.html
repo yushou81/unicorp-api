@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Chat Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .panel {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .message-area {
+            height: 300px;
+            border: 1px solid #ccc;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #f9f9f9;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .disconnect {
+            background-color: #f44336;
+        }
+        .disconnect:hover {
+            background-color: #d32f2f;
+        }
+        .message {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .system {
+            color: #808080;
+            font-style: italic;
+        }
+        .error {
+            color: #d32f2f;
+        }
+        .received {
+            background-color: #e3f2fd;
+        }
+        .sent {
+            background-color: #e8f5e9;
+            text-align: right;
+        }
+        .connection-status {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .connected {
+            color: green;
+        }
+        .disconnected {
+            color: red;
+        }
+        .subscription-status {
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .subscribed {
+            color: blue;
+        }
+        .not-subscribed {
+            color: orange;
+        }
+    </style>
+</head>
+<body>
+    <h1>LinkNei Chat Test</h1>
+
+    <div class="panel">
+        <h2>WebSocket Connection</h2>
+        <div class="connection-status disconnected" id="connectionStatus">Disconnected</div>
+        <div class="subscription-status not-subscribed" id="subscriptionStatus">Not Subscribed</div>
+
+        <div class="form-group">
+            <label for="serverUrl">Server URL</label>
+            <input type="text" id="serverUrl" value="http://127.0.0.1:8081/api/ws" />
+        </div>
+
+        <div class="form-group">
+            <label for="tokenInput">JWT Token</label>
+            <input type="text" id="tokenInput" placeholder="Enter JWT Token" />
+        </div>
+
+        <div class="form-group">
+            <label for="userIdInput">Current User ID</label>
+            <input type="text" id="userIdInput" placeholder="Enter Current User ID" />
+        </div>
+
+        <div>
+            <button onclick="connect()">Connect</button>
+            <button onclick="disconnect()" class="disconnect">Disconnect</button>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Send Message</h2>
+
+        <div class="form-group">
+            <label for="receiverId">Receiver ID</label>
+            <input type="text" id="receiverId" placeholder="Receiver ID" />
+        </div>
+
+        <div class="form-group">
+            <label for="messageInput">Message Content</label>
+            <input type="text" id="messageInput" placeholder="Enter message content" />
+        </div>
+
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <div class="panel">
+        <h2>Message Log</h2>
+        <div id="messageArea" class="message-area"></div>
+    </div>
+
+    <script>
+        let stompClient = null;
+        let userId = null;
+        let isSubscribed = false;
+        let connectionStatus = document.getElementById('connectionStatus');
+        let subscriptionStatus = document.getElementById('subscriptionStatus');
+
+        function connect() {
+            const token = document.getElementById('tokenInput').value;
+            const serverUrl = document.getElementById('serverUrl').value;
+            userId = document.getElementById('userIdInput').value; 
+
+            if (!token || !userId) {
+                appendMessage("JWT Token��User ID", "error");
+                return;
+            }
+            
+            try {
+                appendMessage("连接到 " + serverUrl, "system");
+                const socket = new SockJS(serverUrl);
+                stompClient = Stomp.over(socket);
+                
+                // Enable STOMP debugging
+                stompClient.debug = function(str) {
+                    appendMessage("STOMP: " + str, "system");
+                };
+
+                const headers = {
+                    Authorization: 'Bearer ' + token
+                };
+
+                appendMessage("使用ID: " + userId + " 连接WebSocket", "system");
+                stompClient.connect(headers, function(frame) {
+                    connectionStatus.textContent = "连接成功";
+                    connectionStatus.className = "connection-status connected";
+                    appendMessage("连接成功: " + frame, "system");
+                    
+                    // Subscribe to message queue
+                    appendMessage("开始订阅消息...", "system");
+                    stompClient.subscribe('/user/queue/messages', function(message) {
+                        isSubscribed = true;
+                        subscriptionStatus.textContent = "订阅成功";
+                        subscriptionStatus.className = "subscription-status subscribed";
+                        appendMessage("收到消息", "system");
+                        
+                        try {
+                            const messageBody = JSON.parse(message.body);
+                            appendMessage("收到消息内容: " + messageBody.content, "received");
+                            appendMessage("发送者: " + messageBody.senderName, "received");
+                            appendMessage("消息内容: " + JSON.stringify(messageBody), "system");
+                        } catch (e) {
+                            appendMessage("消息解析失败: " + e.message, "error");
+                            appendMessage("原始消息: " + message.body, "system");
+                        }
+                    }, function(error) {
+                        // Subscription failure callback
+                        appendMessage("订阅失败: " + error, "error");
+                        isSubscribed = false;
+                        subscriptionStatus.textContent = "订阅失败";
+                        subscriptionStatus.className = "subscription-status not-subscribed";
+                    });
+                    
+                    // Manually add subscription success message, as STOMP protocol doesn't send one
+                    appendMessage("订阅成功 /user/queue/messages", "system");
+                    isSubscribed = true;
+                    subscriptionStatus.textContent = "订阅成功";
+                    subscriptionStatus.className = "subscription-status subscribed";
+                    
+                }, function(error) {
+                    connectionStatus.textContent = "连接失败";
+                    connectionStatus.className = "connection-status disconnected";
+                    appendMessage("连接失败: " + error, "error");
+                });
+            } catch (e) {
+                appendMessage("连接失败: " + e.message, "error");
+            }
+        }
+
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+                stompClient = null;
+                connectionStatus.textContent = "连接断开";
+                connectionStatus.className = "connection-status disconnected";
+                subscriptionStatus.textContent = "未订阅";
+                subscriptionStatus.className = "subscription-status not-subscribed";
+                isSubscribed = false;
+                appendMessage("连接断开", "system");
+            }
+        }
+
+        function sendMessage() {
+            const receiverId = document.getElementById('receiverId').value;
+            const messageContent = document.getElementById('messageInput').value;
+
+            if (!stompClient) {
+                appendMessage("未连接WebSocket", "error");
+                return;
+            }
+
+            if (!receiverId || !messageContent) {
+                appendMessage("请输入接收者ID和消息内容", "error");
+                return;
+            }
+
+            try {
+                const chatMessage = {
+                    type: "CHAT",
+                    senderId: userId,
+                    receiverId: receiverId,
+                    content: messageContent
+                };
+
+                // Send message via HTTP API
+                appendMessage("发送消息: " + messageContent + " 发送者 " + userId + " 接收者 " + receiverId, "sent");
+
+                fetch('/api/v1/chat/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + document.getElementById('tokenInput').value
+                    },
+                    body: JSON.stringify(chatMessage)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 200) {
+                        appendMessage("消息发送成功", "system");
+                    } else {
+                        appendMessage("消息发送失败: " + data.message, "error");
+                    }
+                })
+                .catch(error => {
+                    appendMessage("消息发送失败: " + error, "error");
+                });
+
+                document.getElementById('messageInput').value = '';
+            } catch (e) {
+                appendMessage("消息发送失败: " + e.message, "error");
+            }
+        }
+
+        function appendMessage(message, type) {
+            const messageArea = document.getElementById('messageArea');
+            const messageElement = document.createElement('div');
+            messageElement.textContent = new Date().toLocaleTimeString() + ": " + message;
+            messageElement.className = "message " + (type || "system");
+            messageArea.appendChild(messageElement);
+            messageArea.scrollTop = messageArea.scrollHeight;
+        }
+    </script>
+</body>
+</html>
