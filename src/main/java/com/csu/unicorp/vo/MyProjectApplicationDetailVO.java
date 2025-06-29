@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 /**
@@ -32,7 +31,7 @@ public class MyProjectApplicationDetailVO {
      * 申请时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private Timestamp appliedAt;
+    private LocalDateTime appliedAt;
     
     /**
      * 项目信息

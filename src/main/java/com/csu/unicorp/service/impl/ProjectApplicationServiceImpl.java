@@ -24,7 +24,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,35 +54,35 @@ public class ProjectApplicationServiceImpl extends ServiceImpl<ProjectApplicatio
         if (currentUser == null) {
             throw new AccessDeniedException("用户不存在");
         }
-        
+
         // 检查用户是否有学生角色
         boolean isStudent = userMapper.hasRole(currentUser.getId(), "STUDENT");
         if (!isStudent) {
             throw new AccessDeniedException("只有学生用户可以申请项目");
         }
-        
+
         // 检查项目是否存在
         Project project = projectMapper.selectById(projectId);
         if (project == null || Boolean.TRUE.equals(project.getIsDeleted())) {
             throw new IllegalArgumentException("项目不存在");
         }
-        
+
         // 检查项目是否处于招募状态
         if (!"recruiting".equals(project.getStatus())) {
             throw new IllegalArgumentException("该项目当前不接受申请");
         }
-        
+
         // 检查用户是否已经申请过该项目
         LambdaQueryWrapper<ProjectApplication> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ProjectApplication::getProjectId, projectId)
                 .eq(ProjectApplication::getUserId, currentUser.getId())
                 .eq(ProjectApplication::getIsDeleted, false);
-        
+
         long count = projectApplicationMapper.selectCount(queryWrapper);
         if (count > 0) {
             throw new IllegalArgumentException("您已经申请过该项目");
         }
-        
+
         // 创建申请记录
         ProjectApplication application = new ProjectApplication();
         application.setProjectId(projectId);
@@ -93,9 +92,9 @@ public class ProjectApplicationServiceImpl extends ServiceImpl<ProjectApplicatio
         application.setIsDeleted(false);
         application.setCreatedAt(LocalDateTime.now());
         application.setUpdatedAt(LocalDateTime.now());
-        
+
         projectApplicationMapper.insert(application);
-        
+
         // 返回申请详情
         return convertToDetailVO(application, currentUser);
     }
@@ -256,7 +255,7 @@ public class ProjectApplicationServiceImpl extends ServiceImpl<ProjectApplicatio
         MyProjectApplicationDetailVO vo = new MyProjectApplicationDetailVO();
         vo.setApplicationId((Integer) map.get("application_id"));
         vo.setStatus((String) map.get("status"));
-        vo.setAppliedAt((Timestamp) map.get("applied_at"));
+        vo.setAppliedAt((LocalDateTime) map.get("applied_at"));
         
         MyProjectApplicationDetailVO.ProjectInfoVO projectInfo = new MyProjectApplicationDetailVO.ProjectInfoVO();
         projectInfo.setProjectId((Integer) map.get("project_id"));

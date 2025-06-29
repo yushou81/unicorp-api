@@ -41,10 +41,10 @@ public class ProfileServiceImpl implements ProfileService {
         }
         
         // 更新用户头像URL
-        user.setAvatarUrl(avatarUrl);
-        userMapper.updateById(user);
+        //user.setAvatarUrl(avatarUrl);
+        //userMapper.updateById(user);
         
-        log.info("用户 {} 更新了头像: {}", userId, avatarUrl);
+        //log.info("用户 {} 更新了头像: {}", userId, avatarUrl);
     }
 
     @Override
