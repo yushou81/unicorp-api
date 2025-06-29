@@ -27,14 +27,12 @@ spring:
   flyway:
     enabled: true # �?用Flyway
     locations: classpath:db/migration # 迁移脚本位置
-    baseline-on-migrate: true # 如果数据库不�?空的，自动执行基准迁�?
-    out-of-order: false # �?否允许无序执�?
-    validate-on-migrate: false # 临时禁用迁移验证，解决校验和�?�?
-    table: flyway_schema_history # Flyway元数�?表名
-    # 如果需要清理数�?库（开发环境可�?，生产环境�?�用�?
-    clean-disabled: true # 禁用clean操作，防止意外删除数�?
-    # 添加�?复模式，�?动修复校验错�?
-    repair: true
+    baseline-on-migrate: true # 如果数据库不是空的，自动执行基准迁移
+    out-of-order: false # 是否允许无序执行
+    validate-on-migrate: false # 临时禁用迁移验证，解决校验和问题
+    table: flyway_schema_history # Flyway元数据表名
+    # 如果需要清理数据库（开发环境可用，生产环境禁用）
+    clean-disabled: true # 禁用clean操作，防止意外删除数据
   logging:
     level:
       root: INFO
@@ -87,7 +85,18 @@ springdoc:
     - /v1/projects/**
     - /v1/map/**
     - /v1/applications/**
-    - /v1/docs/**
+    - /v1/me/**
+    - /v1/project-applications/**
+    - /v1/resources/**
+    - /v1/files/**
+  # API分组配置
+  group-configs:
+    - group: "资源共享中心"
+      paths-to-match:
+        - /v1/resources/**
+        - /v1/files/**
+      display-name: "资源共享中心API"
+      description: "包括资源的上传、浏览、管理和下载功能。"
 
 # MyBatis-Plus 相关配置
 mybatis-plus:

@@ -91,6 +91,7 @@ public class SecurityConfig {
                     .requestMatchers("/v1/chat/**").authenticated()
                     // 静态资源访问
                     .requestMatchers("/files/**").permitAll()
+                    .requestMatchers("/v1/chat/**").authenticated()
                     // Swagger UI and API docs
                     .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     // 管理接口需要SYSADMIN权限
