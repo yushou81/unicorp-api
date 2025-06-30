@@ -13,13 +13,17 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.constants.VisibilityEnum;
+import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.dto.ResourceCreationDTO;
+import com.csu.unicorp.entity.EquipmentApplication;
 import com.csu.unicorp.entity.Resource;
 import com.csu.unicorp.entity.User;
+import com.csu.unicorp.mapper.EquipmentApplicationMapper;
 import com.csu.unicorp.mapper.ResourceMapper;
 import com.csu.unicorp.service.ResourceService;
 import com.csu.unicorp.service.UserService;
+import com.csu.unicorp.vo.EquipmentApplicationVO;
 import com.csu.unicorp.vo.ResourceVO;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +39,7 @@ public class ResourceServiceImpl implements ResourceService {
     
     private final ResourceMapper resourceMapper;
     private final UserService userService;
+    private final EquipmentApplicationMapper equipmentApplicationMapper;
     
     @Override
     public IPage<ResourceVO> getResources(int page, int size, String keyword) {
@@ -182,5 +187,125 @@ public class ResourceServiceImpl implements ResourceService {
     private boolean isSystemAdmin(UserDetails userDetails) {
         return userDetails.getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_" + RoleConstants.ROLE_SYSTEM_ADMIN));
+    }
+    
+    /**
+     * 检查用户是否为管理员
+     */
+    @Override
+    public boolean isAdmin(UserDetails userDetails) {
+        Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+        return authorities.stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_" + RoleConstants.ADMIN));
+    }
+    
+    /**
+     * 检查设备在指定时间段是否已被占用
+     */
+    @Override
+    public boolean isEquipmentTimeOccupied(Integer resourceId, LocalDateTime startTime, LocalDateTime endTime) {
+        int count = equipmentApplicationMapper.countOverlappingApplications(resourceId, startTime, endTime);
+        return count > 0;
+    }
+    
+    /**
+     * 申请使用实验设备
+     */
+    @Override
+    @Transactional
+    public Integer applyForEquipment(Integer resourceId, UserDetails userDetails, 
+            LocalDateTime startTime, LocalDateTime endTime, String purpose) {
+        
+        // 检查资源是否存在
+        Resource resource = resourceMapper.selectById(resourceId);
+        if (resource == null) {
+            throw new ResourceNotFoundException("设备资源不存在");
+        }
+        
+        // 检查资源类型是否为实验设备
+        if (!"实验设备".equals(resource.getResourceType())) {
+            throw new BusinessException("该资源不是实验设备，无法申请使用");
+        }
+        
+        // 检查时间段是否被占用
+        if (isEquipmentTimeOccupied(resourceId, startTime, endTime)) {
+            throw new BusinessException("该时间段已被占用，请选择其他时间");
+        }
+        
+        // 获取当前用户
+        User user = userService.getByAccount(userDetails.getUsername());
+        
+        // 创建申请记录
+        EquipmentApplication application = new EquipmentApplication();
+        application.setResourceId(resourceId);
+        application.setUserId(user.getId());
+        application.setStartTime(startTime);
+        application.setEndTime(endTime);
+        application.setPurpose(purpose);
+        application.setStatus("pending");  // 初始状态为待审核
+        
+        LocalDateTime now = LocalDateTime.now();
+        application.setCreatedAt(now);
+        application.setUpdatedAt(now);
+        
+        // 保存申请记录
+        equipmentApplicationMapper.insert(application);
+        
+        return application.getId();
+    }
+    
+    /**
+     * 审核实验设备申请
+     */
+    @Override
+    @Transactional
+    public void reviewEquipmentApplication(Integer applicationId, Boolean approved, 
+            String comment, UserDetails userDetails) {
+        
+        // 检查申请是否存在
+        EquipmentApplication application = equipmentApplicationMapper.selectById(applicationId);
+        if (application == null) {
+            throw new ResourceNotFoundException("申请记录不存在");
+        }
+        
+        // 如果已经审核过，不能重复审核
+        if (!"pending".equals(application.getStatus())) {
+            throw new BusinessException("该申请已经审核过，不能重复审核");
+        }
+        
+        // 获取当前用户
+        User user = userService.getByAccount(userDetails.getUsername());
+        
+        // 更新申请状态
+        application.setStatus(approved ? "approved" : "rejected");
+        application.setReviewComment(comment);
+        application.setReviewedByUserId(user.getId());
+        application.setReviewedAt(LocalDateTime.now());
+        application.setUpdatedAt(LocalDateTime.now());
+        
+        equipmentApplicationMapper.updateById(application);
+    }
+    
+    /**
+     * 获取用户的设备申请列表
+     */
+    @Override
+    public IPage<?> getUserEquipmentApplications(UserDetails userDetails, int page, int size) {
+        // 获取当前用户
+        User user = userService.getByAccount(userDetails.getUsername());
+        
+        // 查询申请列表
+        Page<EquipmentApplicationVO> pagination = new Page<>(page, size);
+        return equipmentApplicationMapper.selectUserApplications(pagination, user.getId());
+    }
+    
+    /**
+     * 获取所有设备申请列表（管理员）
+     */
+    @Override
+    public IPage<?> getAllEquipmentApplications(int page, int size, String status) {
+        // 查询所有申请记录
+        Page<EquipmentApplicationVO> pagination = new Page<>(page, size);
+        return equipmentApplicationMapper.selectAllApplications(pagination, status);
     }
 } 
