@@ -1,24 +1,26 @@
 package com.csu.unicorp.common.exception;
 
-import com.csu.unicorp.vo.ResultVO;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.csu.unicorp.vo.ResultVO;
+
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 全局异常处理器
@@ -127,6 +129,16 @@ public class GlobalExceptionHandler {
     public ResultVO<Void> handleAuthenticationException(BadCredentialsException e) {
         log.error("认证异常: {}", e.getMessage());
         return ResultVO.error("账号或密码错误");
+    }
+    
+    /**
+     * 处理文件上传异常
+     */
+    @ExceptionHandler(org.springframework.web.multipart.MultipartException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResultVO<Void> handleMultipartException(org.springframework.web.multipart.MultipartException e) {
+        log.error("文件上传异常: {}", e.getMessage());
+        return ResultVO.error("文件上传失败：请确保请求格式为multipart/form-data，并且文件大小不超过限制");
     }
     
     /**
