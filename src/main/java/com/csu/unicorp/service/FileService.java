@@ -12,7 +12,15 @@ public interface FileService {
      * 
      * @param file 上传的文件
      * @param type 文件类型（avatar, resume, resource等）
-     * @return 文件的访问URL
+     * @return 文件的相对路径，例如 "resumes/filename.docx"
      */
     String uploadFile(MultipartFile file, String type);
+    
+    /**
+     * 根据相对路径获取文件的完整URL
+     * 
+     * @param relativePath 文件的相对路径
+     * @return 文件的完整访问URL
+     */
+    String getFullFileUrl(String relativePath);
 } 

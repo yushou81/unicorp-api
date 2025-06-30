@@ -109,6 +109,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                     // 公共接口
                     .requestMatchers("/v1/auth/login", "/v1/auth/register/**").permitAll()
+                        .requestMatchers("/v1/files/resumes/**").permitAll()
                     .requestMatchers("/v1/organizations/schools").permitAll()
                     .requestMatchers("/v1/jobs", "/v1/jobs/**").permitAll()
                     .requestMatchers("/v1/projects", "/v1/projects/{id}").permitAll()

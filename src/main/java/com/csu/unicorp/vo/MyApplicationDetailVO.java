@@ -19,6 +19,12 @@ public class MyApplicationDetailVO {
     private Integer applicationId;
     
     /**
+     * 简历ID
+     */
+    @Schema(description = "简历ID")
+    private Integer resumeId;
+    
+    /**
      * 申请状态
      */
     @Schema(description = "申请状态")

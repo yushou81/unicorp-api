@@ -85,9 +85,29 @@ public class JobCreationDTO {
     private String tags;
     
     /**
-     * 岗位分类ID列表
+     * 岗位具体要求
      */
-    @Schema(description = "岗位分类ID列表")
+    @Schema(description = "岗位具体要求")
+    private String jobRequirements;
+    
+    /**
+     * 工作福利描述
+     */
+    @Schema(description = "工作福利描述")
+    private String jobBenefits;
+    
+    /**
+     * 三级岗位分类ID（必须是三级分类）
+     */
+    @NotNull(message = "岗位分类不能为空")
+    @Schema(description = "三级岗位分类ID（必须是三级分类）", required = true)
+    private Integer categoryId;
+    
+    /**
+     * 岗位分类ID列表（已弃用，保留向后兼容）
+     */
+    @Schema(description = "岗位分类ID列表（已弃用，请使用categoryId）")
+    @Deprecated
     private List<Integer> categoryIds;
     
     /**

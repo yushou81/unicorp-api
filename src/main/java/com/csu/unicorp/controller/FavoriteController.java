@@ -38,6 +38,9 @@ public class FavoriteController {
         @ApiResponse(responseCode = "200", description = "成功获取收藏列表",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "401", description = "用户未登录",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足 (非学生用户)",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
@@ -48,6 +51,11 @@ public class FavoriteController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
+        
+        // 检查用户是否已登录
+        if (userDetails == null) {
+            return ResultVO.fail(HttpStatus.UNAUTHORIZED.value(), "用户未登录");
+        }
         
         IPage<JobVO> jobPage = favoriteService.getFavoriteJobs(userDetails.getUser().getId(), page, size);
         
@@ -65,6 +73,9 @@ public class FavoriteController {
         @ApiResponse(responseCode = "400", description = "已收藏过该岗位",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "401", description = "用户未登录",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足 (非学生用户)",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class))),
@@ -78,6 +89,11 @@ public class FavoriteController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable("id") Integer jobId) {
         
+        // 检查用户是否已登录
+        if (userDetails == null) {
+            return ResultVO.fail(HttpStatus.UNAUTHORIZED.value(), "用户未登录");
+        }
+        
         return favoriteService.favoriteJob(userDetails.getUser().getId(), jobId);
     }
     
@@ -89,6 +105,9 @@ public class FavoriteController {
         @ApiResponse(responseCode = "200", description = "取消收藏成功",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "401", description = "用户未登录",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足 (非学生用户)",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
@@ -98,6 +117,11 @@ public class FavoriteController {
     public ResultVO<Void> unfavoriteJob(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable("id") Integer jobId) {
+        
+        // 检查用户是否已登录
+        if (userDetails == null) {
+            return ResultVO.fail(HttpStatus.UNAUTHORIZED.value(), "用户未登录");
+        }
         
         return favoriteService.unfavoriteJob(userDetails.getUser().getId(), jobId);
     }

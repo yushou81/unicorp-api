@@ -50,22 +50,27 @@ public class JobController {
             @Parameter(description = "最低薪资") @RequestParam(required = false) Integer salaryMin,
             @Parameter(description = "最高薪资") @RequestParam(required = false) Integer salaryMax,
             @Parameter(description = "排序方式", schema = @Schema(allowableValues = {"latest", "salary_asc", "salary_desc"})) 
-            @RequestParam(required = false, defaultValue = "latest") String sortBy) {
+            @RequestParam(required = false, defaultValue = "latest") String sortBy,
+            @Parameter(description = "组织ID筛选") @RequestParam(required = false) Integer organizeId,
+            @Parameter(description = "发布者ID筛选") @RequestParam(required = false) Integer posterId) {
         System.out.println("pages:"+page);
-        IPage<JobVO> jobList = jobService.pageJobs(page, size, keyword, location, jobType, educationRequirement, salaryMin, salaryMax, sortBy);
+        IPage<JobVO> jobList = jobService.pageJobs(page, size, keyword, location, jobType, educationRequirement, salaryMin, salaryMax, sortBy, organizeId, posterId);
         return ResultVO.success("获取岗位列表成功", jobList);
     }
     
     @PostMapping
     @PreAuthorize("hasAnyRole('EN_ADMIN', 'EN_TEACHER')")
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "[企业] 创建新岗位", description = "由企业管理员或企业导师调用，用于发布一个新的招聘岗位",
+    @Operation(summary = "[企业] 创建新岗位", description = "由企业管理员或企业导师调用，用于发布一个新的招聘岗位，需要指定一个三级分类ID",
             security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "岗位创建成功",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class))),
             @ApiResponse(responseCode = "403", description = "权限不足",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ResultVO.class))),
+            @ApiResponse(responseCode = "400", description = "参数错误，例如分类不是三级分类",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
@@ -98,7 +103,7 @@ public class JobController {
     
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('EN_ADMIN', 'EN_TEACHER')")
-    @Operation(summary = "[企业] 更新岗位信息", description = "由企业管理员或企业导师调用，用于更新已发布岗位的信息",
+    @Operation(summary = "[企业] 更新岗位信息", description = "由企业管理员或企业导师调用，用于更新已发布岗位的信息，需要指定一个三级分类ID",
             security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "岗位更新成功",
@@ -108,6 +113,9 @@ public class JobController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class))),
             @ApiResponse(responseCode = "404", description = "岗位未找到",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ResultVO.class))),
+            @ApiResponse(responseCode = "400", description = "参数错误，例如分类不是三级分类",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })

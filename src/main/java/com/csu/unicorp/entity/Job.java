@@ -117,4 +117,14 @@ public class Job {
      * 企业自定义的岗位亮点标签 (逗号分隔)
      */
     private String tags;
+    
+    /**
+     * 岗位具体要求
+     */
+    private String jobRequirements;
+    
+    /**
+     * 工作福利描述
+     */
+    private String jobBenefits;
 } 
