@@ -3,6 +3,7 @@ package com.csu.unicorp.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -50,6 +51,7 @@ public class JobCreationDTO {
     /**
      * 薪资单位 (月/年)
      */
+    @Pattern(regexp = "^(per_month|per_year)$", message = "薪资单位必须是以下值之一: per_month, per_year")
     @Schema(description = "薪资单位", allowableValues = {"per_month", "per_year"})
     private String salaryUnit;
     
@@ -57,6 +59,7 @@ public class JobCreationDTO {
      * 工作类型
      */
     @NotNull(message = "工作类型不能为空")
+    @Pattern(regexp = "^(full_time|internship|part_time|remote)$", message = "工作类型必须是以下值之一: full_time, internship, part_time, remote")
     @Schema(description = "工作类型", required = true, allowableValues = {"full_time", "internship", "part_time", "remote"})
     private String jobType;
     
@@ -69,12 +72,14 @@ public class JobCreationDTO {
     /**
      * 学历要求
      */
+    @Pattern(regexp = "^(bachelor|master|doctorate|any)$", message = "学历要求必须是以下值之一: bachelor, master, doctorate, any")
     @Schema(description = "学历要求", allowableValues = {"bachelor", "master", "doctorate", "any"}, defaultValue = "any")
     private String educationRequirement = "any";
     
     /**
      * 经验要求
      */
+    @Pattern(regexp = "^(fresh_graduate|less_than_1_year|1_to_3_years|any)$", message = "经验要求必须是以下值之一: fresh_graduate, less_than_1_year, 1_to_3_years, any")
     @Schema(description = "经验要求", allowableValues = {"fresh_graduate", "less_than_1_year", "1_to_3_years", "any"}, defaultValue = "any")
     private String experienceRequirement = "any";
     

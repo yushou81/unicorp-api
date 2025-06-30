@@ -108,10 +108,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                     // 公共接口
-                    .requestMatchers("/v1/auth/login", "/v1/auth/register/**").permitAll()
+                    .requestMatchers("/v1/auth/login", "/v1/auth/register/**","/v1/files/**").permitAll()
                         .requestMatchers("/v1/files/resumes/**").permitAll()
                     .requestMatchers("/v1/organizations/schools").permitAll()
-                    .requestMatchers("/v1/jobs", "/v1/jobs/**").permitAll()
+                    .requestMatchers("/v1/jobs", "/v1/jobs/**","/v1/job-categories").permitAll()
                     .requestMatchers("/v1/projects", "/v1/projects/{id}").permitAll()
                     // WebSocket端点 - 允许所有访问，认证在WebSocketAuthInterceptor中处理
                     .requestMatchers("/ws/**").permitAll()

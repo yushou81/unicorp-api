@@ -22,6 +22,7 @@ import com.csu.unicorp.entity.UserVerification;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.mapper.UserVerificationMapper;
 import com.csu.unicorp.service.EnterpriseService;
+import com.csu.unicorp.service.FileService;
 import com.csu.unicorp.service.OrganizationService;
 import com.csu.unicorp.service.RoleService;
 import com.csu.unicorp.service.UserService;
@@ -37,6 +38,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -60,6 +62,7 @@ public class UserServiceImpl implements UserService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final AccountGenerator accountGenerator;
+    private final FileService fileService;
     
     @Override
     public TokenVO login(LoginCredentialsDTO loginDto) {
@@ -99,11 +102,18 @@ public class UserServiceImpl implements UserService {
         String role = getUserRole(user.getId());
         
         // 构建并返回TokenVO，包含token、nickname和role
-        return TokenVO.builder()
+        TokenVO tokenVO = TokenVO.builder()
                 .token(token)
                 .nickname(user.getNickname())
                 .role(role)
                 .build();
+                
+        // 设置头像URL
+        if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+            tokenVO.setAvatar(fileService.getFullFileUrl(user.getAvatar()));
+        }
+        
+        return tokenVO;
     }
     
     @Override
@@ -150,6 +160,9 @@ public class UserServiceImpl implements UserService {
         user.setOrganizationId(organization.getId());
         user.setStatus("active"); // 学生账号直接设置为活跃状态
         user.setCreatedAt(LocalDateTime.now()); // 设置创建时间
+        
+        // 分配默认头像
+        user.setAvatar(assignDefaultAvatar());
         
         // 保存用户
         userMapper.insert(user);
@@ -227,6 +240,9 @@ public class UserServiceImpl implements UserService {
         user.setStatus("pending_approval"); // 企业管理员初始状态为待审核
         user.setCreatedAt(LocalDateTime.now()); // 设置创建时间
         
+        // 分配默认头像
+        user.setAvatar(assignDefaultAvatar());
+        
         // 保存用户
         userMapper.insert(user);
         
@@ -239,12 +255,19 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public UserVO getCurrentUser(UserDetails userDetails) {
-        String account = userDetails.getUsername();
-        User user = getByAccount(account);
+        User user = userMapper.selectByAccount(userDetails.getUsername());
         if (user == null) {
             throw new BusinessException("用户不存在");
         }
-        return convertToVO(user);
+        
+        UserVO userVO = convertToVO(user);
+        
+        // 处理头像URL，将相对路径转换为完整URL
+        if (userVO.getAvatar() != null && !userVO.getAvatar().isEmpty()) {
+            userVO.setAvatar(fileService.getFullFileUrl(userVO.getAvatar()));
+        }
+        
+        return userVO;
     }
     
     @Override
@@ -478,6 +501,7 @@ public class UserServiceImpl implements UserService {
         vo.setNickname(user.getNickname());
         vo.setEmail(user.getEmail());
         vo.setPhone(user.getPhone());
+        vo.setAvatar(user.getAvatar());
         vo.setStatus(user.getStatus());
         vo.setOrganizationId(user.getOrganizationId());
         vo.setCreatedAt(user.getCreatedAt());
@@ -802,5 +826,34 @@ public class UserServiceImpl implements UserService {
         
         // 返回更新后的用户信息
         return convertToVO(user);
+    }
+
+    @Override
+    public String assignDefaultAvatar() {
+        return fileService.getRandomDefaultAvatarPath();
+    }
+
+    @Override
+    @Transactional
+    public UserVO updateAvatar(MultipartFile file, UserDetails userDetails) {
+        User user = userMapper.selectByAccount(userDetails.getUsername());
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 上传新头像
+        String avatarPath = fileService.uploadFile(file, "avatars");
+        
+        // 更新用户头像
+        user.setAvatar(avatarPath);
+        userMapper.updateById(user);
+        
+        // 转换为VO并返回
+        UserVO userVO = convertToVO(user);
+        if (userVO.getAvatar() != null && !userVO.getAvatar().isEmpty()) {
+            userVO.setAvatar(fileService.getFullFileUrl(userVO.getAvatar()));
+        }
+        
+        return userVO;
     }
 }

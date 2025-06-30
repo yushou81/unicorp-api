@@ -23,4 +23,11 @@ public interface FileService {
      * @return 文件的完整访问URL
      */
     String getFullFileUrl(String relativePath);
+    
+    /**
+     * 获取随机默认头像的相对路径
+     * 
+     * @return 默认头像的相对路径，例如 "avatar/default/Member007.jpg"
+     */
+    String getRandomDefaultAvatarPath();
 } 
