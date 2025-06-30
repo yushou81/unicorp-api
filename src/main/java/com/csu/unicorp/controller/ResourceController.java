@@ -77,13 +77,13 @@ public class ResourceController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "成功获取资源详情", 
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = ResourceVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "404", description = "资源未找到")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<ResultVO<ResourceVO>> getResourceById(@PathVariable Integer id) {
+    public ResultVO<ResourceVO> getResourceById(@PathVariable Integer id) {
         ResourceVO resource = resourceService.getResourceById(id);
-        return ResponseEntity.ok(ResultVO.success("获取资源详情成功", resource));
+        return ResultVO.success("获取资源详情成功", resource);
     }
     
     /**
@@ -91,9 +91,9 @@ public class ResourceController {
      */
     @Operation(summary = "[教师/导师] 上传新资源", description = "由教师或企业导师调用，用于发布一个新的共享资源")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "资源创建成功", 
+        @ApiResponse(responseCode = "200", description = "资源创建成功", 
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = ResourceVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足")
     })
     @PostMapping("/")
@@ -102,7 +102,7 @@ public class ResourceController {
             @AuthenticationPrincipal UserDetails userDetails) {
         
         ResourceVO resource = resourceService.createResource(resourceDTO, userDetails);
-        return new ResponseEntity<>(ResultVO.success("资源创建成功", resource), HttpStatus.CREATED);
+        return ResultVO.success("资源创建成功", resource);
     }
     
     // /**
@@ -131,12 +131,14 @@ public class ResourceController {
      */
     @Operation(summary = "[所有者] 删除资源", description = "由资源所有者调用，用于删除资源")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "删除成功"),
+        @ApiResponse(responseCode = "200", description = "删除成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足"),
         @ApiResponse(responseCode = "404", description = "资源未找到")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteResource(
+    public ResultVO<Void> deleteResource(
             @PathVariable Integer id,
             @AuthenticationPrincipal UserDetails userDetails) {
         

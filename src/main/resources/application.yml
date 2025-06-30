@@ -68,6 +68,35 @@ springdoc:
     operations-sorter: alpha
     display-request-duration: true
     doc-expansion: none
+
+  paths-to-match:
+    - /v1/auth/**
+    - /v1/admin/**
+    - /v1/organizations/**
+    - /v1/schools/**
+    - /v1/enterprises/**
+    - /v1/jobs/**
+    - /v1/applications/**
+    - /v1/files/**
+    - /v1/students/**
+    - /v1/teachers/**
+    - /v1/mentors/**
+    - /v1/admin/job-categories/**
+    - /v1/job-categories/**
+    - /v1/admin/users/**
+    - /v1/enterprise-admin/**
+    - /v1/school-admin/**
+    - /v1/resources/**
+    - /v1/me/**
+    - /v1/chat/**
+    - /v1/projects/**
+    - /v1/map/**
+    - /v1/project-applications/**
+    - /v1/docs/**
+    - /v1/resumes/**
+    - /v1/me/resume/**
+    - /v1/me/resumes/**
+
   default-flat-param-object: true
   # API分组配置
   group-configs:
@@ -75,6 +104,7 @@ springdoc:
       paths-to-match: 
         - /v1/auth/**
         - /v1/admin/**
+        - /v1/admin/users/**
         - /v1/school-admin/**
         - /v1/enterprise-admin/**
         - /v1/profiles/**
@@ -89,7 +119,10 @@ springdoc:
         - /v1/jobs/**
         - /v1/applications/**
         - /v1/me/applications/**
+        - /v1/admin/job-categories/**
+        - /v1/job-categories/**
       packages-to-scan: com.csu.unicorp.controller
+      description: "包括岗位发布、查询、申请等功能，岗位详情包含具体要求和福利描述。岗位申请现在与学生简历关联，企业导师可直接查看申请者简历。"
     - group: '项目与合作'
       paths-to-match: 
         - /v1/projects/**
@@ -120,28 +153,14 @@ springdoc:
         - /v1/chat/**
         - /v1/docs/websocket/**
       packages-to-scan: com.csu.unicorp.controller
-  # 用于路径匹配的全局配置
-  paths-to-match:
-    - /v1/auth/**
-    - /v1/organizations/**
-    - /v1/admin/**
-    - /v1/school-admin/**
-    - /v1/enterprise-admin/**
-    - /v1/resources/**
-    - /v1/files/**
-    - /v1/me/**
-    - /v1/chat/**
-    - /v1/jobs/**
-    - /v1/projects/**
-    - /v1/map/**
-    - /v1/applications/**
-    - /v1/project-applications/**
-    - /v1/docs/**
-    - /v1/schools/**
-    - /v1/enterprises/**
-    - /v1/students/**
-    - /v1/teachers/**
-    - /v1/mentors/**
+    - group: '简历管理'
+      paths-to-match:
+        - /v1/resumes/**
+        - /v1/me/resume/**
+        - /v1/me/resumes/**
+      packages-to-scan: com.csu.unicorp.controller
+      description: "提供简历的创建、查询、更新和删除功能"
+
 
 # MyBatis-Plus 相关配置
 mybatis-plus:

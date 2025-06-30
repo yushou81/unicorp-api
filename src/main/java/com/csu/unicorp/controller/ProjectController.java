@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -55,19 +54,19 @@ public class ProjectController {
      */
     @Operation(summary = "[校/企] 创建新项目", description = "由教师或企业用户调用，用于发布一个新的合作项目")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "项目创建成功", 
+        @ApiResponse(responseCode = "200", description = "项目创建成功", 
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = ProjectVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足")
     })
     @PostMapping
     @SecurityRequirement(name = "bearerAuth")
-   @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER')")
-    public ResponseEntity<ResultVO<ProjectVO>> createProject(
+    @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER')")
+    public ResultVO<ProjectVO> createProject(
             @Valid @RequestBody ProjectCreationDTO projectCreationDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
         ProjectVO project = projectService.createProject(projectCreationDTO, userDetails);
-        return new ResponseEntity<>(ResultVO.success("项目创建成功", project), HttpStatus.CREATED);
+        return ResultVO.success("项目创建成功", project);
     }
     
     /**
@@ -93,19 +92,19 @@ public class ProjectController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "项目更新成功", 
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = ProjectVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足"),
         @ApiResponse(responseCode = "404", description = "项目未找到")
     })
     @PutMapping("/{id}")
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER')")
-    public ResponseEntity<ResultVO<ProjectVO>> updateProject(
+    public ResultVO<ProjectVO> updateProject(
             @PathVariable Integer id,
             @Valid @RequestBody ProjectCreationDTO projectCreationDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
         ProjectVO project = projectService.updateProject(id, projectCreationDTO, userDetails);
-        return ResponseEntity.ok(ResultVO.success("项目更新成功", project));
+        return ResultVO.success("项目更新成功", project);
     }
     
     /**
@@ -113,17 +112,19 @@ public class ProjectController {
      */
     @Operation(summary = "[所有者] 删除项目", description = "逻辑删除一个项目")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "删除成功"),
+        @ApiResponse(responseCode = "200", description = "删除成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足"),
         @ApiResponse(responseCode = "404", description = "项目未找到")
     })
     @DeleteMapping("/{id}")
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER')")
-    public ResponseEntity<Void> deleteProject(
+    public ResultVO<Void> deleteProject(
             @PathVariable Integer id,
             @AuthenticationPrincipal UserDetails userDetails) {
         projectService.deleteProject(id, userDetails);
-        return ResponseEntity.noContent().build();
+        return ResultVO.success("项目删除成功");
     }
 } 

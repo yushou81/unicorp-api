@@ -8,6 +8,7 @@ import com.csu.unicorp.dto.MentorCreationDTO;
 import com.csu.unicorp.dto.MentorUpdateDTO;
 import com.csu.unicorp.dto.OrgMemberCreationDTO;
 import com.csu.unicorp.dto.OrgMemberUpdateDTO;
+import com.csu.unicorp.dto.UserUpdateDTO;
 import com.csu.unicorp.service.EnterpriseAdminService;
 import com.csu.unicorp.service.UserService;
 import com.csu.unicorp.vo.ResultVO;
@@ -74,24 +75,22 @@ public class EnterpriseAdminController {
      */
     @Operation(summary = "创建企业导师账号", description = "由企业管理员调用，为自己的企业创建新的导师账号。后端自动生成账号，状态为'active'。")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "导师账号创建成功",
+        @ApiResponse(responseCode = "200", description = "导师账号创建成功",
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = UserVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @PostMapping("/mentors")
-    public ResponseEntity<ResultVO<UserVO>> createMentor(
+    public ResultVO<UserVO> createMentor(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody MentorCreationDTO mentorCreationDTO) {
         
         UserVO mentor = enterpriseAdminService.createMentor(
                 userDetails.getOrganizationId(), mentorCreationDTO);
         
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ResultVO.success("导师账号创建成功", mentor));
+        return ResultVO.success("导师账号创建成功", mentor);
     }
     
     /**
@@ -121,7 +120,7 @@ public class EnterpriseAdminController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "更新成功",
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = UserVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class))),
@@ -130,7 +129,7 @@ public class EnterpriseAdminController {
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @PutMapping("/mentors/{id}")
-    public ResponseEntity<ResultVO<UserVO>> updateMentor(
+    public ResultVO<UserVO> updateMentor(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Integer id,
             @RequestBody MentorUpdateDTO mentorUpdateDTO) {
@@ -138,26 +137,87 @@ public class EnterpriseAdminController {
         UserVO mentor = enterpriseAdminService.updateMentor(
                 userDetails.getOrganizationId(), id, mentorUpdateDTO);
         
-        return ResponseEntity.ok(ResultVO.success("导师信息更新成功", mentor));
+        return ResultVO.success("导师信息更新成功", mentor);
     }
     
     /**
-     * 禁用导师账号
+     * 更新导师状态
      */
+    @Operation(summary = "更新导师状态", description = "更新本企业指定导师的状态，可选值：active(启用), inactive(禁用), pending_approval(待审核)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "状态更新成功"),
+        @ApiResponse(responseCode = "400", description = "无效的状态值或用户已处于该状态",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "404", description = "用户不存在",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PutMapping("/mentors/{id}/status")
+    public ResultVO<Void> updateMentorStatus(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Integer id,
+            @RequestParam String status) {
+        
+        enterpriseAdminService.updateMentorStatus(userDetails.getOrganizationId(), id, status);
+        
+        return ResultVO.success("导师状态更新成功");
+    }
+    
+    /**
+     * 禁用导师账号 (兼容旧版API)
+     * @deprecated 请使用 {@link #updateMentorStatus(CustomUserDetails, Integer, String)} 替代
+     */
+    @Deprecated
     @Operation(summary = "禁用导师账号", description = "禁用本企业的某个导师账号 (将其状态更新为 'inactive')。这是一个可逆操作。")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "禁用成功"),
+        @ApiResponse(responseCode = "200", description = "禁用成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "403", description = "权限不足",
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @DeleteMapping("/mentors/{id}")
-    public ResponseEntity<Void> disableMentor(
+    public ResultVO<Void> disableMentor(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Integer id) {
         
-        enterpriseAdminService.disableMentor(userDetails.getOrganizationId(), id);
+        enterpriseAdminService.updateMentorStatus(userDetails.getOrganizationId(), id, "inactive");
         
-        return ResponseEntity.noContent().build();
+        return ResultVO.success("导师账号禁用成功");
+    }
+    
+    /**
+     * 更新导师基本信息
+     */
+    @Operation(summary = "更新导师基本信息", description = "更新本企业导师的基本信息，包括邮箱、手机号和昵称")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "更新成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "400", description = "邮箱或手机号已被使用",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "404", description = "用户不存在",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PutMapping("/mentors/{id}/info")
+    public ResultVO<UserVO> updateMentorInfo(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Integer id,
+            @Valid @RequestBody UserUpdateDTO userUpdateDTO) {
+        
+        UserVO updatedMentor = enterpriseAdminService.updateMentorInfo(
+                userDetails.getOrganizationId(), id, userUpdateDTO);
+        
+        return ResultVO.success("导师基本信息更新成功", updatedMentor);
     }
 } 

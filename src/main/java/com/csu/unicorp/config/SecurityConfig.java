@@ -1,6 +1,29 @@
 package com.csu.unicorp.config;
 
+
+import com.csu.unicorp.common.constants.RoleConstants;
+import com.csu.unicorp.config.security.JwtAuthenticationFilter;
+import com.csu.unicorp.vo.ResultVO;
+import com.fasterxml.jackson.databind.JavaType;
+import io.swagger.v3.core.converter.AnnotatedType;
+import io.swagger.v3.core.converter.ModelConverter;
+import io.swagger.v3.core.converter.ModelConverterContext;
+import io.swagger.v3.core.converter.ModelConverters;
+import io.swagger.v3.core.jackson.ModelResolver;
+import io.swagger.v3.core.util.Json;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.IntegerSchema;
+import io.swagger.v3.oas.models.media.ObjectSchema;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.StringSchema;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import lombok.RequiredArgsConstructor;
+
 import java.util.List;
+
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,12 +49,18 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.config.security.JwtAuthenticationFilter;
 
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import lombok.RequiredArgsConstructor;
+
 
 /**
  * Spring Security配置类
@@ -80,6 +109,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                     // 公共接口
                     .requestMatchers("/v1/auth/login", "/v1/auth/register/**").permitAll()
+                        .requestMatchers("/v1/files/resumes/**").permitAll()
                     .requestMatchers("/v1/organizations/schools").permitAll()
                     .requestMatchers("/v1/jobs", "/v1/jobs/**").permitAll()
                     .requestMatchers("/v1/projects", "/v1/projects/{id}").permitAll()
@@ -154,5 +184,55 @@ public class SecurityConfig {
                         .contact(new Contact()
                                 .name("CSU Team")
                                 .email("support@unicorp.com")));
+    }
+    
+    /**
+     * 自定义ModelConverter，处理ResultVO泛型类型
+     */
+    @Bean
+    public ModelConverter resultVOModelConverter() {
+        return new ModelConverter() {
+            private final ModelResolver delegate = (ModelResolver) ModelConverters.getInstance().getConverters().iterator().next();
+
+            @Override
+            public Schema resolve(AnnotatedType type, ModelConverterContext context, Iterator<ModelConverter> chain) {
+                JavaType javaType = Json.mapper().constructType(type.getType());
+                if (javaType != null) {
+                    Class<?> cls = javaType.getRawClass();
+                    if (ResultVO.class.isAssignableFrom(cls)) {
+                        // 获取泛型参数类型
+                        if (javaType.hasGenericTypes()) {
+                            JavaType genericType = javaType.getBindings().getBoundType(0);
+                            if (genericType != null) {
+                                // 创建一个复合模式
+                                Schema schema = new ObjectSchema();
+                                schema.setDescription("统一API响应结果");
+                                
+                                // 添加基本属性
+                                schema.addProperty("code", new IntegerSchema().example(200).description("业务状态码"));
+                                schema.addProperty("message", new StringSchema().example("操作成功").description("响应信息"));
+                                
+                                // 添加数据属性，使用泛型类型
+                                Schema dataSchema = context.resolve(new AnnotatedType(genericType.getRawClass()));
+                                schema.addProperty("data", dataSchema);
+                                
+                                return schema;
+                            }
+                        }
+                    }
+                }
+                
+                // 对于其他类型，使用默认转换器
+                if (chain.hasNext()) {
+                    return chain.next().resolve(type, context, chain);
+                } else {
+                    return null;
+                }
+            }
+
+            public Object iterator() {
+                return Collections.singleton(this).iterator();
+            }
+        };
     }
 }

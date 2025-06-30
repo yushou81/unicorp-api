@@ -75,12 +75,20 @@ public class FileServiceImpl implements FileService {
             Path filePath = uploadPath.resolve(uniqueFilename);
             Files.copy(file.getInputStream(), filePath);
             
-            // 返回文件URL
-            return baseUrl + "/api/v1/files/" + subDir + "/" + uniqueFilename;
+            // 返回文件相对路径
+            return subDir + "/" + uniqueFilename;
             
         } catch (IOException e) {
             log.error("文件上传失败", e);
             throw new BusinessException("文件上传失败: " + e.getMessage());
         }
+    }
+    
+    @Override
+    public String getFullFileUrl(String relativePath) {
+        if (relativePath == null || relativePath.isEmpty()) {
+            return null;
+        }
+        return baseUrl + "/api/v1/files/" + relativePath;
     }
 } 
