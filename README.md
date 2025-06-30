@@ -103,7 +103,7 @@ unicorp-api/
 
 1. **用户账户 (User)**：存储登录账号、密码、昵称等基本信息
 2. **实名认证 (UserVerification)**：隔离存储用户实名信息，提高数据安全性
-3. **学生档案 (StudentProfile)**：存储学生特有的专业、教育水平等信息
+3. **简历 (Resume)**：存储学生特有的专业、教育水平、简历URL等信息
 
 ## 已实现功能
 
@@ -144,6 +144,37 @@ unicorp-api/
 - 学生用户查看已收藏岗位列表
 - 岗位收藏权限控制
 
+### 第八次迭代 - 岗位详情增强
+- 添加了岗位具体要求(`job_requirements`)和工作福利描述(`job_benefits`)字段
+- 更新了JobVO和JobCreationDTO，添加了相应字段
+- 修复了application.yml中的重复paths-to-match配置错误
+
+### 2. 岗位与分类关系调整
+- 调整了岗位与分类的关系，一个岗位只对应一个三级分类
+- 修改了JobCreationDTO，添加categoryId字段表示三级分类ID
+- 将JobVO中的categories列表改为单一的category字段
+- 修改了JobServiceImpl中的相关方法，确保岗位只关联一个三级分类
+- 更新了API文档，明确说明岗位需要指定一个三级分类ID
+
+### 3. 岗位申请与简历关联
+- 在岗位申请表中添加简历ID字段，关联到学生档案
+- 更新了ApplicationCreationDTO，要求提交岗位申请时必须指定简历ID
+- 修改了岗位申请相关VO，添加简历ID字段
+- 企业导师可以通过岗位申请直接查看学生简历
+
+### 4. 学生档案表重命名为简历表
+- 将student_profiles表重命名为resumes，使命名更加直观
+- 更新了相关实体类、Mapper和VO，使用Resume替代StudentProfile
+- 调整了ApplicationMapper中的SQL查询，使用简历ID直接关联简历表
+- 简化了申请与简历的关系，提高了系统灵活性
+
+### 5. 简历管理功能
+- 重构了原有的个人主页控制器，创建专门的简历管理控制器
+- 支持用户创建多份简历，满足不同岗位申请需求
+- 提供简历的增删改查完整功能
+- 优化了简历与岗位申请的关联关系
+- 移除了resumes表中user_id的唯一约束，使一个用户可以拥有多份简历
+
 已实现API:
 1. 用户登录 - POST `/v1/auth/login`
 2. 学生注册 - POST `/v1/auth/register/student`
@@ -153,22 +184,25 @@ unicorp-api/
 6. 创建资源 - POST `/v1/resources`
 7. 更新资源 - PUT `/v1/resources/{id}`
 8. 删除资源 - DELETE `/v1/resources/{id}`
-9. 获取用户主页 - GET `/v1/profiles/{userId}`
-10. 获取个人档案 - GET `/v1/me/profile`
-11. 更新个人档案 - PUT `/v1/me/profile`
-12. 获取作品集列表 - GET `/v1/me/portfolio`
-13. 添加作品集项目 - POST `/v1/me/portfolio`
-14. 更新作品集项目 - PUT `/v1/me/portfolio/{itemId}`
-15. 删除作品集项目 - DELETE `/v1/me/portfolio/{itemId}`
-16. 获取收藏岗位列表 - GET `/v1/me/favorites/jobs`
-17. 收藏岗位 - POST `/v1/jobs/{id}/favorite`
-18. 取消收藏岗位 - DELETE `/v1/jobs/{id}/favorite`
-19. 更新用户个人信息 - PUT `/v1/auth/profile`
-20. 修改用户密码 - PUT `/v1/auth/password`
-21. 获取所有顶级岗位分类 - GET `/v1/admin/job-categories/root`
-22. 获取指定分类的子分类 - GET `/v1/admin/job-categories/{id}/children`
-23. 获取所有岗位分类 - GET `/v1/admin/job-categories`
-24. 获取岗位分类详情 - GET `/v1/admin/job-categories/{id}`
-25. 创建岗位分类 - POST `/v1/admin/job-categories`
-26. 更新岗位分类 - PUT `/v1/admin/job-categories/{id}`
-27. 删除岗位分类 - DELETE `/v1/admin/job-categories/{id}`
+9. 获取用户简历 - GET `/v1/resumes/{userId}`
+10. 获取我的简历 - GET `/v1/me/resume`
+11. 获取我的所有简历列表 - GET `/v1/me/resumes`
+12. 创建简历 - POST `/v1/me/resume`
+13. 更新简历 - PUT `/v1/me/resume/{resumeId}`
+14. 删除简历 - DELETE `/v1/me/resume/{resumeId}`
+15. 获取作品集列表 - GET `/v1/me/portfolio`
+16. 添加作品集项目 - POST `/v1/me/portfolio`
+17. 更新作品集项目 - PUT `/v1/me/portfolio/{itemId}`
+18. 删除作品集项目 - DELETE `/v1/me/portfolio/{itemId}`
+19. 获取收藏岗位列表 - GET `/v1/me/favorites/jobs`
+20. 收藏岗位 - POST `/v1/jobs/{id}/favorite`
+21. 取消收藏岗位 - DELETE `/v1/jobs/{id}/favorite`
+22. 更新用户个人信息 - PUT `/v1/auth/profile`
+23. 修改用户密码 - PUT `/v1/auth/password`
+24. 获取所有顶级岗位分类 - GET `/v1/admin/job-categories/root`
+25. 获取指定分类的子分类 - GET `/v1/admin/job-categories/{id}/children`
+26. 获取所有岗位分类 - GET `/v1/admin/job-categories`
+27. 获取岗位分类详情 - GET `/v1/admin/job-categories/{id}`
+28. 创建岗位分类 - POST `/v1/admin/job-categories`
+29. 更新岗位分类 - PUT `/v1/admin/job-categories/{id}`
+30. 删除岗位分类 - DELETE `/v1/admin/job-categories/{id}`

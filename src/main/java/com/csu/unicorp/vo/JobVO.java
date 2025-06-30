@@ -5,7 +5,6 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * 岗位信息VO
@@ -33,10 +32,28 @@ public class JobVO {
     private String organizationName;
     
     /**
+     * 组织详情
+     */
+    @Schema(description = "组织详情")
+    private OrganizationVO organization;
+    
+    /**
+     * 企业详情
+     */
+    @Schema(description = "企业详情")
+    private EnterpriseDetailVO enterpriseDetail;
+    
+    /**
      * 发布用户ID
      */
     @Schema(description = "发布用户ID")
     private Integer postedByUserId;
+    
+    /**
+     * 发布用户信息
+     */
+    @Schema(description = "发布用户信息")
+    private UserVO postedByUser;
     
     /**
      * 岗位标题
@@ -129,8 +146,20 @@ public class JobVO {
     private String tags;
     
     /**
-     * 岗位分类列表
+     * 岗位具体要求
      */
-    @Schema(description = "岗位分类列表")
-    private List<JobCategoryVO> categories;
+    @Schema(description = "岗位具体要求")
+    private String jobRequirements;
+    
+    /**
+     * 工作福利描述
+     */
+    @Schema(description = "工作福利描述")
+    private String jobBenefits;
+    
+    /**
+     * 岗位分类（三级分类）
+     */
+    @Schema(description = "岗位分类（三级分类）")
+    private JobCategoryVO category;
 } 

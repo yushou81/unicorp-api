@@ -44,6 +44,27 @@ public interface JobService extends IService<Job> {
                           Integer salaryMin, Integer salaryMax, String sortBy);
     
     /**
+     * 分页查询岗位列表（增强版，包含组织ID和发布者ID筛选）
+     *
+     * @param page                 页码
+     * @param size                 每页大小
+     * @param keyword              搜索关键词
+     * @param location             工作地点
+     * @param jobType              工作类型
+     * @param educationRequirement 学历要求
+     * @param salaryMin            最低薪资
+     * @param salaryMax            最高薪资
+     * @param sortBy               排序方式（latest-最新发布，salary_asc-薪资从低到高，salary_desc-薪资从高到低）
+     * @param organizeId           组织ID筛选
+     * @param posterId             发布者ID筛选
+     * @return 岗位列表分页结果
+     */
+    IPage<JobVO> pageJobs(int page, int size, String keyword, String location, 
+                          String jobType, String educationRequirement, 
+                          Integer salaryMin, Integer salaryMax, String sortBy,
+                          Integer organizeId, Integer posterId);
+    
+    /**
      * 根据分类ID分页查询岗位列表
      *
      * @param page       页码
@@ -108,21 +129,4 @@ public interface JobService extends IService<Job> {
      * @return 岗位VO
      */
     JobVO convertToVO(Job job);
-    
-    /**
-     * 获取岗位关联的分类列表
-     *
-     * @param jobId 岗位ID
-     * @return 分类列表
-     */
-    List<JobCategoryVO> getJobCategories(Integer jobId);
-    
-    /**
-     * 更新岗位关联的分类
-     *
-     * @param jobId       岗位ID
-     * @param categoryIds 分类ID列表
-     * @return 是否更新成功
-     */
-    boolean updateJobCategories(Integer jobId, List<Integer> categoryIds);
 } 
