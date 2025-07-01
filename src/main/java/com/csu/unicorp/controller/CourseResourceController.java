@@ -2,7 +2,7 @@ package com.csu.unicorp.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.csu.unicorp.dto.CourseResourceDTO;
-import com.csu.unicorp.entity.enums.ResourceType;
+import com.csu.unicorp.entity.CourseResource.ResourceType;
 import com.csu.unicorp.service.CourseResourceService;
 import com.csu.unicorp.vo.CourseResourceVO;
 import com.csu.unicorp.vo.ResultVO;
@@ -61,8 +61,15 @@ public class CourseResourceController {
             @RequestParam("courseId") Integer courseId,
             @RequestParam("title") String title,
             @RequestParam("description") String description,
-            @RequestParam("resourceType") ResourceType resourceType,
+            @RequestParam("resourceType") String resourceType,
             @AuthenticationPrincipal UserDetails userDetails) throws IOException {
+        // 验证资源类型是否有效
+        try {
+            ResourceType.valueOf(resourceType);
+        } catch (IllegalArgumentException e) {
+            return ResultVO.error("无效的资源类型，可选值：document, video, code, other");
+        }
+        
         // 创建CourseResourceDTO对象
         CourseResourceDTO resourceDTO = new CourseResourceDTO();
         resourceDTO.setCourseId(courseId);
