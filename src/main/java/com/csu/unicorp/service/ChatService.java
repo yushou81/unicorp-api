@@ -53,11 +53,12 @@ public interface ChatService {
     /**
      * 获取会话的历史消息
      * @param sessionId 会话ID
+     * @param currentUserId 当前用户ID
      * @param page 页码
      * @param size 每页大小
      * @return 历史消息列表
      */
-    List<ChatMessageVO> getSessionMessages(Long sessionId, Integer page, Integer size);
+    List<ChatMessageVO> getSessionMessages(Long sessionId, Long currentUserId, Integer page, Integer size);
     
     /**
      * 将会话中的消息标记为已读
