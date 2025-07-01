@@ -52,6 +52,36 @@ public class DualTeacherCourse {
     private LocalDateTime scheduledTime;
     
     /**
+     * 最大学生人数
+     */
+    private Integer maxStudents;
+    
+    /**
+     * 课程地点
+     */
+    private String location;
+    
+    /**
+     * 课程类型：online-在线, offline-线下, hybrid-混合
+     */
+    private String courseType;
+    
+    /**
+     * 课程状态：planning-筹备中, open-开放报名, in_progress-进行中, completed-已结束, cancelled-已取消
+     */
+    private String status;
+    
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createdAt;
+    
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updatedAt;
+    
+    /**
      * 逻辑删除标志
      */
     @TableLogic

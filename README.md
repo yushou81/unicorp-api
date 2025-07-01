@@ -138,6 +138,15 @@ unicorp-api/
 - 个人档案信息维护
 - 用户头像和个人简介管理
 
+### 第六次迭代 - 双师课堂功能
+- 教师和企业导师联合开设双师课程
+- 学生浏览和报名课程
+- 课程全生命周期管理（规划、开放报名、进行中、完成）
+- 课程名额限制和报名管理
+- 支持在线/线下/混合模式的课程设置
+- 课程资源管理（上传、下载、查询）
+- 课程评价系统（学生评分、评价）
+
 ### 第七次迭代 - 岗位收藏功能
 - 学生用户收藏招聘岗位
 - 学生用户取消收藏岗位
@@ -206,3 +215,26 @@ unicorp-api/
 28. 创建岗位分类 - POST `/v1/admin/job-categories`
 29. 更新岗位分类 - PUT `/v1/admin/job-categories/{id}`
 30. 删除岗位分类 - DELETE `/v1/admin/job-categories/{id}`
+31. 创建双师课堂课程 - POST `/v1/dual-courses`
+32. 更新课程信息 - PUT `/v1/dual-courses/{id}`
+33. 获取课程详情 - GET `/v1/dual-courses/{id}`
+34. 删除课程 - DELETE `/v1/dual-courses/{id}`
+35. 获取教师创建的课程列表 - GET `/v1/dual-courses/teacher`
+36. 获取企业导师参与的课程列表 - GET `/v1/dual-courses/mentor`
+37. 获取可报名课程列表 - GET `/v1/dual-courses/enrollable`
+38. 学生报名课程 - POST `/v1/dual-courses/enroll`
+39. 学生取消报名 - DELETE `/v1/dual-courses/enroll/{courseId}`
+40. 获取学生已报名的课程列表 - GET `/v1/dual-courses/enrolled`
+41. 更新课程状态 - PATCH `/v1/dual-courses/{id}/status`
+42. 上传课程资源 - POST `/v1/course-resources`
+43. 删除课程资源 - DELETE `/v1/course-resources/{resourceId}`
+44. 获取课程资源详情 - GET `/v1/course-resources/{resourceId}`
+45. 获取课程资源列表 - GET `/v1/course-resources/course/{courseId}`
+46. 下载课程资源 - GET `/v1/course-resources/download/{resourceId}`
+47. 提交课程评价 - POST `/v1/course-ratings`
+48. 更新课程评价 - PUT `/v1/course-ratings/{ratingId}`
+49. 删除课程评价 - DELETE `/v1/course-ratings/{ratingId}`
+50. 获取课程评价详情 - GET `/v1/course-ratings/{ratingId}`
+51. 获取课程评价列表 - GET `/v1/course-ratings/course/{courseId}`
+52. 获取课程平均评分 - GET `/v1/course-ratings/average/{courseId}`
+53. 检查学生是否已评价课程 - GET `/v1/course-ratings/check/{courseId}`

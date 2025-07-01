@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import java.util.stream.Collectors;
@@ -143,5 +144,24 @@ public class AuthController {
             @AuthenticationPrincipal UserDetails userDetails) {
         userService.updatePassword(passwordUpdateDTO, userDetails);
         return ResultVO.success("密码修改成功");
+    }
+    
+    /**
+     * 上传头像
+     */
+    @Operation(summary = "上传用户头像", description = "允许用户上传自己的头像")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "头像上传成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "400", description = "无效的文件格式或大小"),
+        @ApiResponse(responseCode = "401", description = "未授权")
+    })
+    @PostMapping(value = "/avatar", consumes = "multipart/form-data")
+    public ResultVO<UserVO> updateAvatar(
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UserVO updatedUser = userService.updateAvatar(file, userDetails);
+        return ResultVO.success("头像上传成功", updatedUser);
     }
 } 

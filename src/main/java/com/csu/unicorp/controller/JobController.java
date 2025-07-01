@@ -46,7 +46,7 @@ public class JobController {
             @Parameter(description = "搜索关键词") @RequestParam(required = false) String keyword,
             @Parameter(description = "城市筛选") @RequestParam(required = false) String location,
             @Parameter(description = "工作类型筛选",schema = @Schema(allowableValues = {"full_time", "part_time", "internship", "remote"})) @RequestParam(required = false) String jobType,
-            @Parameter(description = "学历要求筛选",schema = @Schema(allowableValues = {"bachelor", "master", "doctor","any"})) @RequestParam(required = false) String educationRequirement,
+            @Parameter(description = "学历要求筛选",schema = @Schema(allowableValues = {"bachelor", "master", "doctorate","any"})) @RequestParam(required = false) String educationRequirement,
             @Parameter(description = "最低薪资") @RequestParam(required = false) Integer salaryMin,
             @Parameter(description = "最高薪资") @RequestParam(required = false) Integer salaryMax,
             @Parameter(description = "排序方式", schema = @Schema(allowableValues = {"latest", "salary_asc", "salary_desc"})) 

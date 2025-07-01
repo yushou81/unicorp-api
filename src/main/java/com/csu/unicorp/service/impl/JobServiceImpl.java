@@ -37,6 +37,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -190,6 +191,18 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
         } else {
             throw new BusinessException("岗位分类不能为空");
         }
+
+        // 验证学历要求值是否合法
+        String educationRequirement = dto.getEducationRequirement();
+        if (educationRequirement != null && !Arrays.asList("bachelor", "master", "doctorate", "any").contains(educationRequirement)) {
+            throw new BusinessException("学历要求必须是以下值之一: bachelor, master, doctorate, any");
+        }
+        
+        // 验证经验要求值是否合法
+        String experienceRequirement = dto.getExperienceRequirement();
+        if (experienceRequirement != null && !Arrays.asList("fresh_graduate", "less_than_1_year", "1_to_3_years", "any").contains(experienceRequirement)) {
+            throw new BusinessException("经验要求必须是以下值之一: fresh_graduate, less_than_1_year, 1_to_3_years, any");
+        }
         
         Job job = new Job();
         BeanUtils.copyProperties(dto, job);
@@ -312,6 +325,18 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
             }
         } else {
             throw new BusinessException("岗位分类不能为空");
+        }
+
+        // 验证学历要求值是否合法
+        String educationRequirement = dto.getEducationRequirement();
+        if (educationRequirement != null && !Arrays.asList("bachelor", "master", "doctorate", "any").contains(educationRequirement)) {
+            throw new BusinessException("学历要求必须是以下值之一: bachelor, master, doctorate, any");
+        }
+        
+        // 验证经验要求值是否合法
+        String experienceRequirement = dto.getExperienceRequirement();
+        if (experienceRequirement != null && !Arrays.asList("fresh_graduate", "less_than_1_year", "1_to_3_years", "any").contains(experienceRequirement)) {
+            throw new BusinessException("经验要求必须是以下值之一: fresh_graduate, less_than_1_year, 1_to_3_years, any");
         }
         
         BeanUtils.copyProperties(dto, job);

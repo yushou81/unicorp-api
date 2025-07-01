@@ -17,9 +17,10 @@ public interface ApplicationService extends IService<Application> {
      *
      * @param jobId     岗位ID
      * @param studentId 学生ID
+     * @param resumeId  简历ID
      * @return 申请ID
      */
-    Integer applyJob(Integer jobId, Integer studentId);
+    Integer applyJob(Integer jobId, Integer studentId, Integer resumeId);
     
     /**
      * 分页查询岗位的申请列表
