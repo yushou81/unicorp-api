@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.csu.unicorp.entity.enums.ResourceType;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -50,6 +51,11 @@ public class CourseResource {
      * 文件类型
      */
     private String fileType;
+    
+    /**
+     * 资源类型分类（如：讲义、作业、案例等）
+     */
+    private ResourceType resourceType;
     
     /**
      * 上传者ID

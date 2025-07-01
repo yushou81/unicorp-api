@@ -1,5 +1,6 @@
 package com.csu.unicorp.vo;
 
+import com.csu.unicorp.entity.enums.ResourceType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -25,6 +26,12 @@ public class CourseResourceVO {
     private Integer courseId;
     
     /**
+     * 课程标题
+     */
+    @Schema(description = "课程标题", example = "Java企业级开发实战")
+    private String courseTitle;
+    
+    /**
      * 资源标题
      */
     @Schema(description = "资源标题", example = "Java企业级开发实战课件")
@@ -35,6 +42,12 @@ public class CourseResourceVO {
      */
     @Schema(description = "资源描述", example = "本课件包含Java企业级开发实战的核心内容和示例代码")
     private String description;
+    
+    /**
+     * 资源类型分类
+     */
+    @Schema(description = "资源类型分类", example = "DOCUMENT")
+    private ResourceType resourceType;
     
     /**
      * 文件路径

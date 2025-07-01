@@ -9,10 +9,12 @@ import com.csu.unicorp.dto.CourseRatingDTO;
 import com.csu.unicorp.entity.CourseEnrollment;
 import com.csu.unicorp.entity.CourseRating;
 import com.csu.unicorp.entity.DualTeacherCourse;
+import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.CourseEnrollmentMapper;
 import com.csu.unicorp.mapper.CourseRatingMapper;
 import com.csu.unicorp.mapper.DualTeacherCourseMapper;
 import com.csu.unicorp.service.CourseRatingService;
+import com.csu.unicorp.service.UserService;
 import com.csu.unicorp.vo.CourseRatingVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,7 @@ public class CourseRatingServiceImpl extends ServiceImpl<CourseRatingMapper, Cou
     private final CourseRatingMapper ratingMapper;
     private final DualTeacherCourseMapper courseMapper;
     private final CourseEnrollmentMapper enrollmentMapper;
+    private final UserService userService;
     
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -183,22 +186,33 @@ public class CourseRatingServiceImpl extends ServiceImpl<CourseRatingMapper, Cou
         CourseRatingVO vo = new CourseRatingVO();
         BeanUtils.copyProperties(rating, vo);
         
-        // 如果是匿名评价，则隐藏学生信息
-        if (Boolean.TRUE.equals(rating.getIsAnonymous())) {
-            vo.setStudentName("匿名用户");
-        } else {
-            // 获取学生姓名（实际项目中应该从用户服务获取）
-            vo.setStudentName("学生" + rating.getStudentId());
+        // 获取学生信息
+        try {
+            User student = userService.getById(rating.getStudentId());
+            // 如果是匿名评价，则隐藏学生信息
+            if (Boolean.TRUE.equals(rating.getIsAnonymous())) {
+                vo.setStudentName("匿名用户");
+            } else if (student != null) {
+                vo.setStudentName(student.getNickname());
+            } else {
+                vo.setStudentName("未知用户");
+            }
+        } catch (Exception e) {
+            log.error("获取学生信息失败", e);
+            vo.setStudentName(Boolean.TRUE.equals(rating.getIsAnonymous()) ? "匿名用户" : "学生" + rating.getStudentId());
         }
         
         return vo;
     }
     
     /**
-     * 从用户名获取学生ID（实际项目中应该从用户服务获取）
+     * 从用户名获取学生ID
      */
     private Integer getStudentId(String username) {
-        // 模拟实现，实际项目中应该从用户服务获取
-        return 1;
+        User user = userService.getByAccount(username);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        return user.getId();
     }
 } 

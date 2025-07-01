@@ -8,13 +8,17 @@ import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.dto.CourseResourceDTO;
 import com.csu.unicorp.entity.CourseResource;
 import com.csu.unicorp.entity.DualTeacherCourse;
+import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.CourseResourceMapper;
 import com.csu.unicorp.mapper.DualTeacherCourseMapper;
+import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.CourseResourceService;
+import com.csu.unicorp.service.UserService;
 import com.csu.unicorp.vo.CourseResourceVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 课程资源服务实现类
@@ -42,6 +47,7 @@ public class CourseResourceServiceImpl extends ServiceImpl<CourseResourceMapper,
 
     private final CourseResourceMapper resourceMapper;
     private final DualTeacherCourseMapper courseMapper;
+    private final UserService userService;
     
     // 课程资源存储路径
     private static final String RESOURCE_UPLOAD_PATH = "upload/courses/resources/";
@@ -59,6 +65,8 @@ public class CourseResourceServiceImpl extends ServiceImpl<CourseResourceMapper,
         String username = userDetails.getUsername();
         Integer userId = getUserId(username);
         String userType = getUserType(userDetails);
+        log.info("课程资源上传权限检查 - 用户ID: {}, 用户类型: {}", userId, userType);
+        log.info("课程资源上传权限检查 - 课程教师ID: {}, 课程导师ID: {}", course.getTeacherId(), course.getMentorId());
         
         boolean isTeacher = "TEACHER".equals(userType) && Objects.equals(course.getTeacherId(), userId);
         boolean isMentor = "MENTOR".equals(userType) && Objects.equals(course.getMentorId(), userId);
@@ -87,6 +95,7 @@ public class CourseResourceServiceImpl extends ServiceImpl<CourseResourceMapper,
         resource.setCourseId(resourceDTO.getCourseId());
         resource.setTitle(resourceDTO.getTitle());
         resource.setDescription(resourceDTO.getDescription());
+        resource.setResourceType(resourceDTO.getResourceType());
         resource.setFilePath(RESOURCE_UPLOAD_PATH + newFilename);
         resource.setFileSize(file.getSize());
         resource.setFileType(file.getContentType());
@@ -101,7 +110,7 @@ public class CourseResourceServiceImpl extends ServiceImpl<CourseResourceMapper,
         
         // 转换为VO并返回
         CourseResourceVO vo = convertToVO(resource);
-        vo.setUploaderName(username);
+        vo.setUploaderName(getUserName(userId));
         
         return vo;
     }
@@ -129,6 +138,15 @@ public class CourseResourceServiceImpl extends ServiceImpl<CourseResourceMapper,
         
         // 逻辑删除资源
         resourceMapper.deleteById(resourceId);
+        
+        // 尝试删除物理文件
+        try {
+            Path filePath = Paths.get(resource.getFilePath());
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            log.error("删除资源文件失败: {}", resource.getFilePath(), e);
+            // 文件删除失败不影响业务逻辑
+        }
     }
 
     @Override
@@ -138,7 +156,9 @@ public class CourseResourceServiceImpl extends ServiceImpl<CourseResourceMapper,
             throw new BusinessException("资源不存在");
         }
         
-        return convertToVO(resource);
+        CourseResourceVO vo = convertToVO(resource);
+        vo.setUploaderName(getUserName(resource.getUploaderId()));
+        return vo;
     }
 
     @Override
@@ -151,10 +171,19 @@ public class CourseResourceServiceImpl extends ServiceImpl<CourseResourceMapper,
         
         // 分页查询
         Page<CourseResource> pageParam = new Page<>(page, size);
-        IPage<CourseResource> resourcePage = resourceMapper.selectPageByCourseId(pageParam, courseId);
+        LambdaQueryWrapper<CourseResource> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CourseResource::getCourseId, courseId)
+                   .eq(CourseResource::getIsDeleted, false)
+                   .orderByDesc(CourseResource::getCreatedAt);
+        
+        IPage<CourseResource> resourcePage = resourceMapper.selectPage(pageParam, queryWrapper);
         
         // 转换为VO
-        return resourcePage.convert(this::convertToVO);
+        return resourcePage.convert(resource -> {
+            CourseResourceVO vo = convertToVO(resource);
+            vo.setUploaderName(getUserName(resource.getUploaderId()));
+            return vo;
+        });
     }
 
     @Override
@@ -166,7 +195,8 @@ public class CourseResourceServiceImpl extends ServiceImpl<CourseResourceMapper,
         }
         
         // 增加下载次数
-        resourceMapper.incrementDownloadCount(resourceId);
+        resource.setDownloadCount(resource.getDownloadCount() + 1);
+        resourceMapper.updateById(resource);
         
         return resource.getFilePath();
     }
@@ -178,8 +208,11 @@ public class CourseResourceServiceImpl extends ServiceImpl<CourseResourceMapper,
         CourseResourceVO vo = new CourseResourceVO();
         BeanUtils.copyProperties(resource, vo);
         
-        // 获取上传者姓名（实际项目中应该从用户服务获取）
-        vo.setUploaderName("用户" + resource.getUploaderId());
+        // 获取课程标题
+        DualTeacherCourse course = courseMapper.selectById(resource.getCourseId());
+        if (course != null) {
+            vo.setCourseTitle(course.getTitle());
+        }
         
         return vo;
     }
@@ -196,23 +229,43 @@ public class CourseResourceServiceImpl extends ServiceImpl<CourseResourceMapper,
     }
     
     /**
-     * 从用户名获取用户ID（实际项目中应该从用户服务获取）
+     * 从用户名获取用户ID
      */
     private Integer getUserId(String username) {
-        // 模拟实现，实际项目中应该从用户服务获取
-        return 1;
+        User user = userService.getByAccount(username);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        return user.getId();
     }
     
     /**
-     * 获取用户类型（实际项目中应该从用户服务获取）
+     * 获取用户姓名
+     */
+    private String getUserName(Integer userId) {
+        User user = userService.getById(userId);
+        return user != null ? user.getNickname() : "未知用户";
+    }
+    
+    /**
+     * 获取用户类型
      */
     private String getUserType(UserDetails userDetails) {
-        // 模拟实现，实际项目中应该从用户服务获取
-        if (userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_TEACHER"))) {
+        // 从用户权限中获取角色信息
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+        
+        if (roles.contains("ROLE_TEACHER")) {
             return "TEACHER";
-        } else if (userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_EN_TEACHER"))) {
+        } else if (roles.contains("ROLE_EN_TEACHER")) {
             return "MENTOR";
+        } else if (roles.contains("ROLE_STUDENT")) {
+            return "STUDENT";
+        } else if (roles.contains("ROLE_SCH_ADMIN")) {
+            return "ADMIN";
         }
+        
         return "UNKNOWN";
     }
 } 

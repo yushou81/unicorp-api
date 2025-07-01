@@ -1,5 +1,6 @@
 package com.csu.unicorp.dto;
 
+import com.csu.unicorp.entity.enums.ResourceType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -34,4 +35,11 @@ public class CourseResourceDTO {
     @Size(max = 500, message = "资源描述不能超过500个字符")
     @Schema(description = "资源描述", example = "本课件包含Java企业级开发实战的核心内容和示例代码")
     private String description;
+    
+    /**
+     * 资源类型
+     */
+    @NotNull(message = "资源类型不能为空")
+    @Schema(description = "资源类型", required = true, example = "DOCUMENT", allowableValues = {"DOCUMENT", "VIDEO", "CODE", "OTHER"})
+    private ResourceType resourceType;
 } 

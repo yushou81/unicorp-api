@@ -2,6 +2,7 @@ package com.csu.unicorp.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.csu.unicorp.dto.CourseResourceDTO;
+import com.csu.unicorp.entity.enums.ResourceType;
 import com.csu.unicorp.service.CourseResourceService;
 import com.csu.unicorp.vo.CourseResourceVO;
 import com.csu.unicorp.vo.ResultVO;
@@ -60,7 +61,7 @@ public class CourseResourceController {
             @RequestParam("courseId") Integer courseId,
             @RequestParam("title") String title,
             @RequestParam("description") String description,
-            @RequestParam("resourceType") String resourceType,
+            @RequestParam("resourceType") ResourceType resourceType,
             @AuthenticationPrincipal UserDetails userDetails) throws IOException {
         // 创建CourseResourceDTO对象
         CourseResourceDTO resourceDTO = new CourseResourceDTO();
