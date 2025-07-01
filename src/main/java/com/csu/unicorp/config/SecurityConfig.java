@@ -88,7 +88,18 @@ public class SecurityConfig {
                     .requestMatchers("/ws/**").permitAll()
                     // 资源共享中心公开接口
                     .requestMatchers("/v1/resources", "/v1/resources/{id}").permitAll()
+                    // 双师课堂公开接口
                     .requestMatchers("/v1/dual-courses").permitAll()
+                    .requestMatchers("/v1/dual-courses/{id}").permitAll()
+                    .requestMatchers("/v1/dual-courses/enrollable").permitAll()
+                    // 课程评价公开接口
+                    .requestMatchers("/v1/course-ratings/course/{courseId}").permitAll()
+                    .requestMatchers("/v1/course-ratings/{ratingId}").permitAll()
+                    .requestMatchers("/v1/course-ratings/average/{courseId}").permitAll()
+                    // 课程资源公开接口
+                    .requestMatchers("/v1/course-resources/{resourceId}").permitAll()
+                    .requestMatchers("/v1/course-resources/course/{courseId}").permitAll()
+                    .requestMatchers("/v1/course-resources/download/{resourceId}").permitAll()
                     .requestMatchers("/v1/equipments", "/v1/equipments/{id}").permitAll()
                     // 聊天接口需要认证
                     .requestMatchers("/v1/chat/**").authenticated()

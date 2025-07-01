@@ -108,33 +108,34 @@ public class FileServiceImpl implements FileService {
         try {
             // 默认头像目录
             Path defaultAvatarDir = Paths.get(uploadBaseDir, "avatars/default");
-            
+
             // 检查目录是否存在
             if (!Files.exists(defaultAvatarDir)) {
                 log.warn("默认头像目录不存在: {}", defaultAvatarDir);
                 return null;
             }
-            
+
             // 获取所有默认头像文件
             List<Path> avatarFiles = Files.list(defaultAvatarDir)
                     .filter(Files::isRegularFile)
                     .collect(Collectors.toList());
-            
+
             if (avatarFiles.isEmpty()) {
                 log.warn("默认头像目录为空");
                 return null;
             }
-            
+
             // 随机选择一个头像
             int randomIndex = new Random().nextInt(avatarFiles.size());
             Path selectedAvatar = avatarFiles.get(randomIndex);
-            
+
             // 返回相对路径
             return "avatars/default/" + selectedAvatar.getFileName().toString();
         } catch (IOException e) {
             log.error("获取随机默认头像失败", e);
             return null;
         }
+    }
 
     
     @Override

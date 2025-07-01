@@ -1,6 +1,6 @@
 package com.csu.unicorp.dto;
 
-import com.csu.unicorp.entity.enums.ResourceType;
+import com.csu.unicorp.entity.CourseResource.ResourceType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -39,7 +39,8 @@ public class CourseResourceDTO {
     /**
      * 资源类型
      */
-    @NotNull(message = "资源类型不能为空")
-    @Schema(description = "资源类型", required = true, example = "DOCUMENT", allowableValues = {"DOCUMENT", "VIDEO", "CODE", "OTHER"})
-    private ResourceType resourceType;
+    @NotBlank(message = "资源类型不能为空")
+    @Schema(description = "资源类型", required = true, example = "document", 
+            allowableValues = {"document", "video", "code", "other"})
+    private String resourceType;
 } 
