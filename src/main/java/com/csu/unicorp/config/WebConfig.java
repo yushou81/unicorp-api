@@ -23,7 +23,9 @@ public class WebConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // 配置上传文件的访问路径
         String uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize().toString();
-        registry.addResourceHandler("/files/**")
+        // registry.addResourceHandler("/files/**")
+        //         .addResourceLocations("file:" + uploadPath + "/");
+        registry.addResourceHandler("/api/v1/files/**")
                 .addResourceLocations("file:" + uploadPath + "/");
     }
 } 

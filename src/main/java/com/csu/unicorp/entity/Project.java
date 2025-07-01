@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 /**
@@ -55,5 +56,35 @@ public class Project {
     /**
      * 创建时间
      */
-    private LocalDateTime createdAt;
+    private Timestamp createdAt;
+
+    /**
+     * 计划人数
+     */
+    private Integer planMemberCount;
+
+    /**
+     * 项目难度
+     */
+    private String difficulty;
+
+    /**
+     * 支持语言（逗号分隔字符串）
+     */
+    private String supportLanguages;
+
+    /**
+     * 技术领域（逗号分隔字符串）
+     */
+    private String techFields;
+
+    /**
+     * 编程语言（逗号分隔字符串）
+     */
+    private String programmingLanguages;
+
+    /**
+     * 项目计划书文件URL
+     */
+    private String projectProposalUrl;
 } 

@@ -43,13 +43,6 @@ public class ProfileServiceImpl implements ProfileService {
             throw new ResourceNotFoundException("用户不存在");
         }
         
-<<<<<<< HEAD
-        // 更新用户头像URL
-        //user.setAvatarUrl(avatarUrl);
-        //userMapper.updateById(user);
-        
-        //log.info("用户 {} 更新了头像: {}", userId, avatarUrl);
-=======
         // 构建用户档案VO
         UserProfileVO profileVO = buildUserProfileVO(user);
         
@@ -93,7 +86,6 @@ public class ProfileServiceImpl implements ProfileService {
         
         // 返回更新后的用户档案
         return buildUserProfileVO(user);
->>>>>>> 773f5fcdc44bfff1781b8e08efdf79317051f849
     }
     
     /**

@@ -5,8 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
+import java.util.List;
+
+
 
 /**
  * 项目视图对象
@@ -17,39 +19,19 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ProjectVO {
     
-    /**
-     * 项目ID
-     */
-    private Integer id;
-    
-    /**
-     * 所属组织ID
-     */
-    private Integer organizationId;
-    
-    /**
-     * 所属组织名称
-     */
-    private String organizationName;
-    
-    /**
-     * 项目标题
-     */
-    private String title;
-    
-    /**
-     * 项目描述
-     */
-    private String description;
-    
-    /**
-     * 项目状态
-     */
-    private String status;
-    
-    /**
-     * 创建时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime createdAt;
+    private Integer id; // 项目ID
+    private String title; // 项目名称
+    private Integer planMemberCount; // 计划人数
+    private String description; // 项目描述
+    private String difficulty; // 项目难度
+    private List<String> supportLanguages; // 支持语言
+    private List<String> techFields; // 技术领域
+    private List<String> programmingLanguages; // 编程语言
+    private String projectProposalUrl; // 项目计划书文件URL
+    private String status; // 项目状态
+    private LocalDateTime createdAt; // 创建时间
+    private String organizationName; // 组织名称（新增）
+    private Integer memberCount; // 当前已加入人数
+    private Boolean applied; // 是否已申请
+    private String applicationStatus; // 新增字段
 } 
