@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.dto.BookingCreationDTO;
@@ -43,11 +44,11 @@ public class EquipmentServiceImpl implements EquipmentService {
     private final OrganizationMapper organizationMapper;
     
     // 角色常量
-    private static final String ROLE_ADMIN = "ROLE_ADMIN";
-    private static final String ROLE_SCHOOL_ADMIN = "ROLE_SCHOOL_ADMIN";
-    private static final String ROLE_ENTERPRISE_ADMIN = "ROLE_ENTERPRISE_ADMIN";
-    private static final String ROLE_TEACHER = "ROLE_TEACHER";
-    private static final String ROLE_ENTERPRISE_MENTOR = "ROLE_ENTERPRISE_MENTOR";
+    private static final String ROLE_ADMIN = "ROLE_" + RoleConstants.ROLE_SYSTEM_ADMIN;
+    private static final String ROLE_SCHOOL_ADMIN = "ROLE_" + RoleConstants.ROLE_SCHOOL_ADMIN;
+    private static final String ROLE_ENTERPRISE_ADMIN = "ROLE_" + RoleConstants.ROLE_ENTERPRISE_ADMIN;
+    private static final String ROLE_TEACHER = "ROLE_" + RoleConstants.ROLE_TEACHER;
+    private static final String ROLE_ENTERPRISE_MENTOR = "ROLE_" + RoleConstants.ROLE_ENTERPRISE_MENTOR;
 
     @Override
     @Transactional
@@ -286,7 +287,10 @@ public class EquipmentServiceImpl implements EquipmentService {
         String username = userDetails.getUsername();
         
         // 根据用户名查询用户
-        User user = userMapper.findByUsername(username);
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
+            .eq(User::getAccount, username)
+            .eq(User::getIsDeleted, 0));
+            
         if (user == null) {
             throw new ResourceNotFoundException("用户不存在");
         }
