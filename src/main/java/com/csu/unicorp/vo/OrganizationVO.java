@@ -42,6 +42,12 @@ public class OrganizationVO {
     private String website;
     
     /**
+     * 组织logo
+     */
+    @Schema(description = "组织logo图片URL")
+    private String logoUrl;
+    
+    /**
      * 组织地址
      */
     @Schema(description = "组织地址")
@@ -64,6 +70,7 @@ public class OrganizationVO {
         vo.setType(organization.getType());
         vo.setDescription(organization.getDescription());
         vo.setWebsite(organization.getWebsite());
+        vo.setLogoUrl(organization.getLogoUrl());
         vo.setAddress(organization.getAddress());
         return vo;
     }

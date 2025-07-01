@@ -36,6 +36,11 @@ public class Application {
     private Integer studentId;
     
     /**
+     * 关联的简历ID
+     */
+    private Integer resumeId;
+    
+    /**
      * 申请状态：submitted-已提交，viewed-已查看，interviewing-面试中，offered-已录用，rejected-已拒绝
      */
     private String status;

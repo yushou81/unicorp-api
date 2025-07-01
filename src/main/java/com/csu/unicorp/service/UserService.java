@@ -8,10 +8,12 @@ import com.csu.unicorp.dto.OrgMemberUpdateDTO;
 import com.csu.unicorp.dto.PasswordUpdateDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
 import com.csu.unicorp.dto.UserProfileUpdateDTO;
+import com.csu.unicorp.dto.UserUpdateDTO;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.vo.TokenVO;
 import com.csu.unicorp.vo.UserVO;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -182,4 +184,48 @@ public interface UserService {
      * @param userDetails 当前认证用户
      */
     void updatePassword(PasswordUpdateDTO passwordUpdateDTO, UserDetails userDetails);
+    
+    /**
+     * 根据角色获取用户列表（系统管理员使用）
+     * 
+     * @param page 页码
+     * @param size 每页大小
+     * @param role 角色名称（可选）
+     * @return 用户列表（分页）
+     */
+    IPage<UserVO> getUsersByRole(int page, int size, String role);
+    
+    /**
+     * 更新用户状态（系统管理员使用）
+     * 
+     * @param id 用户ID
+     * @param status 新状态
+     * @return 更新后的用户信息
+     */
+    UserVO updateUserStatus(Integer id, String status);
+    
+    /**
+     * 更新用户基本信息（系统管理员使用）
+     * 
+     * @param id 用户ID
+     * @param userUpdateDTO 用户更新信息
+     * @return 更新后的用户信息
+     */
+    UserVO updateUserByAdmin(Integer id, UserUpdateDTO userUpdateDTO);
+    
+    /**
+     * 更新用户头像
+     * 
+     * @param file 头像文件
+     * @param userDetails 当前认证用户
+     * @return 更新后的用户信息
+     */
+    UserVO updateAvatar(MultipartFile file, UserDetails userDetails);
+    
+    /**
+     * 为新注册用户分配默认头像
+     * 
+     * @return 默认头像的相对路径
+     */
+    String assignDefaultAvatar();
 } 

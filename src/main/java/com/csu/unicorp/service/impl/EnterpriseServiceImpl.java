@@ -10,6 +10,7 @@ import com.csu.unicorp.mapper.OrganizationMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.EnterpriseService;
 import com.csu.unicorp.service.OrganizationService;
+import com.csu.unicorp.service.FileService;
 import com.csu.unicorp.vo.OrganizationVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,7 @@ public class EnterpriseServiceImpl implements EnterpriseService {
     private final EnterpriseDetailMapper enterpriseDetailMapper;
     private final UserMapper userMapper;
     private final OrganizationService organizationService;
+    private final FileService fileService;
     
     @Override
     @Transactional

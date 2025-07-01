@@ -31,6 +31,12 @@ public class ResultVO<T> {
     private T data;
     
     /**
+     * 对话用户ID（用于聊天功能）
+     */
+    @Schema(description = "对话用户ID", example = "10")
+    private Long otherUserId;
+    
+    /**
      * 构造函数
      * 
      * @param code 状态码
@@ -86,6 +92,18 @@ public class ResultVO<T> {
      * @return 失败响应对象
      */
     public static <T> ResultVO<T> error(Integer code, String message) {
+        return new ResultVO<>(code, message, null);
+    }
+    
+    /**
+     * 创建失败响应（指定状态码），与error方法功能相同，提供更语义化的命名
+     * 
+     * @param <T> 数据类型
+     * @param code 错误状态码
+     * @param message 错误消息
+     * @return 失败响应对象
+     */
+    public static <T> ResultVO<T> fail(Integer code, String message) {
         return new ResultVO<>(code, message, null);
     }
     

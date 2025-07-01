@@ -3,9 +3,11 @@ package com.csu.unicorp.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 岗位创建DTO
@@ -49,6 +51,7 @@ public class JobCreationDTO {
     /**
      * 薪资单位 (月/年)
      */
+    @Pattern(regexp = "^(per_month|per_year)$", message = "薪资单位必须是以下值之一: per_month, per_year")
     @Schema(description = "薪资单位", allowableValues = {"per_month", "per_year"})
     private String salaryUnit;
     
@@ -56,6 +59,7 @@ public class JobCreationDTO {
      * 工作类型
      */
     @NotNull(message = "工作类型不能为空")
+    @Pattern(regexp = "^(full_time|internship|part_time|remote)$", message = "工作类型必须是以下值之一: full_time, internship, part_time, remote")
     @Schema(description = "工作类型", required = true, allowableValues = {"full_time", "internship", "part_time", "remote"})
     private String jobType;
     
@@ -68,26 +72,48 @@ public class JobCreationDTO {
     /**
      * 学历要求
      */
+    @Pattern(regexp = "^(bachelor|master|doctorate|any)$", message = "学历要求必须是以下值之一: bachelor, master, doctorate, any")
     @Schema(description = "学历要求", allowableValues = {"bachelor", "master", "doctorate", "any"}, defaultValue = "any")
     private String educationRequirement = "any";
     
     /**
      * 经验要求
      */
+    @Pattern(regexp = "^(fresh_graduate|less_than_1_year|1_to_3_years|any)$", message = "经验要求必须是以下值之一: fresh_graduate, less_than_1_year, 1_to_3_years, any")
     @Schema(description = "经验要求", allowableValues = {"fresh_graduate", "less_than_1_year", "1_to_3_years", "any"}, defaultValue = "any")
     private String experienceRequirement = "any";
     
     /**
-     * 职能分类
+     * 企业自定义的岗位亮点标签 (逗号分隔)
      */
-    @Schema(description = "职能分类")
-    private String jobCategory;
+    @Schema(description = "企业自定义的岗位亮点标签 (逗号分隔)")
+    private String tags;
     
     /**
-     * 技能标签 (以逗号分隔)
+     * 岗位具体要求
      */
-    @Schema(description = "技能标签 (以逗号分隔)")
-    private String skillTags;
+    @Schema(description = "岗位具体要求")
+    private String jobRequirements;
+    
+    /**
+     * 工作福利描述
+     */
+    @Schema(description = "工作福利描述")
+    private String jobBenefits;
+    
+    /**
+     * 三级岗位分类ID（必须是三级分类）
+     */
+    @NotNull(message = "岗位分类不能为空")
+    @Schema(description = "三级岗位分类ID（必须是三级分类）", required = true)
+    private Integer categoryId;
+    
+    /**
+     * 岗位分类ID列表（已弃用，保留向后兼容）
+     */
+    @Schema(description = "岗位分类ID列表（已弃用，请使用categoryId）")
+    @Deprecated
+    private List<Integer> categoryIds;
     
     /**
      * 申请截止日期

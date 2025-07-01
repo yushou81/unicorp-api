@@ -3,6 +3,7 @@ package com.csu.unicorp.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.dto.MentorCreationDTO;
 import com.csu.unicorp.dto.MentorUpdateDTO;
+import com.csu.unicorp.dto.UserUpdateDTO;
 import com.csu.unicorp.vo.UserVO;
 
 /**
@@ -40,10 +41,31 @@ public interface EnterpriseAdminService {
     UserVO updateMentor(Integer organizationId, Integer mentorId, MentorUpdateDTO mentorUpdateDTO);
     
     /**
+     * 更新导师状态
+     * 
+     * @param organizationId 企业ID
+     * @param mentorId 导师ID
+     * @param status 新状态，可选值：active, inactive, pending_approval
+     */
+    void updateMentorStatus(Integer organizationId, Integer mentorId, String status);
+    
+    /**
+     * 更新导师基本信息
+     * 
+     * @param organizationId 企业ID
+     * @param mentorId 导师ID
+     * @param userUpdateDTO 用户更新信息
+     * @return 更新后的导师信息
+     */
+    UserVO updateMentorInfo(Integer organizationId, Integer mentorId, UserUpdateDTO userUpdateDTO);
+    
+    /**
      * 禁用导师账号
      * 
      * @param organizationId 企业ID
      * @param mentorId 导师ID
+     * @deprecated 请使用 {@link #updateMentorStatus(Integer, Integer, String)} 替代
      */
+    @Deprecated
     void disableMentor(Integer organizationId, Integer mentorId);
 } 

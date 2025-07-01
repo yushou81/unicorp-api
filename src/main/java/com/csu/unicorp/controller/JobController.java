@@ -34,7 +34,7 @@ public class JobController {
     private final JobService jobService;
     
     @GetMapping
-    @Operation(summary = "获取岗位列表", description = "获取所有状态为 'open' 的岗位列表，支持分页和搜索")
+    @Operation(summary = "获取岗位列表", description = "获取所有状态为 'open' 的岗位列表，支持分页和多条件筛选")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "成功获取岗位列表",
                     content = @Content(mediaType = "application/json",
@@ -43,21 +43,34 @@ public class JobController {
     public ResultVO<IPage<JobVO>> getJobs(
             @Parameter(description = "页码") @RequestParam(defaultValue = "0") Integer page,
             @Parameter(description = "每页大小") @RequestParam(defaultValue = "10") Integer size,
-            @Parameter(description = "搜索关键词") @RequestParam(required = false) String keyword) {
-        IPage<JobVO> jobList = jobService.pageJobs(page, size, keyword);
+            @Parameter(description = "搜索关键词") @RequestParam(required = false) String keyword,
+            @Parameter(description = "城市筛选") @RequestParam(required = false) String location,
+            @Parameter(description = "工作类型筛选",schema = @Schema(allowableValues = {"full_time", "part_time", "internship", "remote"})) @RequestParam(required = false) String jobType,
+            @Parameter(description = "学历要求筛选",schema = @Schema(allowableValues = {"bachelor", "master", "doctorate","any"})) @RequestParam(required = false) String educationRequirement,
+            @Parameter(description = "最低薪资") @RequestParam(required = false) Integer salaryMin,
+            @Parameter(description = "最高薪资") @RequestParam(required = false) Integer salaryMax,
+            @Parameter(description = "排序方式", schema = @Schema(allowableValues = {"latest", "salary_asc", "salary_desc"})) 
+            @RequestParam(required = false, defaultValue = "latest") String sortBy,
+            @Parameter(description = "组织ID筛选") @RequestParam(required = false) Integer organizeId,
+            @Parameter(description = "发布者ID筛选") @RequestParam(required = false) Integer posterId) {
+        System.out.println("pages:"+page);
+        IPage<JobVO> jobList = jobService.pageJobs(page, size, keyword, location, jobType, educationRequirement, salaryMin, salaryMax, sortBy, organizeId, posterId);
         return ResultVO.success("获取岗位列表成功", jobList);
     }
     
     @PostMapping
     @PreAuthorize("hasAnyRole('EN_ADMIN', 'EN_TEACHER')")
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "[企业] 创建新岗位", description = "由企业管理员或企业导师调用，用于发布一个新的招聘岗位",
+    @Operation(summary = "[企业] 创建新岗位", description = "由企业管理员或企业导师调用，用于发布一个新的招聘岗位，需要指定一个三级分类ID",
             security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "岗位创建成功",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class))),
             @ApiResponse(responseCode = "403", description = "权限不足",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ResultVO.class))),
+            @ApiResponse(responseCode = "400", description = "参数错误，例如分类不是三级分类",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
@@ -90,7 +103,7 @@ public class JobController {
     
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('EN_ADMIN', 'EN_TEACHER')")
-    @Operation(summary = "[企业] 更新岗位信息", description = "由企业管理员或企业导师调用，用于更新已发布岗位的信息",
+    @Operation(summary = "[企业] 更新岗位信息", description = "由企业管理员或企业导师调用，用于更新已发布岗位的信息，需要指定一个三级分类ID",
             security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "岗位更新成功",
@@ -100,6 +113,9 @@ public class JobController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class))),
             @ApiResponse(responseCode = "404", description = "岗位未找到",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ResultVO.class))),
+            @ApiResponse(responseCode = "400", description = "参数错误，例如分类不是三级分类",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
@@ -117,16 +133,17 @@ public class JobController {
     
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('EN_ADMIN', 'EN_TEACHER')")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "[企业] 删除岗位", description = "由企业管理员或企业导师调用，用于删除已发布的岗位",
             security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "删除成功"),
+            @ApiResponse(responseCode = "200", description = "删除成功",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ResultVO.class))),
             @ApiResponse(responseCode = "403", description = "权限不足",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    public void deleteJob(
+    public ResultVO<Void> deleteJob(
             @Parameter(description = "岗位ID") @PathVariable Integer id,
             @AuthenticationPrincipal UserDetails userDetails) {
         // 从UserDetails中获取用户ID和组织ID
@@ -134,6 +151,7 @@ public class JobController {
         Integer orgId = getOrgIdFromUserDetails(userDetails);
         
         jobService.deleteJob(id, userId, orgId);
+        return ResultVO.success("岗位删除成功");
     }
     
     /**

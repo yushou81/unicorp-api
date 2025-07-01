@@ -17,6 +17,7 @@ import com.csu.unicorp.mapper.OrganizationMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.OrganizationService;
 import com.csu.unicorp.service.RoleService;
+import com.csu.unicorp.service.FileService;
 import com.csu.unicorp.vo.OrganizationSimpleVO;
 import com.csu.unicorp.vo.OrganizationVO;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,15 +44,34 @@ public class OrganizationServiceImpl implements OrganizationService {
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
     private final AccountGenerator accountGenerator;
+    private final FileService fileService;
     
     @Override
     public List<?> getAllSchools(String view) {
         // 根据view参数返回不同详细程度的学校列表
         if ("detailed".equals(view)) {
-            return organizationMapper.selectAllApprovedSchoolsDetailed();
+            List<OrganizationVO> schools = organizationMapper.selectAllApprovedSchoolsDetailed();
+            
+            // 处理logo URL
+            for (OrganizationVO school : schools) {
+                if (school.getLogoUrl() != null && !school.getLogoUrl().isEmpty()) {
+                    school.setLogoUrl(fileService.getFullFileUrl(school.getLogoUrl()));
+                }
+            }
+            
+            return schools;
         } else {
             // 默认返回简化版
-            return organizationMapper.selectAllApprovedSchools();
+            List<OrganizationSimpleVO> schools = organizationMapper.selectAllApprovedSchools();
+            
+            // 处理logo URL
+            for (OrganizationSimpleVO school : schools) {
+                if (school.getLogoUrl() != null && !school.getLogoUrl().isEmpty()) {
+                    school.setLogoUrl(fileService.getFullFileUrl(school.getLogoUrl()));
+                }
+            }
+            
+            return schools;
         }
     }
     
@@ -80,6 +101,17 @@ public class OrganizationServiceImpl implements OrganizationService {
         organization.setWebsite(schoolCreationDTO.getWebsite());
         organization.setType("School");
         organization.setStatus("approved"); // 管理员创建的学校直接审核通过
+        
+        // 如果有logo文件，处理并设置logo_url
+        if (schoolCreationDTO.getLogoFile() != null && !schoolCreationDTO.getLogoFile().isEmpty()) {
+            try {
+                // 上传文件，获取存储路径
+                String logoPath = fileService.uploadFile(schoolCreationDTO.getLogoFile(), "logo");
+                organization.setLogoUrl(logoPath);
+            } catch (Exception e) {
+                throw new BusinessException("Logo上传失败: " + e.getMessage());
+            }
+        }
         
         organizationMapper.insert(organization);
         
@@ -139,20 +171,45 @@ public class OrganizationServiceImpl implements OrganizationService {
         
         List<Organization> pendingOrganizations = organizationMapper.selectList(queryWrapper);
         
-        // 转换为VO列表
-        return pendingOrganizations.stream()
+        // 转换为VO列表，并处理logo URL
+        List<OrganizationVO> result = pendingOrganizations.stream()
                 .map(this::convertToVO)
+                .peek(vo -> {
+                    if (vo.getLogoUrl() != null && !vo.getLogoUrl().isEmpty()) {
+                        vo.setLogoUrl(fileService.getFullFileUrl(vo.getLogoUrl()));
+                    }
+                })
                 .collect(Collectors.toList());
+        
+        return result;
     }
     
     @Override
     public List<?> getAllEnterprises(String view) {
         // 根据view参数返回不同详细程度的企业列表
         if ("detailed".equals(view)) {
-            return organizationMapper.selectAllApprovedEnterprisesDetailed();
+            List<OrganizationVO> enterprises = organizationMapper.selectAllApprovedEnterprisesDetailed();
+            
+            // 处理logo URL
+            for (OrganizationVO enterprise : enterprises) {
+                if (enterprise.getLogoUrl() != null && !enterprise.getLogoUrl().isEmpty()) {
+                    enterprise.setLogoUrl(fileService.getFullFileUrl(enterprise.getLogoUrl()));
+                }
+            }
+            
+            return enterprises;
         } else {
             // 默认返回简化版
-            return organizationMapper.selectAllApprovedEnterprises();
+            List<OrganizationSimpleVO> enterprises = organizationMapper.selectAllApprovedEnterprises();
+            
+            // 处理logo URL
+            for (OrganizationSimpleVO enterprise : enterprises) {
+                if (enterprise.getLogoUrl() != null && !enterprise.getLogoUrl().isEmpty()) {
+                    enterprise.setLogoUrl(fileService.getFullFileUrl(enterprise.getLogoUrl()));
+                }
+            }
+            
+            return enterprises;
         }
     }
     
@@ -164,8 +221,15 @@ public class OrganizationServiceImpl implements OrganizationService {
             throw new ResourceNotFoundException("学校不存在或未通过审核");
         }
         
-        // 转换为VO并返回
-        return OrganizationVO.fromEntity(organization);
+        // 转换为VO
+        OrganizationVO vo = OrganizationVO.fromEntity(organization);
+        
+        // 处理logo URL，转换为完整路径
+        if (vo.getLogoUrl() != null && !vo.getLogoUrl().isEmpty()) {
+            vo.setLogoUrl(fileService.getFullFileUrl(vo.getLogoUrl()));
+        }
+        
+        return vo;
     }
     
     @Override
@@ -176,7 +240,37 @@ public class OrganizationServiceImpl implements OrganizationService {
             throw new ResourceNotFoundException("企业不存在或未通过审核");
         }
         
-        // 转换为VO并返回
-        return OrganizationVO.fromEntity(organization);
+        // 转换为VO
+        OrganizationVO vo = OrganizationVO.fromEntity(organization);
+        
+        // 处理logo URL，转换为完整路径
+        if (vo.getLogoUrl() != null && !vo.getLogoUrl().isEmpty()) {
+            vo.setLogoUrl(fileService.getFullFileUrl(vo.getLogoUrl()));
+        }
+        
+        return vo;
+    }
+    
+    @Override
+    public String updateOrganizationLogo(Integer id, MultipartFile logoFile) {
+        // 检查组织是否存在
+        Organization organization = organizationMapper.selectById(id);
+        if (organization == null) {
+            throw new ResourceNotFoundException("组织不存在");
+        }
+        
+        // 上传logo文件
+        try {
+            String logoPath = fileService.uploadFile(logoFile, "logo");
+            
+            // 更新组织logo路径
+            organization.setLogoUrl(logoPath);
+            organizationMapper.updateById(organization);
+            
+            // 返回完整的logo URL
+            return fileService.getFullFileUrl(logoPath);
+        } catch (Exception e) {
+            throw new BusinessException("Logo上传失败: " + e.getMessage());
+        }
     }
 } 

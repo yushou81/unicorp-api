@@ -17,7 +17,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,6 +26,7 @@ import java.util.List;
 
 import com.csu.unicorp.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 
 /**
  * 项目控制器
@@ -81,11 +81,11 @@ public class ProjectController {
     @PostMapping
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER')")
-    public ResponseEntity<ResultVO<ProjectVO>> createProject(
+    public ResultVO<ProjectVO> createProject(
             @Valid @RequestBody ProjectCreationDTO projectCreationDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
         ProjectVO project = projectService.createProject(projectCreationDTO, userDetails);
-        return new ResponseEntity<>(ResultVO.success("项目创建成功", project), HttpStatus.CREATED);
+        return ResultVO.success("项目创建成功", project);
     }
 
     /**
@@ -118,12 +118,12 @@ public class ProjectController {
     @PutMapping("/{id}")
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER','STUDENT')")
-    public ResponseEntity<ResultVO<ProjectVO>> updateProject(
+    public ResultVO<ProjectVO> updateProject(
             @PathVariable Integer id,
             @Valid @RequestBody ProjectCreationDTO projectCreationDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
         ProjectVO project = projectService.updateProject(id, projectCreationDTO, userDetails);
-        return ResponseEntity.ok(ResultVO.success("项目更新成功", project));
+        return ResultVO.success("项目更新成功", project);
     }
 
     /**
@@ -138,11 +138,11 @@ public class ProjectController {
     @DeleteMapping("/{id}")
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER')")
-    public ResponseEntity<Void> deleteProject(
+    public ResultVO<Void> deleteProject(
             @PathVariable Integer id,
             @AuthenticationPrincipal UserDetails userDetails) {
         projectService.deleteProject(id, userDetails);
-        return ResponseEntity.noContent().build();
+        return ResultVO.success("项目删除成功");
     }
 
     @DeleteMapping("/{projectId}/member/{userId}")

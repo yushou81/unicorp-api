@@ -4,6 +4,7 @@ import com.csu.unicorp.dto.SchoolCreationDTO;
 import com.csu.unicorp.entity.Organization;
 import com.csu.unicorp.vo.OrganizationSimpleVO;
 import com.csu.unicorp.vo.OrganizationVO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -82,4 +83,13 @@ public interface OrganizationService {
      * @return 待审核的组织列表
      */
     List<OrganizationVO> getPendingOrganizations();
+    
+    /**
+     * 更新组织Logo
+     *
+     * @param id 组织ID
+     * @param logoFile Logo文件
+     * @return 上传后的Logo URL
+     */
+    String updateOrganizationLogo(Integer id, MultipartFile logoFile);
 } 

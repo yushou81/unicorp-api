@@ -2,15 +2,17 @@
 server:
   port: 8081 # 设置应用的端口号，避免使用常见的8080以防冲突
   servlet:
-    context-path: /api # 设置应用的统一访问前缀，例如 /api/user/register
+    context-path: /api # 设置应用的统一访问前缀
 
 # Spring相关配置
 spring:
+  # 允许Bean覆盖
+  main:
+    allow-bean-definition-overriding: true
   application:
     name: unicorp-api # 应用名称
   # 数据库连接池配置
   datasource:
-    # 【请修改】: 将下面的URL、用户名和密码替换成你自己的
     url: jdbc:mysql://localhost:3306/unicorp?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root # 数据库用户名
     password: 123456 # 数据库密码
@@ -30,17 +32,19 @@ spring:
     table: flyway_schema_history # Flyway元数据表名
     # 如果需要清理数据库（开发环境可用，生产环境禁用）
     clean-disabled: true # 禁用clean操作，防止意外删除数据
-    # 添加修复模式，自动修复校验错误
-    repair: true
   logging:
     level:
       root: INFO
       com.csu.unicorp: DEBUG  # 将应用代码日志级别设为DEBUG
+      com.csu.unicorp.config: TRACE  # WebSocket配置相关日志设为TRACE
+      org.springframework.web.socket: DEBUG  # WebSocket相关日志设为DEBUG
+      org.springframework.messaging: DEBUG  # Spring消息相关日志设为DEBUG
       com.csu.unicorp.config.security: TRACE  # 安全配置相关日志设为TRACE
       org.springframework.security: DEBUG  # 安全相关日志设为DEBUG
       org.springframework.web: DEBUG  # Web相关日志设为DEBUG
       org.hibernate.SQL: DEBUG  # 显示SQL语句
       org.hibernate.type.descriptor.sql: TRACE  # 显示SQL参数绑定值
+
 # JWT配置
 jwt:
   secret: Oe8H9XZ3x2NpDQfY9vTr5qK6sLm7oP3aUv1wMxB2zC3yD4fE5gF6hG7jH8kJ
@@ -51,7 +55,7 @@ app:
   upload:
     dir: upload
     max-size: 10485760  # 10MB
-  base-url: http://localhost:8081
+  base-url: http://192.168.1.2:8081
 
 # SpringDoc配置
 springdoc:
@@ -64,6 +68,7 @@ springdoc:
     operations-sorter: alpha
     display-request-duration: true
     doc-expansion: none
+
   paths-to-match:
     - /v1/auth/**
     - /v1/admin/**
@@ -76,12 +81,33 @@ springdoc:
     - /v1/students/**
     - /v1/teachers/**
     - /v1/mentors/**
+    - /v1/admin/job-categories/**
+    - /v1/job-categories/**
+    - /v1/enterprise-admin/**
+    - /v1/school-admin/**
+    - /v1/resources/**
+    - /v1/me/**
+    - /v1/chat/**
+    - /v1/projects/**
+    - /v1/map/**
+    - /v1/project-applications/**
+    - /v1/docs/**
+    - /v1/resumes/**
+    - /v1/me/resume/**
+    - /v1/me/resumes/**
+    - /v1/dual-courses/**
+    - /v1/dual-courses/enrollment/**
+    - /v1/course-resources/**
+    - /v1/course-ratings/**
+
   default-flat-param-object: true
+  # API分组配置
   group-configs:
     - group: '认证与用户管理'
       paths-to-match: 
         - /v1/auth/**
         - /v1/admin/**
+        - /v1/admin/users/**
         - /v1/school-admin/**
         - /v1/enterprise-admin/**
         - /v1/profiles/**
@@ -96,7 +122,11 @@ springdoc:
         - /v1/jobs/**
         - /v1/applications/**
         - /v1/me/applications/**
+        - /v1/admin/job-categories/**
+        - /v1/job-categories/**
+        - /v1/job-categories/hierarchical
       packages-to-scan: com.csu.unicorp.controller
+      description: "包括岗位发布、查询、申请等功能，岗位详情包含具体要求和福利描述。岗位申请现在与学生简历关联，企业导师可直接查看申请者简历。"
     - group: '项目与合作'
       paths-to-match: 
         - /v1/projects/**
@@ -106,6 +136,8 @@ springdoc:
       paths-to-match: 
         - /v1/resources/**
         - /v1/files/**
+      display-name: "资源共享中心API"
+      description: "包括资源的上传、浏览、管理和下载功能。"
       packages-to-scan: com.csu.unicorp.controller
     - group: '个人作品集'
       paths-to-match: 
@@ -120,6 +152,26 @@ springdoc:
       paths-to-match: 
         - /v1/map/**
       packages-to-scan: com.csu.unicorp.controller
+    - group: '聊天功能'
+      paths-to-match:
+        - /v1/chat/**
+        - /v1/docs/websocket/**
+      packages-to-scan: com.csu.unicorp.controller
+    - group: '简历管理'
+      paths-to-match:
+        - /v1/resumes/**
+        - /v1/me/resume/**
+        - /v1/me/resumes/**
+      packages-to-scan: com.csu.unicorp.controller
+      description: "提供简历的创建、查询、更新和删除功能"
+    - group: '双师课堂'
+      paths-to-match:
+        - /v1/dual-courses/**
+        - /v1/course-resources/**
+        - /v1/course-ratings/**
+      packages-to-scan: com.csu.unicorp.controller
+      description: "提供双师课堂的创建、查询、报名等功能，支持教师、企业导师、学生等角色的课程管理，包括课程资源管理和评价系统"
+
 
 # MyBatis-Plus 相关配置
 mybatis-plus:
@@ -139,5 +191,7 @@ mybatis-plus:
     map-underscore-to-camel-case: true
     # 控制台打印SQL，方便开发调试（设置为更详细的输出）
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# 高德地图配置
 amap:
   key: "6ac0fa4484bd83396be5cf7440a806c3"

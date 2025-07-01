@@ -3,6 +3,7 @@ package com.csu.unicorp.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 学校创建DTO
@@ -29,6 +30,12 @@ public class SchoolCreationDTO {
      * 学校网站
      */
     private String website;
+    
+    /**
+     * 学校logo文件（前端通过multipart/form-data上传）
+     * 此字段在API中不需要填充，只用于接收上传的文件
+     */
+    private MultipartFile logoFile;
     
     /**
      * 学校管理员昵称
