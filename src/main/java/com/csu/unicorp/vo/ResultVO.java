@@ -31,6 +31,12 @@ public class ResultVO<T> {
     private T data;
     
     /**
+     * 对话用户ID（用于聊天功能）
+     */
+    @Schema(description = "对话用户ID", example = "10")
+    private Long otherUserId;
+    
+    /**
      * 构造函数
      * 
      * @param code 状态码

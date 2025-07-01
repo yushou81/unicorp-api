@@ -82,8 +82,18 @@ public class ChatController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         Long currentUserId = Long.valueOf(userDetails.getUser().getId());
+        
+        // 获取会话信息，确定对话另一方的ID
+        ChatSessionVO sessionDetail = chatService.getSessionDetail(sessionId, currentUserId);
+        Long otherUserId = sessionDetail != null ? sessionDetail.getUserId() : null;
+        
         List<ChatMessageVO> messages = chatService.getSessionMessages(sessionId, currentUserId, page, size);
-        return ResultVO.success("获取消息历史成功", messages);
+        
+        // 创建带有对方ID的ResultVO
+        ResultVO<List<ChatMessageVO>> result = ResultVO.success("获取消息历史成功", messages);
+        result.setOtherUserId(otherUserId); // 将对方ID添加到结果中
+        
+        return result;
     }
     
     /**
