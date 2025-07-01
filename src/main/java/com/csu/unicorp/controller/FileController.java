@@ -31,7 +31,7 @@ import java.util.Map;
  */
 @Tag(name = "File Upload", description = "文件上传服务")
 @RestController
-@RequestMapping("/v1/files")
+@RequestMapping("/api/files")
 @RequiredArgsConstructor
 public class FileController {
     
@@ -55,6 +55,7 @@ public class FileController {
             @Parameter(description = "要上传的文件") @RequestParam("file") MultipartFile file,
             @Parameter(description = "文件类型标识 (e.g., avatar, resume, resource)") @RequestParam(value = "type", required = false, defaultValue = "resource") String type) {
         
+                System.out.println("文件上传接口被调用");
         String fileUrl = fileService.uploadFile(file, type);
         
         Map<String, String> result = new HashMap<>();

@@ -167,6 +167,15 @@ public class ProjectServiceImpl implements ProjectService {
             if (org != null) {
                 vo.setOrganizationName(org.getOrganizationName());
             }
+            // 新增：查找该用户在该项目下的申请id
+            if (userId != null) {
+                LambdaQueryWrapper<ProjectApplication> appQuery = new LambdaQueryWrapper<>();
+                appQuery.eq(ProjectApplication::getProjectId, pid)
+                        .eq(ProjectApplication::getUserId, userId)
+                        .eq(ProjectApplication::getIsDeleted, false);
+                ProjectApplication app = projectApplicationMapper.selectOne(appQuery);
+                vo.setApplicationId(app != null ? app.getId() : null);
+            }
             voList.add(vo);
         }
 
@@ -186,6 +195,15 @@ public class ProjectServiceImpl implements ProjectService {
             Organization org = organizationMapper.selectById(project.getOrganizationId());
             if (org != null) {
                 vo.setOrganizationName(org.getOrganizationName());
+            }
+            // 新增：查找该用户在该项目下的申请id
+            if (userId != null) {
+                LambdaQueryWrapper<ProjectApplication> appQuery = new LambdaQueryWrapper<>();
+                appQuery.eq(ProjectApplication::getProjectId, project.getId())
+                        .eq(ProjectApplication::getUserId, userId)
+                        .eq(ProjectApplication::getIsDeleted, false);
+                ProjectApplication app = projectApplicationMapper.selectOne(appQuery);
+                vo.setApplicationId(app != null ? app.getId() : null);
             }
             voListPage.add(vo);
         }

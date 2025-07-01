@@ -27,7 +27,7 @@ public interface ProjectApplicationMapper extends BaseMapper<ProjectApplication>
             "FROM project_applications pa " +
             "JOIN users u ON pa.user_id = u.id " +
             "LEFT JOIN user_verifications uv ON pa.user_id = uv.user_id " +
-            "LEFT JOIN student_profiles sp ON pa.user_id = sp.user_id " +
+            "LEFT JOIN resumes sp ON pa.user_id = sp.user_id " +
             "WHERE pa.project_id = #{projectId} AND pa.is_deleted = 0 " +
             "ORDER BY pa.created_at DESC")
     List<Map<String, Object>> selectApplicationsWithUserInfo(@Param("projectId") Integer projectId);

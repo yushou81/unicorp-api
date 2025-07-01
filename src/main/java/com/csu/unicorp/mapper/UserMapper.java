@@ -134,7 +134,7 @@ public interface UserMapper extends BaseMapper<User> {
     @Select("SELECT uv.real_name, sp.major " +
             "FROM users u " +
             "LEFT JOIN user_verifications uv ON u.id = uv.user_id " +
-            "LEFT JOIN student_profiles sp ON u.id = sp.user_id " +
+            "LEFT JOIN resumes sp ON u.id = sp.user_id " +
             "WHERE u.id = #{userId}")
     Map<String, Object> getUserVerificationAndProfile(@Param("userId") Integer userId);
 

@@ -34,4 +34,5 @@ public class ProjectVO {
     private Integer memberCount; // 当前已加入人数
     private Boolean applied; // 是否已申请
     private String applicationStatus; // 新增字段
+    private Integer applicationId;//申请id
 } 

@@ -30,6 +30,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.csu.unicorp.common.exception.BusinessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -52,6 +54,7 @@ public class ProjectApplicationServiceImpl extends ServiceImpl<ProjectApplicatio
     private final UserMapper userMapper;
     private final ProjectService projectService;
     private final OrganizationMapper organizationMapper;
+    private static final Logger log = LoggerFactory.getLogger(ProjectApplicationServiceImpl.class);
 
     /**
      * 学生申请加入项目
@@ -82,36 +85,41 @@ public class ProjectApplicationServiceImpl extends ServiceImpl<ProjectApplicatio
             throw new IllegalArgumentException("该项目当前不接受申请");
         }
 
-        // 检查用户是否已经申请过该项目
+        // 1. 查是否有未删除的申请
         LambdaQueryWrapper<ProjectApplication> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ProjectApplication::getProjectId, projectId)
                 .eq(ProjectApplication::getUserId, currentUser.getId())
                 .eq(ProjectApplication::getIsDeleted, false);
 
-        long count = projectApplicationMapper.selectCount(queryWrapper);
-        if (count > 0) {
-            throw new BusinessException("您已经申请过该项目");
-        }
+        ProjectApplication existingApplication = projectApplicationMapper.selectOne(queryWrapper);
 
-        // 1. 查询项目最大人数
+        // 2. 1. 查询项目最大人数
         Integer maxMemberCount = project.getPlanMemberCount();
         if (maxMemberCount == null) {
             maxMemberCount = Integer.MAX_VALUE; // 没有限制
         }
 
-        // 2. 查询当前已批准成员数
+        // 2. 2. 查询当前已批准成员数
         LambdaQueryWrapper<ProjectApplication> memberCountWrapper = new LambdaQueryWrapper<>();
         memberCountWrapper.eq(ProjectApplication::getProjectId, projectId)
                           .eq(ProjectApplication::getStatus, "approved")
                           .eq(ProjectApplication::getIsDeleted, false);
         long approvedCount = projectApplicationMapper.selectCount(memberCountWrapper);
 
-        // 3. 如果已满，禁止申请
+        // 2. 3. 如果已满，禁止申请
         if (approvedCount >= maxMemberCount) {
             throw new IllegalArgumentException("该项目人数已满，无法申请");
         }
 
-        // 创建申请记录
+        // 3. 如果有申请，更新status为submitted并返回
+        if (existingApplication != null) {
+            existingApplication.setStatus("submitted");
+            existingApplication.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            projectApplicationMapper.updateById(existingApplication);
+            return convertToDetailVO(existingApplication, currentUser);
+        }
+
+        // 4. 没有则插入新记录
         ProjectApplication application = new ProjectApplication();
         application.setProjectId(projectId);
         application.setUserId(currentUser.getId());
@@ -122,8 +130,6 @@ public class ProjectApplicationServiceImpl extends ServiceImpl<ProjectApplicatio
         application.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
 
         projectApplicationMapper.insert(application);
-
-        // 返回申请详情
         return convertToDetailVO(application, currentUser);
     }
 
@@ -194,24 +200,25 @@ public class ProjectApplicationServiceImpl extends ServiceImpl<ProjectApplicatio
         System.out.println("005");
         // 如果状态为approved，则自动添加为项目成员
         if ("approved".equals(dto.getStatus())) {
-            // 检查是否已经是项目成员
-            LambdaQueryWrapper<ProjectMember> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(ProjectMember::getProjectId, application.getProjectId())
-                    .eq(ProjectMember::getUserId, application.getUserId())
-                    .eq(ProjectMember::getIsDeleted, false);
-            
-            long count = projectMemberMapper.selectCount(queryWrapper);
+            LambdaQueryWrapper<ProjectMember> memberQuery = new LambdaQueryWrapper<>();
+            memberQuery.eq(ProjectMember::getProjectId, project.getId())
+                       .eq(ProjectMember::getUserId, currentUser.getId())
+                       .eq(ProjectMember::getIsDeleted, false);
+            long count = projectMemberMapper.selectCount(memberQuery);
             if (count == 0) {
-                // 添加为项目成员
                 ProjectMember member = new ProjectMember();
-                member.setProjectId(application.getProjectId());
-                member.setUserId(application.getUserId());
+                member.setProjectId(project.getId());
+                member.setUserId(currentUser.getId());
                 member.setRoleInProject("成员");
                 member.setIsDeleted(0);
                 member.setCreatedAt(LocalDateTime.now());
                 member.setUpdatedAt(LocalDateTime.now());
-                
-                projectMemberMapper.insert(member);
+                try {
+                    projectMemberMapper.insert(member);
+                } catch (org.springframework.dao.DuplicateKeyException e) {
+                    // 已存在，记录日志或提醒即可，不抛出异常
+                    log.warn("项目成员已存在：projectId={}, userId={}", project.getId(), currentUser.getId());
+                }
             }
         }
         System.out.println("006");

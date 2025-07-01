@@ -46,12 +46,12 @@ public class WebConfig implements WebMvcConfigurer {
 
 
         //我之前写的，先别删，我再看看
-        //registry.addResourceHandler("/api/v1/files/**")
-
-        System.out.println("静态资源映射: /api/v1/files/** -> file:" + uploadPath + "/");
         registry.addResourceHandler("/v1/files/**")
 
-                .addResourceLocations("file:" + uploadPath + "/");
+        // System.out.println("静态资源映射: /api/v1/files/** -> file:" + uploadPath + "/");
+        // registry.addResourceHandler("/v1/files/**")
+
+                 .addResourceLocations("file:" + uploadPath + "/");
     }
     
     /**
