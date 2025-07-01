@@ -31,7 +31,7 @@ spring:
     validate-on-migrate: false # 临时禁用迁移验证，解决校验和问题
     table: flyway_schema_history # Flyway元数据表名
     # 如果需要清理数据库（开发环境可用，生产环境禁用）
-    clean-disabled: true # 禁用clean操作，防止意外删除数据
+    clean-disabled: false # 禁用clean操作，防止意外删除数据
   logging:
     level:
       root: INFO

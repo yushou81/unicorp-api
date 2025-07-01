@@ -33,6 +33,11 @@ public class ChatMessageVO {
     private String senderName;
     
     /**
+     * 接收者ID
+     */
+    private Long receiverId;
+    
+    /**
      * 消息类型
      */
     private ChatMessageDTO.MessageType type;
