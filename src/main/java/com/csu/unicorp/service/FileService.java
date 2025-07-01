@@ -1,5 +1,6 @@
 package com.csu.unicorp.service;
 
+import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -30,4 +31,20 @@ public interface FileService {
      * @return 默认头像的相对路径，例如 "avatar/default/Member007.jpg"
      */
     String getRandomDefaultAvatarPath();
+  
+    /**
+     * 加载文件作为资源
+     *
+     * @param fileUrl 文件的URL或相对路径
+     * @return 文件资源
+     */
+    Resource loadFileAsResource(String fileUrl);
+    
+    /**
+     * 从文件URL中提取文件名
+     *
+     * @param fileUrl 文件URL
+     * @return 文件名
+     */
+    String getFilenameFromUrl(String fileUrl);
 } 

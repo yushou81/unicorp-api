@@ -195,10 +195,19 @@ public class ChatServiceImpl implements ChatService {
     }
     
     @Override
-    public List<ChatMessageVO> getSessionMessages(Long sessionId, Integer page, Integer size) {
+    public List<ChatMessageVO> getSessionMessages(Long sessionId, Long currentUserId, Integer page, Integer size) {
         // 默认值处理
         page = page == null || page < 1 ? 1 : page;
         size = size == null || size < 1 ? 20 : size;
+        
+        // 获取会话信息，确定对话另一方的ID
+        ChatSession session = chatSessionMapper.selectById(sessionId);
+        if (session == null) {
+            return Collections.emptyList();
+        }
+        
+        // 获取接收方ID（对话的另一方）
+        Long receiverId = session.getUser1Id().equals(currentUserId) ? session.getUser2Id() : session.getUser1Id();
         
         // 分页查询消息
         IPage<ChatMessage> messagePage = new Page<>(page, size);
@@ -233,6 +242,9 @@ public class ChatServiceImpl implements ChatService {
                         vo.setSenderName(sender.getNickname());
                     }
                     
+                    // 设置接收方ID
+                    vo.setReceiverId(receiverId);
+                    
                     return vo;
                 })
                 .collect(Collectors.toList());
@@ -257,6 +269,15 @@ public class ChatServiceImpl implements ChatService {
         User sender = userMapper.selectById(message.getSenderId().intValue());
         if (sender != null) {
             vo.setSenderName(sender.getNickname());
+        }
+        
+        // 获取会话信息以确定接收方ID
+        ChatSession session = chatSessionMapper.selectById(message.getSessionId());
+        if (session != null) {
+            // 接收方是会话中发送者之外的另一个用户
+            Long receiverId = session.getUser1Id().equals(message.getSenderId()) ? 
+                session.getUser2Id() : session.getUser1Id();
+            vo.setReceiverId(receiverId);
         }
         
         vo.setType(ChatMessageDTO.MessageType.CHAT);

@@ -1,15 +1,7 @@
 package com.csu.unicorp.service.impl;
 
-import com.csu.unicorp.common.exception.BusinessException;
-import com.csu.unicorp.service.FileService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,6 +11,19 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.csu.unicorp.common.exception.BusinessException;
+import com.csu.unicorp.service.FileService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 文件上传服务实现类
@@ -97,6 +102,7 @@ public class FileServiceImpl implements FileService {
         return baseUrl + "/api/v1/files/" + relativePath;
     }
 
+
     @Override
     public String getRandomDefaultAvatarPath() {
         try {
@@ -129,5 +135,60 @@ public class FileServiceImpl implements FileService {
             log.error("获取随机默认头像失败", e);
             return null;
         }
+
+    
+    @Override
+    public Resource loadFileAsResource(String fileUrl) {
+        try {
+            // 如果提供的是完整URL，转换为相对路径
+            String relativePath = fileUrl;
+            if (fileUrl.startsWith(baseUrl)) {
+                relativePath = fileUrl.substring(fileUrl.indexOf("/api/v1/files/") + "/api/v1/files/".length());
+            }
+            
+            // 构建文件路径
+            Path filePath = Paths.get(uploadBaseDir).resolve(relativePath).normalize();
+            
+            // 检查路径是否合法（防止目录遍历攻击）
+            if (!filePath.toFile().exists()) {
+                throw new BusinessException("文件不存在: " + relativePath);
+            }
+            
+            // 创建资源
+            Resource resource = new UrlResource(filePath.toUri());
+            if (resource.exists()) {
+                return resource;
+            } else {
+                throw new BusinessException("文件不存在: " + relativePath);
+            }
+        } catch (MalformedURLException e) {
+            throw new BusinessException("文件路径有误: " + e.getMessage());
+        }
+    }
+    
+    @Override
+    public String getFilenameFromUrl(String fileUrl) {
+        // 从URL中提取文件名
+        String fileName = fileUrl;
+        
+        // 如果是完整URL，获取最后一个斜杠后的内容
+        if (fileUrl.contains("/")) {
+            fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
+        }
+        
+        // 如果文件名包含时间戳格式 (UUID_timestamp.ext)，尝试提取原始文件名
+        if (fileName.contains("_") && fileName.length() > 20) {
+            // 提取扩展名
+            String extension = "";
+            if (fileName.contains(".")) {
+                extension = fileName.substring(fileName.lastIndexOf("."));
+            }
+            
+            // 生成更友好的文件名
+            return "resource" + extension;
+        }
+        
+        return fileName;
+
     }
 } 

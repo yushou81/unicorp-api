@@ -78,9 +78,11 @@ public class ChatController {
     public ResultVO<List<ChatMessageVO>> getSessionMessages(
             @PathVariable @Parameter(description = "会话ID") Long sessionId,
             @RequestParam(required = false, defaultValue = "1") @Parameter(description = "页码") Integer page,
-            @RequestParam(required = false, defaultValue = "20") @Parameter(description = "每页大小") Integer size) {
+            @RequestParam(required = false, defaultValue = "20") @Parameter(description = "每页大小") Integer size,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         
-        List<ChatMessageVO> messages = chatService.getSessionMessages(sessionId, page, size);
+        Long currentUserId = Long.valueOf(userDetails.getUser().getId());
+        List<ChatMessageVO> messages = chatService.getSessionMessages(sessionId, currentUserId, page, size);
         return ResultVO.success("获取消息历史成功", messages);
     }
     

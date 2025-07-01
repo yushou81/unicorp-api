@@ -1,11 +1,18 @@
 package com.csu.unicorp.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import java.time.LocalDateTime;
+import java.util.Collection;
+
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.constants.VisibilityEnum;
-import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.dto.ResourceCreationDTO;
 import com.csu.unicorp.entity.Resource;
@@ -14,16 +21,9 @@ import com.csu.unicorp.mapper.ResourceMapper;
 import com.csu.unicorp.service.ResourceService;
 import com.csu.unicorp.service.UserService;
 import com.csu.unicorp.vo.ResourceVO;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.Collection;
 
 /**
  * 资源服务实现类
@@ -46,7 +46,7 @@ public class ResourceServiceImpl implements ResourceService {
     public ResourceVO getResourceById(Integer id) {
         ResourceVO resource = resourceMapper.selectResourceWithUploaderById(id);
         if (resource == null) {
-            throw new ResourceNotFoundException("资源不存在");
+            throw new ResourceNotFoundException(id+"资源不存在");
         }
         return resource;
     }
