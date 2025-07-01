@@ -1,29 +1,19 @@
-package com.csu.unicorp.entity;
+package com.csu.unicorp.vo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-
 import java.time.LocalDateTime;
 
 /**
- * 双师课堂实体类，对应dual_teacher_courses表
+ * 双师课堂视图对象
  */
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@TableName("dual_teacher_courses")
-public class DualTeacherCourse {
+public class DualTeacherCourseVO {
+    
     /**
-     * 课程ID，自增主键
+     * 课程ID
      */
-    @TableId(type = IdType.AUTO)
     private Integer id;
     
     /**
@@ -42,9 +32,24 @@ public class DualTeacherCourse {
     private Integer teacherId;
     
     /**
+     * 教师姓名
+     */
+    private String teacherName;
+    
+    /**
      * 企业导师ID
      */
     private Integer mentorId;
+    
+    /**
+     * 企业导师姓名
+     */
+    private String mentorName;
+    
+    /**
+     * 企业名称
+     */
+    private String enterpriseName;
     
     /**
      * 课程计划时间
@@ -57,6 +62,11 @@ public class DualTeacherCourse {
     private Integer maxStudents;
     
     /**
+     * 已报名学生人数
+     */
+    private Integer enrolledCount;
+    
+    /**
      * 课程地点
      */
     private String location;
@@ -67,7 +77,7 @@ public class DualTeacherCourse {
     private String courseType;
     
     /**
-     * 课程状态：planning-筹备中, open-开放报名, in_progress-进行中, completed-已结束, cancelled-已取消
+     * 课程状态
      */
     private String status;
     
@@ -75,15 +85,4 @@ public class DualTeacherCourse {
      * 创建时间
      */
     private LocalDateTime createdAt;
-    
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updatedAt;
-    
-    /**
-     * 逻辑删除标志
-     */
-    @TableLogic
-    private Boolean isDeleted;
-}
+} 

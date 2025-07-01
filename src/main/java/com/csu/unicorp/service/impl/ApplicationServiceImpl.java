@@ -50,7 +50,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     
     @Override
     @Transactional
-    public Integer applyJob(Integer jobId, Integer studentId) {
+    public Integer applyJob(Integer jobId, Integer studentId, Integer resumeId) {
         // 检查岗位是否存在
         Job job = jobMapper.selectById(jobId);
         if (job == null || job.getIsDeleted() || !"open".equals(job.getStatus())) {
@@ -63,10 +63,17 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
             throw new BusinessException("您已申请过该岗位");
         }
         
+        // 检查简历是否存在且属于该学生
+        Resume resume = resumeMapper.selectById(resumeId);
+        if (resume == null || !resume.getUserId().equals(studentId)) {
+            throw new ResourceNotFoundException("简历不存在或不属于当前用户");
+        }
+        
         // 创建申请记录
         Application application = new Application();
         application.setJobId(jobId);
         application.setStudentId(studentId);
+        application.setResumeId(resumeId);
         application.setStatus("submitted");
         application.setAppliedAt(LocalDateTime.now());
         

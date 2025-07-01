@@ -117,6 +117,7 @@ public class SecurityConfig {
                     .requestMatchers("/ws/**").permitAll()
                     // 资源共享中心公开接口
                     .requestMatchers("/v1/resources", "/v1/resources/{id}").permitAll()
+                    .requestMatchers("/v1/dual-courses").permitAll()
                     // 聊天接口需要认证
                     .requestMatchers("/v1/chat/**").authenticated()
                     // 静态资源访问

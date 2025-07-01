@@ -55,7 +55,7 @@ app:
   upload:
     dir: upload
     max-size: 10485760  # 10MB
-  base-url: http://192.168.58.154:8081
+  base-url: http://192.168.1.2:8081
 
 # SpringDoc配置
 springdoc:
@@ -83,7 +83,6 @@ springdoc:
     - /v1/mentors/**
     - /v1/admin/job-categories/**
     - /v1/job-categories/**
-    - /v1/admin/users/**
     - /v1/enterprise-admin/**
     - /v1/school-admin/**
     - /v1/resources/**
@@ -96,6 +95,10 @@ springdoc:
     - /v1/resumes/**
     - /v1/me/resume/**
     - /v1/me/resumes/**
+    - /v1/dual-courses/**
+    - /v1/dual-courses/enrollment/**
+    - /v1/course-resources/**
+    - /v1/course-ratings/**
 
   default-flat-param-object: true
   # API分组配置
@@ -161,6 +164,13 @@ springdoc:
         - /v1/me/resumes/**
       packages-to-scan: com.csu.unicorp.controller
       description: "提供简历的创建、查询、更新和删除功能"
+    - group: '双师课堂'
+      paths-to-match:
+        - /v1/dual-courses/**
+        - /v1/course-resources/**
+        - /v1/course-ratings/**
+      packages-to-scan: com.csu.unicorp.controller
+      description: "提供双师课堂的创建、查询、报名等功能，支持教师、企业导师、学生等角色的课程管理，包括课程资源管理和评价系统"
 
 
 # MyBatis-Plus 相关配置
