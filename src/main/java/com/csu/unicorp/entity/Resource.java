@@ -1,15 +1,16 @@
 package com.csu.unicorp.entity;
 
+import java.time.LocalDateTime;
+
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
-import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 共享资源实体类，对应resources表
@@ -42,7 +43,7 @@ public class Resource {
     private String description;
     
     /**
-     * 资源类型，如document、video、equipment
+     * 资源类型，如document、video、equipment、patent、copyright
      */
     private String resourceType;
     
@@ -50,6 +51,11 @@ public class Resource {
      * 文件URL
      */
     private String fileUrl;
+    
+    /**
+     * 图片URL（用于专利、著作权等类型资源的图片展示）
+     */
+    private String imageUrl;
     
     /**
      * 可见性，枚举值：public, private, organization_only

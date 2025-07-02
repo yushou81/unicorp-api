@@ -15,8 +15,8 @@ public class BookingReviewDTO {
     private Integer bookingId;
     
     @NotBlank(message = "审核结果不能为空")
-    private String status; // APPROVED 或 REJECTED
+    private String approve; // APPROVED 或 REJECTED
     
     @Size(max = 500, message = "拒绝原因不能超过500个字符")
-    private String rejectReason; // 当status为REJECTED时必填
+    private String rejectReason; // 当approve为REJECTED时必填
 } 

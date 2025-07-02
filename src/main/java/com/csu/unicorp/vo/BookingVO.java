@@ -12,9 +12,9 @@ public class BookingVO {
     
     private Integer id;
     
-    private Integer equipmentId;
+    private Integer resourceId;
     
-    private String equipmentName;
+    private String resourceTitle;
     
     private Integer userId;
     

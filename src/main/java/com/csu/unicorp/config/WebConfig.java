@@ -1,5 +1,8 @@
 package com.csu.unicorp.config;
 
+import java.nio.file.Paths;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,20 +12,25 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.nio.file.Paths;
-import java.util.List;
+import com.csu.unicorp.interceptor.ResourceImageInterceptor;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Web配置类
  */
 @Configuration
+@RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
     
     @Value("${app.upload.dir:upload}")
     private String uploadDir;
+    
+    private final ResourceImageInterceptor resourceImageInterceptor;
     
     /**
      * 配置MultipartResolver用于处理文件上传
@@ -42,6 +50,16 @@ public class WebConfig implements WebMvcConfigurer {
         System.out.println("静态资源映射: /api/v1/files/** -> file:" + uploadPath + "/");
         registry.addResourceHandler("/v1/files/**")
                 .addResourceLocations("file:" + uploadPath + "/");
+    }
+    
+    /**
+     * 添加拦截器
+     */
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        // 添加资源图片拦截器，检查访问权限
+        registry.addInterceptor(resourceImageInterceptor)
+                .addPathPatterns("/v1/files/resource_images/**");
     }
     
     /**
