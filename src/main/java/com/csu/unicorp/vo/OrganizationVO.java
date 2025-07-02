@@ -52,6 +52,14 @@ public class OrganizationVO {
      */
     @Schema(description = "组织地址")
     private String address;
+
+    /**
+     * 管理员邮箱
+     */
+    @Schema(description = "管理员邮箱")
+    private String adminEmail;
+    
+    
     
     /**
      * 将Organization实体转换为OrganizationVO

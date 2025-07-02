@@ -44,6 +44,15 @@ public interface CourseEnrollmentMapper extends BaseMapper<CourseEnrollment> {
     Integer countEnrollmentsByCourseId(@Param("courseId") Integer courseId);
     
     /**
+     * 查询课程的已注册学生数量
+     * 
+     * @param courseId 课程ID
+     * @return 已注册学生数量
+     */
+    @Select("SELECT COUNT(*) FROM course_enrollments WHERE course_id = #{courseId} AND status = 'enrolled' AND is_deleted = 0")
+    Integer countEnrolledStudents(@Param("courseId") Integer courseId);
+    
+    /**
      * 查询学生是否已报名该课程
      * 
      * @param courseId 课程ID

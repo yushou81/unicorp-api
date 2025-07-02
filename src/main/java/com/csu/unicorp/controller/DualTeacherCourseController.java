@@ -6,6 +6,7 @@ import com.csu.unicorp.dto.DualTeacherCourseDTO;
 import com.csu.unicorp.service.DualTeacherCourseService;
 import com.csu.unicorp.vo.DualTeacherCourseVO;
 import com.csu.unicorp.vo.ResultVO;
+import com.csu.unicorp.vo.UserVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,6 +20,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 双师课堂控制器
@@ -289,5 +292,29 @@ public class DualTeacherCourseController {
             @AuthenticationPrincipal UserDetails userDetails) {
         courseService.updateEnrollmentStatus(enrollmentId, status, userDetails);
         return ResultVO.success("选课状态更新成功");
+    }
+
+    /**
+     * 获取课程学生列表
+     */
+    @Operation(summary = "获取课程学生列表", description = "获取指定课程ID的已报名学生列表，需要教师或管理员权限")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取学生列表成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "400", description = "权限不足", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "404", description = "课程不存在", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @GetMapping("/{id}/students")
+    @PreAuthorize("hasAnyRole('TEACHER', 'EN_TEACHER', 'SCH_ADMIN')")
+    public ResultVO<List<UserVO>> getCourseStudents(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        List<UserVO> students = courseService.getCourseStudents(id, userDetails);
+        return ResultVO.success("获取课程学生列表成功", students);
     }
 } 

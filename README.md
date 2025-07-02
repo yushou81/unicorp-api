@@ -184,6 +184,12 @@ unicorp-api/
 - 优化了简历与岗位申请的关联关系
 - 移除了resumes表中user_id的唯一约束，使一个用户可以拥有多份简历
 
+### 9. 用户搜索功能
+- 添加了通过电话号码或邮箱搜索用户的功能
+- 实现了基于安全认证的用户搜索接口
+- 只有已登录用户才能使用搜索功能
+- 搜索结果包含用户基本信息（不包含敏感数据）
+
 已实现API:
 1. 用户登录 - POST `/v1/auth/login`
 2. 学生注册 - POST `/v1/auth/register/student`
@@ -238,3 +244,4 @@ unicorp-api/
 51. 获取课程评价列表 - GET `/v1/course-ratings/course/{courseId}`
 52. 获取课程平均评分 - GET `/v1/course-ratings/average/{courseId}`
 53. 检查学生是否已评价课程 - GET `/v1/course-ratings/check/{courseId}`
+54. 搜索用户 - GET `/v1/auth/search`

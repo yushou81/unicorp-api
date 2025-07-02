@@ -17,6 +17,7 @@ import com.csu.unicorp.service.DualTeacherCourseService;
 import com.csu.unicorp.service.OrganizationService;
 import com.csu.unicorp.service.UserService;
 import com.csu.unicorp.vo.DualTeacherCourseVO;
+import com.csu.unicorp.vo.UserVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -25,6 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -484,5 +487,74 @@ public class DualTeacherCourseServiceImpl implements DualTeacherCourseService {
         }
         User user = userService.getById(userId);
         return user != null ? user.getOrganizationId() : null;
+    }
+
+    @Override
+    public List<UserVO> getCourseStudents(Integer courseId, UserDetails userDetails) {
+        // 获取当前用户信息
+        User currentUser = userService.getByAccount(userDetails.getUsername());
+        if (currentUser == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 获取课程信息
+        DualTeacherCourse course = courseMapper.selectById(courseId);
+        if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
+            throw new BusinessException("课程不存在");
+        }
+        
+        // 检查用户权限
+        String role = userService.getUserRole(currentUser.getId());
+        boolean isTeacher = RoleConstants.DB_ROLE_TEACHER.equals(role) && currentUser.getId().equals(course.getTeacherId());
+        boolean isMentor = RoleConstants.DB_ROLE_ENTERPRISE_MENTOR.equals(role) && currentUser.getId().equals(course.getMentorId());
+        boolean isSchoolAdmin = RoleConstants.DB_ROLE_SCHOOL_ADMIN.equals(role) 
+                && currentUser.getOrganizationId() != null
+                && currentUser.getOrganizationId().equals(getUserOrganizationId(course.getTeacherId()));
+        
+        if (!isTeacher && !isMentor && !isSchoolAdmin) {
+            throw new BusinessException("权限不足，只有课程教师、企业导师或学校管理员可以查看学生列表");
+        }
+        
+        // 获取课程报名记录
+        // 使用无分页查询，获取所有学生
+        LambdaQueryWrapper<CourseEnrollment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CourseEnrollment::getCourseId, courseId)
+               .eq(CourseEnrollment::getStatus, "enrolled") // 只获取已报名且未取消的学生
+               .eq(CourseEnrollment::getIsDeleted, false);
+        List<CourseEnrollment> enrollments = enrollmentMapper.selectList(wrapper);
+        
+        // 根据学生ID获取学生信息
+        List<UserVO> students = new ArrayList<>();
+        for (CourseEnrollment enrollment : enrollments) {
+            User student = userService.getById(enrollment.getStudentId());
+            if (student != null) {
+                // 转换为UserVO
+                UserVO studentVO = new UserVO();
+                studentVO.setId(student.getId());
+                studentVO.setAccount(student.getAccount());
+                studentVO.setNickname(student.getNickname());
+                studentVO.setEmail(student.getEmail());
+                studentVO.setPhone(student.getPhone());
+                studentVO.setAvatar(student.getAvatar());
+                studentVO.setStatus(student.getStatus());
+                studentVO.setOrganizationId(student.getOrganizationId());
+                
+                // 获取学生角色
+                String studentRole = userService.getUserRole(student.getId());
+                studentVO.setRole(studentRole);
+                
+                // 获取组织名称
+                if (student.getOrganizationId() != null) {
+                    Organization organization = organizationService.getById(student.getOrganizationId());
+                    if (organization != null) {
+                        studentVO.setOrganizationName(organization.getOrganizationName());
+                    }
+                }
+                
+                students.add(studentVO);
+            }
+        }
+        
+        return students;
     }
 } 

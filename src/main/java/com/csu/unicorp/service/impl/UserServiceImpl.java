@@ -856,4 +856,25 @@ public class UserServiceImpl implements UserService {
         
         return userVO;
     }
+
+    @Override
+    public UserVO searchUserByPhoneOrEmail(String keyword) {
+        User user = null;
+        
+        // 尝试通过手机号查找
+        user = userMapper.selectByPhone(keyword);
+        
+        // 如果通过手机号未找到，尝试通过邮箱查找
+        if (user == null) {
+            user = userMapper.selectByEmail(keyword);
+        }
+        
+        // 如果找不到用户，抛出异常
+        if (user == null) {
+            throw new BusinessException("未找到匹配的用户");
+        }
+        
+        // 转换为VO并返回
+        return convertToVO(user);
+    }
 }
