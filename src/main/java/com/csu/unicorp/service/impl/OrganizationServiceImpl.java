@@ -139,8 +139,9 @@ public class OrganizationServiceImpl implements OrganizationService {
         
         // 分配学校管理员角色
         roleService.assignRoleToUser(admin.getId(), RoleConstants.DB_ROLE_STUDENT);
-        
-        return convertToVO(organization);
+        OrganizationVO organizationVO = convertToVO(organization);
+        organizationVO.setAdminEmail(schoolCreationDTO.getAdminEmail());
+        return organizationVO;
     }
     
     @Override

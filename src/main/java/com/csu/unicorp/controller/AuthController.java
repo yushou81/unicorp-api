@@ -10,6 +10,7 @@ import com.csu.unicorp.vo.ResultVO;
 import com.csu.unicorp.vo.TokenVO;
 import com.csu.unicorp.vo.UserVO;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -163,5 +164,35 @@ public class AuthController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UserVO updatedUser = userService.updateAvatar(file, userDetails);
         return ResultVO.success("头像上传成功", updatedUser);
+    }
+    
+    /**
+     * 搜索用户
+     */
+    @Operation(summary = "搜索用户", description = "通过电话号码或邮箱搜索用户")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "查找用户成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "400", description = "未找到匹配的用户"),
+        @ApiResponse(responseCode = "401", description = "未授权")
+    })
+    @GetMapping("/search")
+    public ResultVO<UserVO> searchUser(
+            @RequestParam @Parameter(description = "搜索关键词（电话号码或邮箱）") String keyword,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        // 用户需要登录才能搜索
+        if (userDetails == null) {
+            return ResultVO.error("请先登录");
+        }
+        
+        // 调用service进行搜索
+        try {
+            UserVO user = userService.searchUserByPhoneOrEmail(keyword);
+            return ResultVO.success("查找用户成功", user);
+        } catch (Exception e) {
+            return ResultVO.error(e.getMessage());
+        }
     }
 } 

@@ -1,5 +1,6 @@
 package com.csu.unicorp.service.impl;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,6 +9,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.csu.unicorp.service.FileService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +40,7 @@ public class ChatServiceImpl implements ChatService {
     private final ChatSessionMapper chatSessionMapper;
     private final ChatMessageMapper chatMessageMapper;
     private final UserMapper userMapper;
+    private final FileService fileService;
     
     @Override
     public List<ChatSessionVO> getUserSessions(Long userId) {
@@ -75,7 +78,8 @@ public class ChatServiceImpl implements ChatService {
             if (otherUser != null) {
                 vo.setUserId(otherUserId);
                 vo.setUserName(otherUser.getNickname());
-                vo.setUserAvatar(otherUser.getAvatar());
+                String avatar = fileService.getFullFileUrl(otherUser.getAvatar());
+                vo.setUserAvatar(avatar);
             }
             
             // 获取最近一条消息

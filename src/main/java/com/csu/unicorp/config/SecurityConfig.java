@@ -92,6 +92,8 @@ public class SecurityConfig {
                     .requestMatchers("/v1/dual-courses").permitAll()
                     .requestMatchers("/v1/dual-courses/{id}").permitAll()
                     .requestMatchers("/v1/dual-courses/enrollable").permitAll()
+                    // 双师课堂需要认证的接口
+                    .requestMatchers("/v1/dual-courses/{id}/students").authenticated()
                     // 课程评价公开接口
                     .requestMatchers("/v1/course-ratings/course/{courseId}").permitAll()
                     .requestMatchers("/v1/course-ratings/{ratingId}").permitAll()
@@ -101,11 +103,12 @@ public class SecurityConfig {
                     .requestMatchers("/v1/course-resources/course/{courseId}").permitAll()
                     .requestMatchers("/v1/course-resources/download/{resourceId}").permitAll()
                     .requestMatchers("/v1/equipments", "/v1/equipments/{id}").permitAll()
+                    // 用户搜索接口需要认证
+                    .requestMatchers("/v1/auth/search").authenticated()
                     // 聊天接口需要认证
                     .requestMatchers("/v1/chat/**").authenticated()
                     // 静态资源访问
                     .requestMatchers("/files/**").permitAll()
-                    .requestMatchers("/v1/chat/**").authenticated()
                     // Swagger UI and API docs
                     .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     // 管理接口需要SYSADMIN权限

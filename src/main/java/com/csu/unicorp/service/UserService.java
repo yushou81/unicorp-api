@@ -228,4 +228,12 @@ public interface UserService {
      * @return 默认头像的相对路径
      */
     String assignDefaultAvatar();
+    
+    /**
+     * 通过电话号码或邮箱搜索用户
+     * 
+     * @param keyword 搜索关键词（电话号码或邮箱）
+     * @return 用户信息
+     */
+    UserVO searchUserByPhoneOrEmail(String keyword);
 } 
