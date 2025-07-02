@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,6 +24,7 @@ import java.util.List;
 /**
  * 课程章节控制器
  */
+@Slf4j
 @RestController
 @RequestMapping("/v1/course-chapters")
 @RequiredArgsConstructor
@@ -44,10 +46,11 @@ public class CourseChapterController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN')")
     public ResultVO<CourseChapterVO> createChapter(
             @RequestBody @Valid CourseChapterDTO chapterDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
+        log.info("创建课程章节：{}", chapterDTO);
         return ResultVO.success("章节创建成功", chapterService.createChapter(chapterDTO, userDetails));
     }
 
@@ -88,7 +91,7 @@ public class CourseChapterController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN')")
     public ResultVO<Boolean> deleteChapter(
             @PathVariable @Parameter(description = "章节ID") Integer id,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -140,7 +143,7 @@ public class CourseChapterController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN')")
     public ResultVO<CourseChapterVO> updatePublishStatus(
             @PathVariable @Parameter(description = "章节ID") Integer id,
             @RequestParam @Parameter(description = "是否发布") Boolean isPublished,
@@ -161,7 +164,7 @@ public class CourseChapterController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN')")
     public ResultVO<Boolean> updateSequence(
             @PathVariable @Parameter(description = "章节ID") Integer id,
             @RequestParam @Parameter(description = "顺序") Integer sequence,
@@ -182,7 +185,7 @@ public class CourseChapterController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN')")
     public ResultVO<Boolean> associateResource(
             @PathVariable @Parameter(description = "章节ID") Integer id,
             @PathVariable @Parameter(description = "资源ID") Integer resourceId,
@@ -203,7 +206,7 @@ public class CourseChapterController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN')")
     public ResultVO<Boolean> removeResource(
             @PathVariable @Parameter(description = "章节ID") Integer id,
             @PathVariable @Parameter(description = "资源ID") Integer resourceId,

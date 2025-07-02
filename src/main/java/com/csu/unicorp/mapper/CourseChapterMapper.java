@@ -47,4 +47,20 @@ public interface CourseChapterMapper extends BaseMapper<CourseChapter> {
      */
     @Update("UPDATE course_chapters SET sequence = #{sequence} WHERE id = #{chapterId}")
     int updateChapterSequence(@Param("chapterId") Integer chapterId, @Param("sequence") Integer sequence);
+    
+    /**
+     * 统计已完成该章节的学生人数
+     * @param chapterId 章节ID
+     * @return 完成人数
+     */
+    @Select("SELECT COUNT(*) FROM learning_progress WHERE chapter_id = #{chapterId} AND status = 'completed'")
+    Integer countStudentsCompletedChapter(@Param("chapterId") Integer chapterId);
+    
+    /**
+     * 统计课程的总学生人数（已报名人数）
+     * @param courseId 课程ID
+     * @return 学生总数
+     */
+    @Select("SELECT COUNT(*) FROM course_enrollments WHERE course_id = #{courseId} AND status = 'enrolled'")
+    Integer countStudentsInCourse(@Param("courseId") Integer courseId);
 } 

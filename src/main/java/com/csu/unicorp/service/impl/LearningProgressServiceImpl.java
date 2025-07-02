@@ -3,16 +3,20 @@ package com.csu.unicorp.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.csu.unicorp.common.exception.LearningProgressException;
+import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.dto.LearningProgressDTO;
 import com.csu.unicorp.entity.course.CourseChapter;
 import com.csu.unicorp.entity.course.CourseEnrollment;
 import com.csu.unicorp.entity.DualTeacherCourse;
 import com.csu.unicorp.entity.course.LearningProgress;
+import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.CourseChapterMapper;
 import com.csu.unicorp.mapper.CourseEnrollmentMapper;
 import com.csu.unicorp.mapper.DualTeacherCourseMapper;
 import com.csu.unicorp.mapper.LearningProgressMapper;
 import com.csu.unicorp.service.LearningProgressService;
+import com.csu.unicorp.service.UserService;
 import com.csu.unicorp.vo.LearningProgressVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -22,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +43,7 @@ public class LearningProgressServiceImpl implements LearningProgressService {
     private final CourseChapterMapper chapterMapper;
     private final DualTeacherCourseMapper courseMapper;
     private final CourseEnrollmentMapper enrollmentMapper;
+    private final UserService userService;
 
     @Override
     @Transactional
@@ -45,7 +51,7 @@ public class LearningProgressServiceImpl implements LearningProgressService {
         // 验证章节是否存在
         CourseChapter chapter = chapterMapper.selectById(progressDTO.getChapterId());
         if (chapter == null || Boolean.TRUE.equals(chapter.getIsDeleted())) {
-            throw new RuntimeException("章节不存在");
+            throw new LearningProgressException("章节不存在");
         }
 
         // 获取当前用户ID
@@ -94,7 +100,21 @@ public class LearningProgressServiceImpl implements LearningProgressService {
         // 验证章节是否存在
         CourseChapter chapter = chapterMapper.selectById(chapterId);
         if (chapter == null || Boolean.TRUE.equals(chapter.getIsDeleted())) {
-            throw new RuntimeException("章节不存在");
+            throw new LearningProgressException("章节不存在");
+        }
+        
+        // 如果不是教师或管理员，验证学生是否已报名该课程
+        if (!hasTeacherOrAdminRole(userDetails)) {
+            LambdaQueryWrapper<CourseEnrollment> enrollmentQuery = new LambdaQueryWrapper<>();
+            enrollmentQuery.eq(CourseEnrollment::getCourseId, chapter.getCourseId())
+                    .eq(CourseEnrollment::getStudentId, studentId)
+                    .eq(CourseEnrollment::getStatus, "enrolled")
+                    .eq(CourseEnrollment::getIsDeleted, false);
+            
+            Long enrollmentCount = enrollmentMapper.selectCount(enrollmentQuery);
+            if (enrollmentCount == 0) {
+                throw new LearningProgressException("学生未报名该课程，无法查看学习进度");
+            }
         }
 
         // 查询进度记录
@@ -123,17 +143,42 @@ public class LearningProgressServiceImpl implements LearningProgressService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(courseId);
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new LearningProgressException("课程不存在");
+        }
+        
+        // 如果不是教师或管理员，验证学生是否已报名该课程
+        if (!hasTeacherOrAdminRole(userDetails)) {
+            LambdaQueryWrapper<CourseEnrollment> enrollmentQuery = new LambdaQueryWrapper<>();
+            enrollmentQuery.eq(CourseEnrollment::getCourseId, courseId)
+                    .eq(CourseEnrollment::getStudentId, studentId)
+                    .eq(CourseEnrollment::getStatus, "enrolled")
+                    .eq(CourseEnrollment::getIsDeleted, false);
+            
+            Long enrollmentCount = enrollmentMapper.selectCount(enrollmentQuery);
+            if (enrollmentCount == 0) {
+                throw new LearningProgressException("学生未报名该课程，无法查看学习进度");
+            }
         }
 
         // 获取课程的所有章节
         List<CourseChapter> chapters = chapterMapper.selectChaptersByCourseId(courseId);
         
+        // 如果课程没有章节，直接返回空列表
+        if (chapters == null || chapters.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
         // 获取学生在这些章节中的进度
-        List<LearningProgress> progressList = progressMapper.selectProgressByStudentAndChapters(
-                studentId, 
-                chapters.stream().map(CourseChapter::getId).collect(Collectors.toList())
-        );
+        List<Integer> chapterIds = chapters.stream().map(CourseChapter::getId).collect(Collectors.toList());
+        List<LearningProgress> progressList;
+        
+        // 使用适当的查询方法获取学习进度
+        if (!chapterIds.isEmpty()) {
+            progressList = progressMapper.selectProgressByStudentAndChapters(studentId, chapterIds);
+        } else {
+            // 如果没有章节，返回空列表
+            progressList = new ArrayList<>();
+        }
         
         // 转换为VO并返回
         return progressList.stream().map(this::convertToVO).collect(Collectors.toList());
@@ -144,7 +189,7 @@ public class LearningProgressServiceImpl implements LearningProgressService {
         // 验证章节是否存在
         CourseChapter chapter = chapterMapper.selectById(chapterId);
         if (chapter == null || Boolean.TRUE.equals(chapter.getIsDeleted())) {
-            throw new RuntimeException("章节不存在");
+            throw new LearningProgressException("章节不存在");
         }
 
         // 分页查询章节的学生进度
@@ -160,7 +205,7 @@ public class LearningProgressServiceImpl implements LearningProgressService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(courseId);
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new LearningProgressException("课程不存在");
         }
 
         // 获取课程统计数据
@@ -199,7 +244,7 @@ public class LearningProgressServiceImpl implements LearningProgressService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(courseId);
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new LearningProgressException("课程不存在");
         }
 
         // 获取课程的所有章节数量
@@ -229,12 +274,12 @@ public class LearningProgressServiceImpl implements LearningProgressService {
         // 验证章节是否存在
         CourseChapter chapter = chapterMapper.selectById(chapterId);
         if (chapter == null || Boolean.TRUE.equals(chapter.getIsDeleted())) {
-            throw new RuntimeException("章节不存在");
+            throw new LearningProgressException("章节不存在");
         }
 
         // 验证用户权限
         if (!hasTeacherOrAdminRole(userDetails)) {
-            throw new RuntimeException("无权操作");
+            throw new LearningProgressException("无权操作");
         }
 
         // 获取课程已报名的学生
@@ -289,6 +334,26 @@ public class LearningProgressServiceImpl implements LearningProgressService {
     private LearningProgressVO convertToVO(LearningProgress progress) {
         LearningProgressVO vo = new LearningProgressVO();
         BeanUtils.copyProperties(progress, vo);
+        
+        // 获取学生信息
+        User student = userService.getById(progress.getStudentId());
+        if (student != null) {
+            vo.setStudentName(student.getNickname());
+        }
+        
+        // 获取章节信息
+        CourseChapter chapter = chapterMapper.selectById(progress.getChapterId());
+        if (chapter != null) {
+            vo.setChapterTitle(chapter.getTitle());
+            vo.setCourseId(chapter.getCourseId());
+            
+            // 获取课程信息
+            DualTeacherCourse course = courseMapper.selectById(chapter.getCourseId());
+            if (course != null) {
+                vo.setCourseTitle(course.getTitle());
+            }
+        }
+        
         return vo;
     }
 } 

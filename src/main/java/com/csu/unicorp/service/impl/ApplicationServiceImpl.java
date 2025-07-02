@@ -131,7 +131,18 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     @Override
     public IPage<MyApplicationDetailVO> pageStudentApplications(Integer studentId, int page, int size) {
         Page<MyApplicationDetailVO> pageParam = new Page<>(page, size);
-        return applicationMapper.pageApplicationsByStudentId(pageParam, studentId);
+        IPage<MyApplicationDetailVO> applications = applicationMapper.pageApplicationsByStudentId(pageParam, studentId);
+        
+        // 由于修改了SQL别名为jobInfo.xxxx的格式，MyBatis应该已经自动处理了嵌套对象
+        // 不过我们还是检查一下，确保每个记录都有jobInfo对象
+        applications.getRecords().forEach(app -> {
+            if (app.getJobInfo() == null) {
+                app.setJobInfo(new MyApplicationDetailVO.JobInfoVO());
+            }
+        });
+        
+        log.info("获取我的申请列表成功:{}", applications);
+        return applications;
     }
     
     /**

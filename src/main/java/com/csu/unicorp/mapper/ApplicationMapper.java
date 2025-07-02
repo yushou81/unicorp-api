@@ -44,7 +44,7 @@ public interface ApplicationMapper extends BaseMapper<Application> {
      */
     @Select({
             "SELECT a.id as application_id, a.resume_id, a.status, a.applied_at, ",
-            "j.id as job_id, j.title as job_title, o.organization_name ",
+            "j.id as 'jobInfo.jobId', j.title as 'jobInfo.jobTitle', o.organization_name as 'jobInfo.organizationName' ",
             "FROM applications a ",
             "LEFT JOIN jobs j ON a.job_id = j.id ",
             "LEFT JOIN organizations o ON j.organization_id = o.id ",

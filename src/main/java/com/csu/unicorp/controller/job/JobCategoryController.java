@@ -1,4 +1,4 @@
-package com.csu.unicorp.controller;
+package com.csu.unicorp.controller.job;
 
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.dto.job.JobCategoryCreationDTO;

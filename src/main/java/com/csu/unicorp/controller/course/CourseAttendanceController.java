@@ -48,7 +48,7 @@ public class CourseAttendanceController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN')")
     public ResultVO<Boolean> recordAttendance(
             @RequestBody @Valid CourseAttendanceDTO attendanceDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -65,7 +65,7 @@ public class CourseAttendanceController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'MENTOR')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN', 'EN_TEACHER')")
     public ResultVO<List<CourseAttendanceVO>> getCourseAttendanceByDate(
             @PathVariable @Parameter(description = "课程ID") Integer courseId,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @Parameter(description = "日期") LocalDate date,
@@ -100,7 +100,7 @@ public class CourseAttendanceController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'MENTOR')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN', 'EN_TEACHER')")
     public ResultVO<IPage<LocalDate>> getCourseAttendanceDates(
             @PathVariable @Parameter(description = "课程ID") Integer courseId,
             @RequestParam(defaultValue = "1") @Parameter(description = "页码") Integer page,
@@ -122,7 +122,7 @@ public class CourseAttendanceController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN')")
     public ResultVO<CourseAttendanceVO> updateAttendance(
             @PathVariable @Parameter(description = "出勤记录ID") Integer id,
             @RequestParam @Parameter(description = "出勤状态") String status,
@@ -144,7 +144,7 @@ public class CourseAttendanceController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN')")
     public ResultVO<Boolean> deleteAttendance(
             @PathVariable @Parameter(description = "出勤记录ID") Integer id,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -192,7 +192,7 @@ public class CourseAttendanceController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'MENTOR')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN', 'EN_TEACHER')")
     public ResultVO<Map<String, Object>> getAttendanceStatistics(
             @PathVariable @Parameter(description = "课程ID") Integer courseId,
             @AuthenticationPrincipal UserDetails userDetails) {

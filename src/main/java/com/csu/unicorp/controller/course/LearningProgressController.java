@@ -75,6 +75,9 @@ public class LearningProgressController {
             @ApiResponse(responseCode = "200", description = "获取成功",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class))),
+            @ApiResponse(responseCode = "400", description = "学生未报名该课程或参数错误",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ResultVO.class))),
             @ApiResponse(responseCode = "404", description = "课程或学生不存在",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
@@ -96,7 +99,7 @@ public class LearningProgressController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'MENTOR')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN', 'EN_TEACHER')")
     public ResultVO<IPage<LearningProgressVO>> getChapterStudentProgress(
             @PathVariable @Parameter(description = "章节ID") Integer chapterId,
             @RequestParam(defaultValue = "1") @Parameter(description = "页码") Integer page,
@@ -115,7 +118,7 @@ public class LearningProgressController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'MENTOR')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN', 'EN_TEACHER')")
     public ResultVO<Map<String, Object>> getCourseProgressOverview(
             @PathVariable @Parameter(description = "课程ID") Integer courseId,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -152,7 +155,7 @@ public class LearningProgressController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN')")
     public ResultVO<Boolean> initializeChapterProgress(
             @PathVariable @Parameter(description = "章节ID") Integer chapterId,
             @AuthenticationPrincipal UserDetails userDetails) {
