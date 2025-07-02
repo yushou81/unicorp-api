@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 /**
  * JWT令牌视图对象
  */
@@ -39,4 +41,28 @@ public class TokenVO {
      */
     @Schema(description = "用户头像URL")
     private String avatar;
+
+    /**
+     * 用户ID
+     */
+    @Schema(description = "用户ID")
+    private Integer id;
+
+    /**
+     * 用户状态
+     */
+    @Schema(description = "用户状态")
+    private String status;
+
+    /**
+     * 创建时间
+     */
+    @Schema(description = "创建时间")
+    private LocalDateTime createdAt;
+
+    /**
+     * 更新时间
+     */
+    @Schema(description = "更新时间")
+    private LocalDateTime updatedAt;
 } 

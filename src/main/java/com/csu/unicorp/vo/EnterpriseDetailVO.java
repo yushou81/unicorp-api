@@ -1,6 +1,6 @@
 package com.csu.unicorp.vo;
 
-import com.csu.unicorp.entity.EnterpriseDetail;
+import com.csu.unicorp.entity.organization.EnterpriseDetail;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

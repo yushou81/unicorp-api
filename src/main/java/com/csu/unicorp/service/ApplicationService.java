@@ -3,7 +3,7 @@ package com.csu.unicorp.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.csu.unicorp.dto.ApplicationStatusUpdateDTO;
-import com.csu.unicorp.entity.Application;
+import com.csu.unicorp.entity.job.Application;
 import com.csu.unicorp.vo.ApplicationDetailVO;
 import com.csu.unicorp.vo.MyApplicationDetailVO;
 

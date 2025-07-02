@@ -16,7 +16,7 @@ import com.csu.unicorp.common.constants.VisibilityEnum;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.dto.ResourceCreationDTO;
 import com.csu.unicorp.entity.Resource;
-import com.csu.unicorp.entity.User;
+import com.csu.unicorp.entity.user.User;
 import com.csu.unicorp.mapper.ResourceMapper;
 import com.csu.unicorp.service.ResourceService;
 import com.csu.unicorp.service.UserService;

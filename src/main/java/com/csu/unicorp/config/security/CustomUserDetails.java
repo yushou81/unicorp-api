@@ -1,6 +1,6 @@
 package com.csu.unicorp.config.security;
 
-import com.csu.unicorp.entity.User;
+import com.csu.unicorp.entity.user.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 自定义UserDetails实现，包装User实体类用于Spring Security认证

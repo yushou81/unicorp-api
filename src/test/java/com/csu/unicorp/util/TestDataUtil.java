@@ -1,8 +1,8 @@
 package com.csu.unicorp.util;
 
-import com.csu.unicorp.entity.Organization;
-import com.csu.unicorp.entity.User;
-import com.csu.unicorp.entity.UserRole;
+import com.csu.unicorp.entity.organization.Organization;
+import com.csu.unicorp.entity.user.User;
+import com.csu.unicorp.entity.user.UserRole;
 import com.csu.unicorp.mapper.OrganizationMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.mapper.UserRoleMapper;

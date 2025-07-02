@@ -3,12 +3,9 @@ package com.csu.unicorp.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.csu.unicorp.dto.JobCreationDTO;
-import com.csu.unicorp.entity.Job;
-import com.csu.unicorp.vo.JobCategoryVO;
+import com.csu.unicorp.entity.job.Job;
 import com.csu.unicorp.vo.JobVO;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.List;
 
 /**
  * 岗位服务接口

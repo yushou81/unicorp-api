@@ -1,7 +1,7 @@
 package com.csu.unicorp.service;
 
-import com.csu.unicorp.entity.EnterpriseDetail;
-import com.csu.unicorp.entity.Organization;
+import com.csu.unicorp.entity.organization.EnterpriseDetail;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.vo.OrganizationVO;
 
 /**

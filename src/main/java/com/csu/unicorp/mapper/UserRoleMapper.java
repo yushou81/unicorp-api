@@ -1,7 +1,7 @@
 package com.csu.unicorp.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.csu.unicorp.entity.UserRole;
+import com.csu.unicorp.entity.user.UserRole;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

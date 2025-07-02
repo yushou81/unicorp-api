@@ -1,7 +1,7 @@
 package com.csu.unicorp.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.csu.unicorp.entity.EnterpriseDetail;
+import com.csu.unicorp.entity.organization.EnterpriseDetail;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

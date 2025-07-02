@@ -1,8 +1,7 @@
 package com.csu.unicorp.service;
 
 import com.csu.unicorp.dto.SchoolCreationDTO;
-import com.csu.unicorp.entity.Organization;
-import com.csu.unicorp.vo.OrganizationSimpleVO;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.vo.OrganizationVO;
 import org.springframework.web.multipart.MultipartFile;
 

@@ -1,6 +1,6 @@
 package com.csu.unicorp.service;
 
-import com.csu.unicorp.entity.Role;
+import com.csu.unicorp.entity.user.Role;
 
 /**
  * 角色服务接口

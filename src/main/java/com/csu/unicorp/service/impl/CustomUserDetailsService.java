@@ -1,15 +1,13 @@
 package com.csu.unicorp.service.impl;
 
 import com.csu.unicorp.config.security.CustomUserDetails;
-import com.csu.unicorp.entity.User;
+import com.csu.unicorp.entity.user.User;
 import com.csu.unicorp.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * 自定义用户详情服务实现

@@ -1,7 +1,7 @@
 package com.csu.unicorp.service.impl;
 
 import com.csu.unicorp.config.security.CustomUserDetails;
-import com.csu.unicorp.entity.User;
+import com.csu.unicorp.entity.user.User;
 import com.csu.unicorp.mapper.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,6 @@ import org.springframework.test.context.ActiveProfiles;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest

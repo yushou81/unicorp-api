@@ -9,13 +9,11 @@ import com.csu.unicorp.dto.PasswordUpdateDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
 import com.csu.unicorp.dto.UserProfileUpdateDTO;
 import com.csu.unicorp.dto.UserUpdateDTO;
-import com.csu.unicorp.entity.User;
+import com.csu.unicorp.entity.user.User;
 import com.csu.unicorp.vo.TokenVO;
 import com.csu.unicorp.vo.UserVO;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 /**
  * 用户服务接口

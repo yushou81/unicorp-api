@@ -5,27 +5,27 @@ package com.csu.unicorp.common.constants;
  * 定义系统中所有角色的常量，避免硬编码
  */
 public class RoleConstants {
-    
+
     /**
      * 数据库中的角色名称
      */
     public static final String DB_ROLE_STUDENT = "STUDENT";
     public static final String DB_ROLE_TEACHER = "TEACHER";
-    public static final String DB_ROLE_SCHOOL_ADMIN = "SCH_ADMIN";
-    public static final String DB_ROLE_ENTERPRISE_ADMIN = "EN_ADMIN";
-    public static final String DB_ROLE_ENTERPRISE_MENTOR = "EN_TEACHER";
+    public static final String DB_ROLE_SCHOOL_ADMIN = "SCHOOL_ADMIN";
+    public static final String DB_ROLE_ENTERPRISE_ADMIN = "ENTERPRISE_ADMIN";
+    public static final String DB_ROLE_ENTERPRISE_MENTOR = "MENTOR";
     public static final String DB_ROLE_SYSTEM_ADMIN = "SYSADMIN";
-    
+
     /**
      * Spring Security中使用的角色名称（会自动添加ROLE_前缀）
      */
     public static final String ROLE_STUDENT = "STUDENT";
     public static final String ROLE_TEACHER = "TEACHER";
-    public static final String ROLE_SCHOOL_ADMIN = "SCH_ADMIN";
-    public static final String ROLE_ENTERPRISE_ADMIN = "EN_ADMIN";
-    public static final String ROLE_ENTERPRISE_MENTOR = "EN_TEACHER";
+    public static final String ROLE_SCHOOL_ADMIN = "SCHOOL_ADMIN";
+    public static final String ROLE_ENTERPRISE_ADMIN = "ENTERPRISE_ADMIN";
+    public static final String ROLE_ENTERPRISE_MENTOR = "MENTOR";
     public static final String ROLE_SYSTEM_ADMIN = "SYSADMIN";
-    
+
     /**
      * 中文角色名称（用于显示）
      */

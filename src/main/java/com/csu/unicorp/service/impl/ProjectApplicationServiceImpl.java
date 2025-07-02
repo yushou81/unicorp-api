@@ -10,7 +10,7 @@ import com.csu.unicorp.dto.ProjectApplicationStatusUpdateDTO;
 import com.csu.unicorp.entity.Project;
 import com.csu.unicorp.entity.ProjectApplication;
 import com.csu.unicorp.entity.ProjectMember;
-import com.csu.unicorp.entity.User;
+import com.csu.unicorp.entity.user.User;
 import com.csu.unicorp.mapper.ProjectApplicationMapper;
 import com.csu.unicorp.mapper.ProjectMapper;
 import com.csu.unicorp.mapper.ProjectMemberMapper;
@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;

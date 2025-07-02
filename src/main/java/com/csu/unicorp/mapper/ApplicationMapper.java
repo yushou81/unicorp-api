@@ -3,7 +3,7 @@ package com.csu.unicorp.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.csu.unicorp.entity.Application;
+import com.csu.unicorp.entity.job.Application;
 import com.csu.unicorp.vo.ApplicationDetailVO;
 import com.csu.unicorp.vo.MyApplicationDetailVO;
 import org.apache.ibatis.annotations.Mapper;

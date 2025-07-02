@@ -2,9 +2,9 @@ package com.csu.unicorp.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.csu.unicorp.common.exception.BusinessException;
-import com.csu.unicorp.entity.EnterpriseDetail;
-import com.csu.unicorp.entity.Organization;
-import com.csu.unicorp.entity.User;
+import com.csu.unicorp.entity.organization.EnterpriseDetail;
+import com.csu.unicorp.entity.organization.Organization;
+import com.csu.unicorp.entity.user.User;
 import com.csu.unicorp.mapper.EnterpriseDetailMapper;
 import com.csu.unicorp.mapper.OrganizationMapper;
 import com.csu.unicorp.mapper.UserMapper;

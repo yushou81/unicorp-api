@@ -1,6 +1,5 @@
 package com.csu.unicorp.service.impl;
 
-import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,7 +19,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.dto.ChatMessageDTO;
 import com.csu.unicorp.entity.ChatMessage;
 import com.csu.unicorp.entity.ChatSession;
-import com.csu.unicorp.entity.User;
+import com.csu.unicorp.entity.user.User;
 import com.csu.unicorp.mapper.ChatMessageMapper;
 import com.csu.unicorp.mapper.ChatSessionMapper;
 import com.csu.unicorp.mapper.UserMapper;

@@ -1,12 +1,10 @@
 package com.csu.unicorp.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.dto.PortfolioItemCreationDTO;
 import com.csu.unicorp.entity.PortfolioItem;
-import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.PortfolioItemMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.PortfolioService;

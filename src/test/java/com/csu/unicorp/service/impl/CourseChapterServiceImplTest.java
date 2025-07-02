@@ -1,15 +1,16 @@
 package com.csu.unicorp.service.impl;
 
 import com.csu.unicorp.dto.CourseChapterDTO;
-import com.csu.unicorp.entity.CourseChapter;
-import com.csu.unicorp.entity.CourseResource;
-import com.csu.unicorp.entity.DualTeacherCourse;
-import com.csu.unicorp.entity.User;
+import com.csu.unicorp.entity.course.CourseChapter;
+import com.csu.unicorp.entity.course.CourseResource;
+import com.csu.unicorp.entity.course.DualTeacherCourse;
+import com.csu.unicorp.entity.user.User;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.mapper.CourseChapterMapper;
 import com.csu.unicorp.mapper.CourseResourceMapper;
 import com.csu.unicorp.mapper.DualTeacherCourseMapper;
 import com.csu.unicorp.mapper.UserMapper;
+import com.csu.unicorp.service.impl.course.CourseChapterServiceImpl;
 import com.csu.unicorp.vo.CourseChapterVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
