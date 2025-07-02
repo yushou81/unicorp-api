@@ -1,7 +1,8 @@
 # 服务器相关配置
 server:
   port: 8081 # 设置应用的端口号，避免使用常见的8080以防冲突
-  address: 0.0.0.0
+  address: 0.0.0.0 # 监听所有网络接口，使应用可以在局域网中访问
+
   servlet:
     context-path: /api # 设置应用的统一访问前缀
 
@@ -56,7 +57,7 @@ app:
   upload:
     dir: upload
     max-size: 10485760  # 10MB
-  base-url: http://${server.host:localhost}:${server.port:8081}
+  base-url: http://${server.address:0.0.0.0}:${server.port:8081}
 
 # SpringDoc配置
 springdoc:

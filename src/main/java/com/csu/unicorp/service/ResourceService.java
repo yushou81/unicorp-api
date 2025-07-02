@@ -55,4 +55,12 @@ public interface ResourceService {
      * @param userDetails 当前登录用户
      */
     void deleteResource(Integer id, UserDetails userDetails);
+    
+    /**
+     * 检查用户是否有权限访问资源图片
+     * 
+     * @param filename 图片文件名
+     * @return 是否有权限访问
+     */
+    boolean checkImageAccessPermission(String filename);
 } 

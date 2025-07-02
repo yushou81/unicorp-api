@@ -14,8 +14,8 @@ import lombok.Data;
 @Data
 public class BookingCreationDTO {
     
-    @NotNull(message = "设备ID不能为空")
-    private Integer equipmentId;
+    @NotNull(message = "设备资源ID不能为空")
+    private Integer resourceId;
     
     @NotNull(message = "预约开始时间不能为空")
     @FutureOrPresent(message = "预约开始时间必须是现在或将来的时间")
