@@ -7,7 +7,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -53,10 +56,12 @@ public class FileServiceImpl implements FileService {
         
         // 确定文件存储目录
         String subDir;
-        if ("avatar".equals(type)) {
+        if ("avatars".equals(type)) {
             subDir = "avatars";
         } else if ("resume".equals(type)) {
             subDir = "resumes";
+        } else if ("logo".equals(type)) {
+            subDir = "logos";
         } else {
             // 默认为资源文件
             subDir = "resources";
@@ -96,6 +101,42 @@ public class FileServiceImpl implements FileService {
         }
         return baseUrl + "/api/v1/files/" + relativePath;
     }
+
+
+    @Override
+    public String getRandomDefaultAvatarPath() {
+        try {
+            // 默认头像目录
+            Path defaultAvatarDir = Paths.get(uploadBaseDir, "avatars/default");
+
+            // 检查目录是否存在
+            if (!Files.exists(defaultAvatarDir)) {
+                log.warn("默认头像目录不存在: {}", defaultAvatarDir);
+                return null;
+            }
+
+            // 获取所有默认头像文件
+            List<Path> avatarFiles = Files.list(defaultAvatarDir)
+                    .filter(Files::isRegularFile)
+                    .collect(Collectors.toList());
+
+            if (avatarFiles.isEmpty()) {
+                log.warn("默认头像目录为空");
+                return null;
+            }
+
+            // 随机选择一个头像
+            int randomIndex = new Random().nextInt(avatarFiles.size());
+            Path selectedAvatar = avatarFiles.get(randomIndex);
+
+            // 返回相对路径
+            return "avatars/default/" + selectedAvatar.getFileName().toString();
+        } catch (IOException e) {
+            log.error("获取随机默认头像失败", e);
+            return null;
+        }
+    }
+
     
     @Override
     public Resource loadFileAsResource(String fileUrl) {
@@ -149,5 +190,6 @@ public class FileServiceImpl implements FileService {
         }
         
         return fileName;
+
     }
 } 

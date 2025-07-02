@@ -20,7 +20,7 @@ public interface OrganizationMapper extends BaseMapper<Organization> {
      * 
      * @return 学校简化列表
      */
-    @Select("SELECT id, organization_name FROM organizations " +
+    @Select("SELECT id, organization_name, logo_url FROM organizations " +
             "WHERE type = 'School' AND status = 'approved' AND is_deleted = 0 " +
             "ORDER BY organization_name")
     List<OrganizationSimpleVO> selectAllApprovedSchools();
@@ -30,7 +30,7 @@ public interface OrganizationMapper extends BaseMapper<Organization> {
      * 
      * @return 学校详细列表
      */
-    @Select("SELECT id, organization_name, type, description, website, address " +
+    @Select("SELECT id, organization_name, type, description, website, logo_url, address " +
             "FROM organizations " +
             "WHERE type = 'School' AND status = 'approved' AND is_deleted = 0 " +
             "ORDER BY organization_name")
@@ -41,7 +41,7 @@ public interface OrganizationMapper extends BaseMapper<Organization> {
      * 
      * @return 企业简化列表
      */
-    @Select("SELECT id, organization_name FROM organizations " +
+    @Select("SELECT id, organization_name, logo_url FROM organizations " +
             "WHERE type = 'Enterprise' AND status = 'approved' AND is_deleted = 0 " +
             "ORDER BY organization_name")
     List<OrganizationSimpleVO> selectAllApprovedEnterprises();
@@ -51,7 +51,7 @@ public interface OrganizationMapper extends BaseMapper<Organization> {
      * 
      * @return 企业详细列表
      */
-    @Select("SELECT id, organization_name, type, description, website, address " +
+    @Select("SELECT id, organization_name, type, description, website, logo_url, address " +
             "FROM organizations " +
             "WHERE type = 'Enterprise' AND status = 'approved' AND is_deleted = 0 " +
             "ORDER BY organization_name")

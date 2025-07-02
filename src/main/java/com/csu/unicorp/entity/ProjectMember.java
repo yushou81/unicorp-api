@@ -45,7 +45,7 @@ public class ProjectMember {
      * 逻辑删除标志
      */
     @TableLogic
-    private Boolean isDeleted;
+    private int isDeleted;
     
     /**
      * 创建时间

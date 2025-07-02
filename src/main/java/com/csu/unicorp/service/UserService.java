@@ -13,6 +13,7 @@ import com.csu.unicorp.entity.User;
 import com.csu.unicorp.vo.TokenVO;
 import com.csu.unicorp.vo.UserVO;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -211,4 +212,28 @@ public interface UserService {
      * @return 更新后的用户信息
      */
     UserVO updateUserByAdmin(Integer id, UserUpdateDTO userUpdateDTO);
+    
+    /**
+     * 更新用户头像
+     * 
+     * @param file 头像文件
+     * @param userDetails 当前认证用户
+     * @return 更新后的用户信息
+     */
+    UserVO updateAvatar(MultipartFile file, UserDetails userDetails);
+    
+    /**
+     * 为新注册用户分配默认头像
+     * 
+     * @return 默认头像的相对路径
+     */
+    String assignDefaultAvatar();
+    
+    /**
+     * 通过电话号码或邮箱搜索用户
+     * 
+     * @param keyword 搜索关键词（电话号码或邮箱）
+     * @return 用户信息
+     */
+    UserVO searchUserByPhoneOrEmail(String keyword);
 } 

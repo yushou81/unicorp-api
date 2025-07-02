@@ -21,4 +21,10 @@ public class OrganizationSimpleVO {
      */
     @Schema(description = "组织名称", example = "中南大学")
     private String organizationName;
+    
+    /**
+     * 组织logo
+     */
+    @Schema(description = "组织logo图片URL")
+    private String logoUrl;
 } 

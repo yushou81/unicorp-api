@@ -5,6 +5,7 @@ import com.csu.unicorp.dto.ProjectApplicationCreationDTO;
 import com.csu.unicorp.dto.ProjectApplicationStatusUpdateDTO;
 import com.csu.unicorp.vo.MyProjectApplicationDetailVO;
 import com.csu.unicorp.vo.ProjectApplicationDetailVO;
+import com.csu.unicorp.vo.ProjectVO;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
@@ -51,5 +52,15 @@ public interface ProjectApplicationService {
      * @param userDetails 当前登录用户
      * @return 申请列表
      */
-    IPage<MyProjectApplicationDetailVO> getMyApplications(int page, int size, UserDetails userDetails);
+    IPage<MyProjectApplicationDetailVO> getMyProjectApplications(
+        int page,
+        int size,
+        String keyword,
+        Integer userId,
+        List<String> difficulty,
+        List<String> supportLanguages,
+        List<String> techFields,
+        List<String> programmingLanguages
+    );
+
 } 

@@ -2,6 +2,7 @@ package com.csu.unicorp.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.csu.unicorp.common.constants.RoleConstants;
+import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.config.security.CustomUserDetails;
 import com.csu.unicorp.dto.ApplicationStatusUpdateDTO;
 import com.csu.unicorp.service.ApplicationService;
@@ -53,11 +54,15 @@ public class ApplicationController {
     })
     public ResultVO<Integer> applyJob(
             @Parameter(description = "岗位ID") @PathVariable Integer id,
+            @Parameter(description = "简历ID") @RequestParam Integer resumeId,
             @AuthenticationPrincipal UserDetails userDetails) {
+        if (resumeId == null) {
+            throw new BusinessException("简历ID不能为空");
+        }
         // 从UserDetails中获取学生ID
         Integer studentId = getStudentIdFromUserDetails(userDetails);
         
-        Integer applicationId = applicationService.applyJob(id, studentId);
+        Integer applicationId = applicationService.applyJob(id, studentId, resumeId);
         return ResultVO.success("申请成功", applicationId);
     }
     

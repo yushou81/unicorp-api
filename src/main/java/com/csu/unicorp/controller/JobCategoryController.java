@@ -79,6 +79,21 @@ public class JobCategoryController {
     }
 
     /**
+     * 获取层级结构的所有分类
+     */
+    @Operation(summary = "获取层级结构的所有分类", description = "获取所有分类，以树形结构返回")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "获取成功",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ResultVO.class)))
+    })
+    @GetMapping("/v1/job-categories/hierarchical")
+    public ResultVO<List<JobCategoryVO>> getHierarchicalCategories() {
+        List<JobCategoryVO> categories = jobCategoryService.getHierarchicalCategories();
+        return ResultVO.success("获取层级分类成功", categories);
+    }
+
+    /**
      * 获取分类详情
      */
     @Operation(summary = "获取分类详情", description = "获取指定ID的分类详情")

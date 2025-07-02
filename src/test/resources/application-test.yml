@@ -1,33 +1,22 @@
 spring:
   datasource:
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:test_db;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password: 
-  # 注意：我们不使用spring.sql.init方式初始化，而是通过TestDataSourceConfig
-  sql:
-    init:
-      mode: never
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-      settings:
-        trace: true
-        web-allow-others: true
+    url: jdbc:mysql://localhost:3306/unicorp_test?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
   flyway:
-    enabled: false # 禁用Flyway，使用SQL脚本初始化
-  test:
-    database:
-      replace: none # 不替换测试环境的数据源
+    enabled: false
 
-# MyBatis-Plus配置
-mybatis-plus:
-  mapper-locations: classpath:/mapper/*.xml
-  configuration:
-    map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-  global-config:
-    db-config:
-      logic-delete-value: 1
-      logic-not-delete-value: 0 
+# 禁用安全配置，方便测试
+security:
+  basic:
+    enabled: false
+
+# 测试环境日志级别
+logging:
+  level:
+    root: INFO
+    com.csu.unicorp: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.springframework.test: DEBUG
+    org.flywaydb: DEBUG 

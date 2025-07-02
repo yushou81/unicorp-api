@@ -33,4 +33,10 @@ public class TokenVO {
      */
     @Schema(description = "用户角色")
     private String role;
+    
+    /**
+     * 用户头像URL
+     */
+    @Schema(description = "用户头像URL")
+    private String avatar;
 } 

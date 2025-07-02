@@ -100,7 +100,6 @@ CREATE TABLE `role_permissions` (
 CREATE TABLE `student_profiles` (
                                     `id` INT AUTO_INCREMENT PRIMARY KEY,
                                     `user_id` INT NOT NULL,
-    -- `full_name` 已移除, 真实姓名统一从 user_verifications 表获取
                                     `major` VARCHAR(100),
                                     `education_level` VARCHAR(50),
                                     `resume_url` VARCHAR(255),

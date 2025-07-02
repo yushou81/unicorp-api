@@ -12,6 +12,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.access.prepost.PreAuthorize;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import java.util.List;
 
@@ -92,5 +95,30 @@ public class OrganizationController {
     public ResultVO<OrganizationVO> getEnterpriseById(@PathVariable Integer id) {
         OrganizationVO enterprise = organizationService.getEnterpriseById(id);
         return ResultVO.success("获取企业详情成功", enterprise);
+    }
+    
+    /**
+     * 上传组织Logo
+     */
+    @Operation(summary = "上传组织Logo", description = "上传组织的Logo图片，需要管理员权限")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Logo上传成功",
+                content = @Content(mediaType = "application/json",
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "400", description = "上传失败",
+                content = @Content(mediaType = "application/json",
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足"),
+        @ApiResponse(responseCode = "404", description = "组织不存在")
+    })
+    @PostMapping("/organizations/{id}/logo")
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("@securityService.isOrganizationAdmin(#id) or hasRole('SYSTEM_ADMIN')")
+    public ResultVO<String> uploadOrganizationLogo(
+            @PathVariable Integer id,
+            @RequestParam("file") MultipartFile file) {
+        
+        String logoUrl = organizationService.updateOrganizationLogo(id, file);
+        return ResultVO.success("Logo上传成功", logoUrl);
     }
 } 

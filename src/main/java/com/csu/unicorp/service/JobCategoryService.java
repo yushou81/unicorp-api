@@ -34,6 +34,13 @@ public interface JobCategoryService {
     List<JobCategoryVO> getAllCategories();
 
     /**
+     * 获取所有分类（层级结构）
+     *
+     * @return 层级结构的分类列表
+     */
+    List<JobCategoryVO> getHierarchicalCategories();
+
+    /**
      * 获取分类详情
      *
      * @param id 分类ID

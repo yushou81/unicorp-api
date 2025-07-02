@@ -2,6 +2,7 @@
 server:
   port: 8081 # 设置应用的端口号，避免使用常见的8080以防冲突
   address: 0.0.0.0 # 监听所有网络接口，使应用可以在局域网中访问
+
   servlet:
     context-path: /api # 设置应用的统一访问前缀
 
@@ -32,7 +33,7 @@ spring:
     validate-on-migrate: false # 临时禁用迁移验证，解决校验和问题
     table: flyway_schema_history # Flyway元数据表名
     # 如果需要清理数据库（开发环境可用，生产环境禁用）
-    clean-disabled: false # 禁用clean操作，防止意外删除数据
+    clean-disabled: true # 禁用clean操作，防止意外删除数据
   logging:
     level:
       root: INFO
@@ -84,7 +85,6 @@ springdoc:
     - /v1/mentors/**
     - /v1/admin/job-categories/**
     - /v1/job-categories/**
-    - /v1/admin/users/**
     - /v1/enterprise-admin/**
     - /v1/school-admin/**
     - /v1/resources/**
@@ -97,6 +97,11 @@ springdoc:
     - /v1/resumes/**
     - /v1/me/resume/**
     - /v1/me/resumes/**
+    - /v1/dual-courses/**
+    - /v1/dual-courses/enrollment/**
+    - /v1/course-resources/**
+    - /v1/course-ratings/**
+    - /v1/auth/search/**
 
   default-flat-param-object: true
   # API分组配置
@@ -110,7 +115,9 @@ springdoc:
         - /v1/enterprise-admin/**
         - /v1/profiles/**
         - /v1/me/**
+        - /v1/auth/search/**
       packages-to-scan: com.csu.unicorp.controller
+      description: "包括用户注册、登录、个人信息管理以及用户搜索功能，支持通过电话号码或邮箱查找用户"
     - group: '组织与机构管理'
       paths-to-match: 
         - /v1/organizations/**
@@ -122,6 +129,7 @@ springdoc:
         - /v1/me/applications/**
         - /v1/admin/job-categories/**
         - /v1/job-categories/**
+        - /v1/job-categories/hierarchical
       packages-to-scan: com.csu.unicorp.controller
       description: "包括岗位发布、查询、申请等功能，岗位详情包含具体要求和福利描述。岗位申请现在与学生简历关联，企业导师可直接查看申请者简历。"
     - group: '项目与合作'
@@ -161,6 +169,14 @@ springdoc:
         - /v1/me/resumes/**
       packages-to-scan: com.csu.unicorp.controller
       description: "提供简历的创建、查询、更新和删除功能"
+    - group: '双师课堂'
+      paths-to-match:
+        - /v1/dual-courses/**
+        - /v1/dual-courses/{id}/students
+        - /v1/course-resources/**
+        - /v1/course-ratings/**
+      packages-to-scan: com.csu.unicorp.controller
+      description: "提供双师课堂的创建、查询、报名等功能，支持教师、企业导师、学生等角色的课程管理，包括课程资源管理和评价系统"
 
 
 # MyBatis-Plus 相关配置

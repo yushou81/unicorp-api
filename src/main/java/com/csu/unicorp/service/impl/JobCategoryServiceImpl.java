@@ -56,6 +56,49 @@ public class JobCategoryServiceImpl extends ServiceImpl<JobCategoryMapper, JobCa
     }
 
     @Override
+    public List<JobCategoryVO> getHierarchicalCategories() {
+        // 获取所有顶级分类
+        List<JobCategory> rootCategories = jobCategoryMapper.selectRootCategories();
+        List<JobCategoryVO> rootCategoryVOs = convertToCategoryVOList(rootCategories);
+        
+        // 获取所有分类
+        List<JobCategory> allCategories = list();
+        
+        // 递归构建分类树
+        for (JobCategoryVO rootCategory : rootCategoryVOs) {
+            buildCategoryTree(rootCategory, allCategories);
+        }
+        
+        return rootCategoryVOs;
+    }
+
+    /**
+     * 递归构建分类树结构
+     *
+     * @param parent 父级分类VO
+     * @param allCategories 所有分类列表
+     */
+    private void buildCategoryTree(JobCategoryVO parent, List<JobCategory> allCategories) {
+        // 查找当前分类的子分类
+        List<JobCategory> childCategories = allCategories.stream()
+                .filter(category -> parent.getId().equals(category.getParentId()))
+                .collect(Collectors.toList());
+                
+        if (childCategories.isEmpty()) {
+            return;
+        }
+        
+        // 转换子分类为VO并设置到父分类中
+        List<JobCategoryVO> childCategoryVOs = convertToCategoryVOList(childCategories);
+        parent.setChildren(childCategoryVOs);
+        
+        // 递归处理每个子分类
+        for (JobCategoryVO child : childCategoryVOs) {
+            buildCategoryTree(child, allCategories);
+        }
+    }
+
+    @Override
     public JobCategoryVO getCategoryById(Integer id) {
         JobCategory category = getById(id);
         if (category == null) {

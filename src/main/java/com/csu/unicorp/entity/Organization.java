@@ -53,6 +53,11 @@ public class Organization {
     private String website;
     
     /**
+     * 组织logo图片相对路径
+     */
+    private String logoUrl;
+    
+    /**
      * 审核状态：approved-已审核，pending-待审核
      */
     private String status;

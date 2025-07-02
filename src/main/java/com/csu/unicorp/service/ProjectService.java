@@ -3,8 +3,11 @@ package com.csu.unicorp.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.csu.unicorp.dto.ProjectCreationDTO;
 import com.csu.unicorp.entity.Project;
+import com.csu.unicorp.vo.ProjectMemberVO;
 import com.csu.unicorp.vo.ProjectVO;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.List;
 
 /**
  * 项目服务接口
@@ -19,8 +22,18 @@ public interface ProjectService {
      * @param keyword 搜索关键词
      * @return 项目列表分页结果
      */
-    IPage<ProjectVO> getProjectList(int page, int size, String keyword);
-    
+    IPage<ProjectVO> getProjectList(
+    int page,
+    int size,
+    String keyword,
+    Integer organizationId,
+    List<String> difficulty,
+    List<String> supportLanguages,
+    List<String> techFields,
+    List<String> programmingLanguages,
+    Integer userId,
+    String needstatus
+);
     /**
      * 创建新项目
      * 
@@ -72,4 +85,11 @@ public interface ProjectService {
      * @return 项目VO
      */
     ProjectVO convertToVO(Project project);
+
+    void removeProjectMember(Integer projectId,Integer memberId);
+
+
+    
+// ... 其他代码 ...
+    List<ProjectMemberVO> getProjectMembers(Integer projectId);
 } 
