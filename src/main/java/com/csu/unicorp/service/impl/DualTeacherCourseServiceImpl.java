@@ -7,9 +7,9 @@ import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.dto.CourseEnrollmentDTO;
 import com.csu.unicorp.dto.DualTeacherCourseDTO;
-import com.csu.unicorp.entity.CourseEnrollment;
+import com.csu.unicorp.entity.course.CourseEnrollment;
 import com.csu.unicorp.entity.DualTeacherCourse;
-import com.csu.unicorp.entity.Organization;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.CourseEnrollmentMapper;
 import com.csu.unicorp.mapper.DualTeacherCourseMapper;
@@ -28,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 双师课堂服务实现类

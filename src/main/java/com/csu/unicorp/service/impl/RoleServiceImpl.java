@@ -34,7 +34,7 @@ public class RoleServiceImpl implements RoleService {
         }
         
         // 检查是否已经分配了该角色
-        if (hasUserRole(userId, role.getId())) {
+        if (hasUserRole(userId)) {
             return; // 已存在该角色，不重复添加
         }
         
@@ -49,13 +49,11 @@ public class RoleServiceImpl implements RoleService {
      * 检查用户是否已经拥有指定角色
      * 
      * @param userId 用户ID
-     * @param roleId 角色ID
      * @return 是否拥有角色
      */
-    private boolean hasUserRole(Integer userId, Integer roleId) {
+    private boolean hasUserRole(Integer userId) {
         UserRole userRole = new UserRole();
         userRole.setUserId(userId);
-        userRole.setRoleId(roleId);
         
         return userRoleMapper.selectCount(
                 new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<>(userRole)

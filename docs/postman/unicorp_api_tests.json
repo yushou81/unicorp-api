@@ -1,0 +1,1629 @@
+{
+  "info": {
+    "_postman_id": "e5a8f9c2-7b6a-4d6c-9c5e-8f3a0e5a6b7c",
+    "name": "UniCorp API Tests",
+    "description": "UniCorp API 测试集合",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    },
+    {
+      "key": "student_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "teacher_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "school_admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "enterprise_mentor_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "课程出勤管理",
+      "description": "课程出勤记录、统计等功能",
+      "item": [
+        {
+          "name": "记录课程出勤",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"courseId\": 1,\n    \"attendanceDate\": \"2024-06-15\",\n    \"studentRecords\": [\n        {\n            \"studentId\": 1,\n            \"status\": \"present\",\n            \"remark\": \"准时到达\"\n        },\n        {\n            \"studentId\": 2,\n            \"status\": \"late\",\n            \"remark\": \"迟到10分钟\"\n        },\n        {\n            \"studentId\": 3,\n            \"status\": \"absent\",\n            \"remark\": \"未请假缺席\"\n        }\n    ],\n    \"remark\": \"第三次课出勤记录\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/course-attendance",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-attendance"]
+            },
+            "description": "记录课程的学生出勤情况，需要教师或管理员权限"
+          }
+        },
+        {
+          "name": "获取课程某天的出勤记录",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-attendance/course/1/date/2023-10-01",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-attendance", "course", "1", "date", "2023-10-01"]
+            },
+            "description": "获取课程在指定日期的所有学生出勤记录"
+          }
+        },
+        {
+          "name": "获取学生出勤记录",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-attendance/course/1/student/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-attendance", "course", "1", "student", "1"]
+            },
+            "description": "获取学生在课程中的所有出勤记录"
+          }
+        },
+        {
+          "name": "获取课程出勤日期列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-attendance/course/1/dates?page=1&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-attendance", "course", "1", "dates"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "分页获取课程的所有出勤日期列表"
+          }
+        },
+        {
+          "name": "更新出勤记录",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-attendance/1?status=late&remark=迟到10分钟",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-attendance", "1"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "late"
+                },
+                {
+                  "key": "remark",
+                  "value": "迟到10分钟"
+                }
+              ]
+            },
+            "description": "更新指定ID的出勤记录，需要教师或管理员权限"
+          }
+        },
+        {
+          "name": "删除出勤记录",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-attendance/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-attendance", "1"]
+            },
+            "description": "删除指定ID的出勤记录，需要教师或管理员权限"
+          }
+        },
+        {
+          "name": "获取课程出勤率",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-attendance/course/1/attendance-rate",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-attendance", "course", "1", "attendance-rate"]
+            },
+            "description": "获取课程的整体出勤率"
+          }
+        },
+        {
+          "name": "获取学生出勤率",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-attendance/course/1/student/1/attendance-rate",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-attendance", "course", "1", "student", "1", "attendance-rate"]
+            },
+            "description": "获取指定学生在课程中的出勤率"
+          }
+        },
+        {
+          "name": "获取课程出勤统计",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-attendance/course/1/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-attendance", "course", "1", "statistics"]
+            },
+            "description": "获取课程的出勤统计数据"
+          }
+        }
+      ]
+    },
+    {
+      "name": "课程章节管理",
+      "description": "课程章节的创建、更新、删除、查询等功能",
+      "item": [
+        {
+          "name": "创建课程章节",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"courseId\": 1,\n    \"title\": \"第一章：课程介绍\",\n    \"description\": \"本章介绍课程的基本概念和学习目标\",\n    \"sequence\": 1,\n    \"isPublished\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/course-chapters",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-chapters"]
+            },
+            "description": "为指定课程创建新的章节，需要教师或管理员权限"
+          }
+        },
+        {
+          "name": "更新课程章节",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"courseId\": 1,\n    \"title\": \"第一章：课程介绍（更新版）\",\n    \"description\": \"本章详细介绍课程的基本概念和学习目标\",\n    \"sequence\": 1,\n    \"isPublished\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/course-chapters/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-chapters", "1"]
+            },
+            "description": "更新指定ID的章节信息，需要教师或管理员权限"
+          }
+        },
+        {
+          "name": "删除课程章节",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-chapters/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-chapters", "1"]
+            },
+            "description": "删除指定ID的章节，需要教师或管理员权限"
+          }
+        },
+        {
+          "name": "获取章节详情",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-chapters/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-chapters", "1"]
+            },
+            "description": "获取指定ID章节的详细信息"
+          }
+        },
+        {
+          "name": "获取课程章节列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-chapters/course/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-chapters", "course", "1"]
+            },
+            "description": "获取指定课程的所有章节列表"
+          }
+        },
+        {
+          "name": "更新章节发布状态",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-chapters/1/publish?isPublished=true",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-chapters", "1", "publish"],
+              "query": [
+                {
+                  "key": "isPublished",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "更新指定章节的发布状态，需要教师或管理员权限"
+          }
+        },
+        {
+          "name": "更新章节顺序",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-chapters/1/sequence?sequence=2",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-chapters", "1", "sequence"],
+              "query": [
+                {
+                  "key": "sequence",
+                  "value": "2"
+                }
+              ]
+            },
+            "description": "更新指定章节的顺序，需要教师或管理员权限"
+          }
+        },
+        {
+          "name": "关联资源到章节",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-chapters/1/resources/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-chapters", "1", "resources", "1"]
+            },
+            "description": "将指定资源关联到章节中，需要教师或管理员权限"
+          }
+        },
+        {
+          "name": "从章节中移除资源",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-chapters/1/resources/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-chapters", "1", "resources", "1"]
+            },
+            "description": "将指定资源从章节中移除，需要教师或管理员权限"
+          }
+        },
+        {
+          "name": "获取章节关联的资源列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-chapters/1/resources",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-chapters", "1", "resources"]
+            },
+            "description": "获取指定章节关联的所有资源ID列表"
+          }
+        }
+      ]
+    },
+    {
+      "name": "课程问答管理",
+      "description": "课程问答的提问、回答、查询等功能",
+      "item": [
+        {
+          "name": "学生提问",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"courseId\": 1,\n    \"chapterId\": 1,\n    \"title\": \"关于第一章的问题\",\n    \"content\": \"请问第一章中提到的概念是什么意思？\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/course-questions",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-questions"]
+            },
+            "description": "学生在课程中提出问题"
+          }
+        },
+        {
+          "name": "教师回答问题",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-questions/1/answer?answer=这个概念的意思是指...",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-questions", "1", "answer"],
+              "query": [
+                {
+                  "key": "answer",
+                  "value": "这个概念的意思是指..."
+                }
+              ]
+            },
+            "description": "教师或导师回答学生提出的问题"
+          }
+        },
+        {
+          "name": "获取问题详情",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-questions/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-questions", "1"]
+            },
+            "description": "获取问题详情"
+          }
+        },
+        {
+          "name": "获取课程问题列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-questions/course/1?page=1&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-questions", "course", "1"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "分页获取课程的所有问题列表"
+          }
+        },
+        {
+          "name": "获取章节问题列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-questions/chapter/1?page=1&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-questions", "chapter", "1"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "分页获取章节的所有问题列表"
+          }
+        },
+        {
+          "name": "获取学生问题列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-questions/course/1/student/1?page=1&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-questions", "course", "1", "student", "1"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "分页获取学生在课程中提出的问题列表"
+          }
+        },
+        {
+          "name": "更新问题",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-questions/1?title=更新后的问题标题&content=更新后的问题内容",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-questions", "1"],
+              "query": [
+                {
+                  "key": "title",
+                  "value": "更新后的问题标题"
+                },
+                {
+                  "key": "content",
+                  "value": "更新后的问题内容"
+                }
+              ]
+            },
+            "description": "更新问题标题和内容（仅限提问者本人）"
+          }
+        },
+        {
+          "name": "删除问题",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-questions/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-questions", "1"]
+            },
+            "description": "删除问题（仅限提问者本人或教师/管理员）"
+          }
+        },
+        {
+          "name": "获取问答统计数据",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-questions/course/1/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-questions", "course", "1", "statistics"]
+            },
+            "description": "获取课程的问答统计数据"
+          }
+        },
+        {
+          "name": "获取待回答问题数量",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-questions/course/1/teacher/1/pending-count",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-questions", "course", "1", "teacher", "1", "pending-count"]
+            },
+            "description": "获取指定教师在课程中需要回答的问题数量"
+          }
+        }
+      ]
+    },
+    {
+      "name": "课程讨论管理",
+      "description": "课程讨论的创建、回复、查询等功能",
+      "item": [
+        {
+          "name": "创建讨论",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"courseId\": 1,\n    \"content\": \"大家对第一章的内容有什么看法？\",\n    \"parentId\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/course-discussions",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-discussions"]
+            },
+            "description": "在课程中创建新的讨论主题"
+          }
+        },
+        {
+          "name": "回复讨论",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"courseId\": 1,\n    \"content\": \"我认为第一章的内容很有启发性\",\n    \"parentId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/course-discussions/reply",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-discussions", "reply"]
+            },
+            "description": "回复已有的讨论"
+          }
+        },
+        {
+          "name": "获取讨论详情",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-discussions/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-discussions", "1"]
+            },
+            "description": "获取讨论详情（包含回复）"
+          }
+        },
+        {
+          "name": "获取课程讨论列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-discussions/course/1?page=1&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-discussions", "course", "1"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "分页获取课程的所有讨论列表"
+          }
+        },
+        {
+          "name": "更新讨论内容",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-discussions/1?content=更新后的讨论内容",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-discussions", "1"],
+              "query": [
+                {
+                  "key": "content",
+                  "value": "更新后的讨论内容"
+                }
+              ]
+            },
+            "description": "更新讨论内容（仅限自己发布的讨论）"
+          }
+        },
+        {
+          "name": "删除讨论",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-discussions/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-discussions", "1"]
+            },
+            "description": "删除讨论（仅限自己发布的讨论或教师/管理员）"
+          }
+        },
+        {
+          "name": "获取讨论回复",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-discussions/1/replies",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-discussions", "1", "replies"]
+            },
+            "description": "获取讨论的所有回复"
+          }
+        },
+        {
+          "name": "统计课程讨论数量",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-discussions/course/1/count",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-discussions", "course", "1", "count"]
+            },
+            "description": "统计课程的讨论数量"
+          }
+        }
+      ]
+    },
+    {
+      "name": "课程评价管理",
+      "description": "课程评价API，提供评价提交、查询等功能",
+      "item": [
+        {
+          "name": "提交课程评价",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"courseId\": 1,\n    \"rating\": 5,\n    \"comment\": \"这是一门非常好的课程，内容丰富，讲解清晰。\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/course-ratings",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-ratings"]
+            },
+            "description": "学生提交对已完成课程的评价"
+          }
+        },
+        {
+          "name": "更新课程评价",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"courseId\": 1,\n    \"rating\": 4,\n    \"comment\": \"这是一门很好的课程，但有些内容可以更加深入。\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/course-ratings/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-ratings", "1"]
+            },
+            "description": "学生更新已提交的课程评价"
+          }
+        },
+        {
+          "name": "删除课程评价",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-ratings/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-ratings", "1"]
+            },
+            "description": "学生删除已提交的课程评价"
+          }
+        },
+        {
+          "name": "获取课程评价详情",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-ratings/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-ratings", "1"]
+            },
+            "description": "根据ID获取课程评价详细信息"
+          }
+        },
+        {
+          "name": "获取课程评价列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-ratings/course/1?page=1&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-ratings", "course", "1"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "获取指定课程的所有评价"
+          }
+        },
+        {
+          "name": "获取课程平均评分",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-ratings/average/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-ratings", "average", "1"]
+            },
+            "description": "获取指定课程的平均评分"
+          }
+        },
+        {
+          "name": "检查学生是否已评价课程",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-ratings/check/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-ratings", "check", "1"]
+            },
+            "description": "检查当前学生是否已对指定课程进行评价"
+          }
+        }
+      ]
+    },
+    {
+      "name": "课程资源管理",
+      "description": "课程资源API，提供资源上传、下载、查询等功能",
+      "item": [
+        {
+          "name": "上传课程资源",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/your/file.pdf"
+                },
+                {
+                  "key": "courseId",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "title",
+                  "value": "课程PPT",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "课程第一章的PPT资料",
+                  "type": "text"
+                },
+                {
+                  "key": "resourceType",
+                  "value": "document",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/course-resources",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-resources"]
+            },
+            "description": "上传课程资源文件，需要教师或企业导师权限"
+          }
+        },
+        {
+          "name": "删除课程资源",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-resources/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-resources", "1"]
+            },
+            "description": "删除指定的课程资源，需要资源上传者或教师权限"
+          }
+        },
+        {
+          "name": "获取课程资源详情",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-resources/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-resources", "1"]
+            },
+            "description": "根据ID获取课程资源详细信息"
+          }
+        },
+        {
+          "name": "获取课程资源列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-resources/course/1?page=1&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-resources", "course", "1"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "获取指定课程的所有资源"
+          }
+        },
+        {
+          "name": "下载课程资源",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/course-resources/download/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "course-resources", "download", "1"]
+            },
+            "description": "下载指定的课程资源文件"
+          }
+        }
+      ]
+    },
+    {
+      "name": "双师课堂管理",
+      "description": "双师课堂API，提供课程创建、查询、报名等功能",
+      "item": [
+        {
+          "name": "创建双师课堂课程",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Java高级编程实战\",\n    \"description\": \"本课程将深入讲解Java高级编程技术\",\n    \"scheduledTime\": \"2024-12-10T14:00:00\",\n    \"maxStudents\": 50,\n    \"mentorId\": 1,\n    \"location\": \"计算机学院302教室\",\n    \"courseType\": \"hybrid\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/dual-courses",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "dual-courses"]
+            },
+            "description": "创建新的双师课堂课程，需要教师或学校管理员权限"
+          }
+        },
+        {
+          "name": "更新双师课堂课程信息",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Java高级编程实战（更新版）\",\n    \"description\": \"本课程将深入讲解Java高级编程技术，包含实战案例\",\n    \"scheduledTime\": \"2024-12-10T14:00:00\",\n    \"maxStudents\": 60,\n    \"mentorId\": 1,\n    \"location\": \"计算机学院302教室\",\n    \"courseType\": \"hybrid\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/dual-courses/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "dual-courses", "1"]
+            },
+            "description": "更新现有双师课堂课程的信息，需要该课程的教师、企业导师或学校管理员权限"
+          }
+        },
+        {
+          "name": "获取双师课堂课程详情",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/dual-courses/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "dual-courses", "1"]
+            },
+            "description": "根据ID获取课程详细信息"
+          }
+        },
+        {
+          "name": "删除双师课堂课程",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/dual-courses/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "dual-courses", "1"]
+            },
+            "description": "删除指定的双师课堂课程，需要该课程的教师或学校管理员权限"
+          }
+        },
+        {
+          "name": "获取教师创建的课程列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/dual-courses/teacher?page=1&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "dual-courses", "teacher"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "获取当前教师用户创建的所有课程"
+          }
+        },
+        {
+          "name": "获取企业导师参与的课程列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{enterprise_mentor_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/dual-courses/mentor?page=1&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "dual-courses", "mentor"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "获取当前企业导师用户参与的所有课程"
+          }
+        },
+        {
+          "name": "获取可报名的课程列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/dual-courses/enrollable?page=1&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "dual-courses", "enrollable"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "获取当前可供学生报名的所有课程"
+          }
+        },
+        {
+          "name": "学生报名课程",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"courseId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/dual-courses/enroll",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "dual-courses", "enroll"]
+            },
+            "description": "学生用户报名双师课堂课程"
+          }
+        },
+        {
+          "name": "学生取消报名",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/dual-courses/enroll/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "dual-courses", "enroll", "1"]
+            },
+            "description": "学生用户取消已报名的课程"
+          }
+        },
+        {
+          "name": "获取学生已报名的课程列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/dual-courses/enrolled?page=1&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "dual-courses", "enrolled"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "获取当前学生用户已报名的所有课程"
+          }
+        },
+        {
+          "name": "更新课程状态",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/dual-courses/1/status?status=open",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "dual-courses", "1", "status"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "open"
+                }
+              ]
+            },
+            "description": "更新双师课堂课程的状态，需要该课程的教师或学校管理员权限"
+          }
+        },
+        {
+          "name": "更新学生选课状态",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/dual-courses/enrollment/1/status?status=completed",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "dual-courses", "enrollment", "1", "status"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "completed"
+                }
+              ]
+            },
+            "description": "更新学生选课状态，需要课程教师或学校管理员权限"
+          }
+        },
+        {
+          "name": "获取课程学生列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/dual-courses/1/students",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "dual-courses", "1", "students"]
+            },
+            "description": "获取指定课程ID的已报名学生列表，需要教师或管理员权限"
+          }
+        }
+      ]
+    },
+    {
+      "name": "学习进度管理",
+      "description": "学习进度API，提供学习进度的更新、查询等功能",
+      "item": [
+        {
+          "name": "更新学习进度",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"chapterId\": 1,\n    \"progressPercent\": 75,\n    \"status\": \"in_progress\",\n    \"durationMinutes\": 30\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/learning-progress",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "learning-progress"]
+            },
+            "description": "更新学生在章节中的学习进度"
+          }
+        },
+        {
+          "name": "获取学生章节进度",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/learning-progress/chapter/1/student/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "learning-progress", "chapter", "1", "student", "1"]
+            },
+            "description": "获取指定学生在特定章节中的学习进度"
+          }
+        },
+        {
+          "name": "获取学生课程进度",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/learning-progress/course/1/student/1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "learning-progress", "course", "1", "student", "1"]
+            },
+            "description": "获取指定学生在整个课程中的学习进度"
+          }
+        },
+        {
+          "name": "获取章节所有学生进度",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/learning-progress/chapter/1/students?page=1&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "learning-progress", "chapter", "1", "students"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "获取特定章节中所有学生的学习进度"
+          }
+        },
+        {
+          "name": "获取课程进度概览",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/learning-progress/course/1/overview",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "learning-progress", "course", "1", "overview"]
+            },
+            "description": "获取课程的整体学习进度概览"
+          }
+        },
+        {
+          "name": "获取学生课程完成率",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/learning-progress/course/1/student/1/completion-rate",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "learning-progress", "course", "1", "student", "1", "completion-rate"]
+            },
+            "description": "获取指定学生在课程中的完成率"
+          }
+        },
+        {
+          "name": "初始化章节学习进度",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{teacher_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/learning-progress/chapter/1/initialize",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "learning-progress", "chapter", "1", "initialize"]
+            },
+            "description": "为新章节初始化所有已报名学生的学习进度记录"
+          }
+        }
+      ]
+    }
+  ]
+} 

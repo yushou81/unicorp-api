@@ -1,4 +1,4 @@
-package com.csu.unicorp.entity;
+package com.csu.unicorp.entity.course;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -8,29 +8,23 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * 课程出勤记录实体类
+ * 学习进度实体类
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("course_attendance")
-public class CourseAttendance {
+@TableName("learning_progress")
+public class LearningProgress {
     
     /**
-     * 出勤记录ID
+     * 进度记录ID
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
-    
-    /**
-     * 课程ID
-     */
-    private Integer courseId;
     
     /**
      * 学生ID
@@ -38,24 +32,34 @@ public class CourseAttendance {
     private Integer studentId;
     
     /**
-     * 出勤日期
+     * 章节ID
      */
-    private LocalDate attendanceDate;
+    private Integer chapterId;
     
     /**
-     * 出勤状态：present-出席, absent-缺席, late-迟到, leave-请假
+     * 学习状态：not_started-未开始, in_progress-学习中, completed-已完成
      */
     private String status;
     
     /**
-     * 备注
+     * 完成百分比(0-100)
      */
-    private String remark;
+    private Integer progressPercent;
     
     /**
-     * 记录人ID
+     * 开始学习时间
      */
-    private Integer recordedBy;
+    private LocalDateTime startTime;
+    
+    /**
+     * 完成学习时间
+     */
+    private LocalDateTime completeTime;
+    
+    /**
+     * 学习时长(分钟)
+     */
+    private Integer durationMinutes;
     
     /**
      * 创建时间

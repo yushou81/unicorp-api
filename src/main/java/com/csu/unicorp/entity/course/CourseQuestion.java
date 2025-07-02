@@ -1,4 +1,4 @@
-package com.csu.unicorp.entity;
+package com.csu.unicorp.entity.course;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -12,17 +12,17 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 /**
- * 课程讨论实体类
+ * 课程问答实体类
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("course_discussions")
-public class CourseDiscussion {
+@TableName("course_questions")
+public class CourseQuestion {
     
     /**
-     * 讨论ID
+     * 问题ID
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
@@ -33,19 +33,44 @@ public class CourseDiscussion {
     private Integer courseId;
     
     /**
-     * 发布用户ID
+     * 相关章节ID
      */
-    private Integer userId;
+    private Integer chapterId;
     
     /**
-     * 讨论内容
+     * 提问学生ID
+     */
+    private Integer studentId;
+    
+    /**
+     * 问题标题
+     */
+    private String title;
+    
+    /**
+     * 问题内容
      */
     private String content;
     
     /**
-     * 父讨论ID，用于回复
+     * 问题状态：pending-待回答, answered-已回答, closed-已关闭
      */
-    private Integer parentId;
+    private String status;
+    
+    /**
+     * 回答内容
+     */
+    private String answer;
+    
+    /**
+     * 回答者ID
+     */
+    private Integer answeredBy;
+    
+    /**
+     * 回答时间
+     */
+    private LocalDateTime answeredAt;
     
     /**
      * 创建时间

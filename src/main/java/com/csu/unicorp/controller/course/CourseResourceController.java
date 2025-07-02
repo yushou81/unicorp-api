@@ -1,8 +1,8 @@
-package com.csu.unicorp.controller;
+package com.csu.unicorp.controller.course;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.csu.unicorp.dto.CourseResourceDTO;
-import com.csu.unicorp.entity.CourseResource.ResourceType;
+import com.csu.unicorp.entity.course.CourseResource.ResourceType;
 import com.csu.unicorp.service.CourseResourceService;
 import com.csu.unicorp.vo.CourseResourceVO;
 import com.csu.unicorp.vo.ResultVO;
@@ -22,7 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 

@@ -20,7 +20,7 @@ import com.csu.unicorp.dto.BookingReviewDTO;
 import com.csu.unicorp.dto.EquipmentCreationDTO;
 import com.csu.unicorp.entity.EquipmentBooking;
 import com.csu.unicorp.entity.EquipmentResource;
-import com.csu.unicorp.entity.Organization;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.EquipmentBookingMapper;
 import com.csu.unicorp.mapper.EquipmentResourceMapper;

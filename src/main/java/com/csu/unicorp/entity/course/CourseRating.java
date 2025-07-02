@@ -1,28 +1,22 @@
-package com.csu.unicorp.entity;
+package com.csu.unicorp.entity.course;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 
 import java.time.LocalDateTime;
 
 /**
- * 课程问答实体类
+ * 课程评价实体类
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@TableName("course_questions")
-public class CourseQuestion {
+@TableName("course_ratings")
+public class CourseRating {
     
     /**
-     * 问题ID
+     * 评价ID
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
@@ -33,44 +27,24 @@ public class CourseQuestion {
     private Integer courseId;
     
     /**
-     * 相关章节ID
-     */
-    private Integer chapterId;
-    
-    /**
-     * 提问学生ID
+     * 学生ID
      */
     private Integer studentId;
     
     /**
-     * 问题标题
+     * 评分(1-5)
      */
-    private String title;
+    private Integer rating;
     
     /**
-     * 问题内容
+     * 评价内容
      */
-    private String content;
+    private String comment;
     
     /**
-     * 问题状态：pending-待回答, answered-已回答, closed-已关闭
+     * 是否匿名
      */
-    private String status;
-    
-    /**
-     * 回答内容
-     */
-    private String answer;
-    
-    /**
-     * 回答者ID
-     */
-    private Integer answeredBy;
-    
-    /**
-     * 回答时间
-     */
-    private LocalDateTime answeredAt;
+    private Boolean isAnonymous;
     
     /**
      * 创建时间

@@ -1,6 +1,5 @@
 package com.csu.unicorp.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.common.constants.RoleConstants;
@@ -16,7 +15,7 @@ import com.csu.unicorp.dto.StudentRegistrationDTO;
 import com.csu.unicorp.dto.UserProfileUpdateDTO;
 import com.csu.unicorp.dto.UserUpdateDTO;
 import com.csu.unicorp.entity.EnterpriseDetail;
-import com.csu.unicorp.entity.Organization;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.entity.UserVerification;
 import com.csu.unicorp.mapper.UserMapper;
@@ -41,8 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 /**

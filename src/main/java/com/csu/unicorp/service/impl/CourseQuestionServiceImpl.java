@@ -1,11 +1,10 @@
 package com.csu.unicorp.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.dto.CourseQuestionDTO;
-import com.csu.unicorp.entity.CourseChapter;
-import com.csu.unicorp.entity.CourseQuestion;
+import com.csu.unicorp.entity.course.CourseChapter;
+import com.csu.unicorp.entity.course.CourseQuestion;
 import com.csu.unicorp.entity.DualTeacherCourse;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.CourseChapterMapper;

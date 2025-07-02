@@ -1,4 +1,4 @@
-package com.csu.unicorp.entity;
+package com.csu.unicorp.entity.job;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;

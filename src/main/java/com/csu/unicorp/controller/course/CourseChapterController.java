@@ -1,6 +1,5 @@
-package com.csu.unicorp.controller;
+package com.csu.unicorp.controller.course;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.csu.unicorp.dto.CourseChapterDTO;
 import com.csu.unicorp.service.CourseChapterService;
 import com.csu.unicorp.vo.CourseChapterVO;

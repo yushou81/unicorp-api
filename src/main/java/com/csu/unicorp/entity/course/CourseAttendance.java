@@ -1,22 +1,28 @@
-package com.csu.unicorp.entity;
+package com.csu.unicorp.entity.course;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * 课程评价实体类
+ * 课程出勤记录实体类
  */
 @Data
-@TableName("course_ratings")
-public class CourseRating {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@TableName("course_attendance")
+public class CourseAttendance {
     
     /**
-     * 评价ID
+     * 出勤记录ID
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
@@ -32,19 +38,24 @@ public class CourseRating {
     private Integer studentId;
     
     /**
-     * 评分(1-5)
+     * 出勤日期
      */
-    private Integer rating;
+    private LocalDate attendanceDate;
     
     /**
-     * 评价内容
+     * 出勤状态：present-出席, absent-缺席, late-迟到, leave-请假
      */
-    private String comment;
+    private String status;
     
     /**
-     * 是否匿名
+     * 备注
      */
-    private Boolean isAnonymous;
+    private String remark;
+    
+    /**
+     * 记录人ID
+     */
+    private Integer recordedBy;
     
     /**
      * 创建时间
@@ -55,10 +66,4 @@ public class CourseRating {
      * 更新时间
      */
     private LocalDateTime updatedAt;
-    
-    /**
-     * 是否删除
-     */
-    @TableLogic
-    private Boolean isDeleted;
 } 

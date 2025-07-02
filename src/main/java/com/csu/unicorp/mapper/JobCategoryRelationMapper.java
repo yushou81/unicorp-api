@@ -1,7 +1,7 @@
 package com.csu.unicorp.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.csu.unicorp.entity.JobCategoryRelation;
+import com.csu.unicorp.entity.job.JobCategoryRelation;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

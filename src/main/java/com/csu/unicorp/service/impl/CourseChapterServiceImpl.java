@@ -1,12 +1,10 @@
 package com.csu.unicorp.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.dto.CourseChapterDTO;
 import com.csu.unicorp.entity.ChapterResource;
-import com.csu.unicorp.entity.CourseChapter;
-import com.csu.unicorp.entity.CourseResource;
+import com.csu.unicorp.entity.course.CourseChapter;
+import com.csu.unicorp.entity.course.CourseResource;
 import com.csu.unicorp.entity.DualTeacherCourse;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
@@ -24,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 

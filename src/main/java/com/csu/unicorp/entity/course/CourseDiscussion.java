@@ -1,7 +1,8 @@
-package com.csu.unicorp.entity;
+package com.csu.unicorp.entity.course;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,55 +12,40 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 /**
- * 学习进度实体类
+ * 课程讨论实体类
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("learning_progress")
-public class LearningProgress {
+@TableName("course_discussions")
+public class CourseDiscussion {
     
     /**
-     * 进度记录ID
+     * 讨论ID
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
     
     /**
-     * 学生ID
+     * 课程ID
      */
-    private Integer studentId;
+    private Integer courseId;
     
     /**
-     * 章节ID
+     * 发布用户ID
      */
-    private Integer chapterId;
+    private Integer userId;
     
     /**
-     * 学习状态：not_started-未开始, in_progress-学习中, completed-已完成
+     * 讨论内容
      */
-    private String status;
+    private String content;
     
     /**
-     * 完成百分比(0-100)
+     * 父讨论ID，用于回复
      */
-    private Integer progressPercent;
-    
-    /**
-     * 开始学习时间
-     */
-    private LocalDateTime startTime;
-    
-    /**
-     * 完成学习时间
-     */
-    private LocalDateTime completeTime;
-    
-    /**
-     * 学习时长(分钟)
-     */
-    private Integer durationMinutes;
+    private Integer parentId;
     
     /**
      * 创建时间
@@ -70,4 +56,10 @@ public class LearningProgress {
      * 更新时间
      */
     private LocalDateTime updatedAt;
+    
+    /**
+     * 是否删除
+     */
+    @TableLogic
+    private Boolean isDeleted;
 } 

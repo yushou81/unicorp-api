@@ -1,13 +1,12 @@
 package com.csu.unicorp.service.impl;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.dto.CourseEnrollmentDTO;
 import com.csu.unicorp.dto.DualTeacherCourseDTO;
-import com.csu.unicorp.entity.CourseEnrollment;
+import com.csu.unicorp.entity.course.CourseEnrollment;
 import com.csu.unicorp.entity.DualTeacherCourse;
-import com.csu.unicorp.entity.Organization;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.CourseEnrollmentMapper;
 import com.csu.unicorp.mapper.DualTeacherCourseMapper;
@@ -32,8 +31,6 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest

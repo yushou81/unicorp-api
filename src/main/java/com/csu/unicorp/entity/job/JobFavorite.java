@@ -1,4 +1,4 @@
-package com.csu.unicorp.entity;
+package com.csu.unicorp.entity.job;
 
 import java.time.LocalDateTime;
 
