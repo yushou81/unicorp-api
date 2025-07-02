@@ -31,7 +31,7 @@ import java.util.Map;
  */
 @Tag(name = "File Upload", description = "文件上传服务")
 @RestController
-@RequestMapping("/api/files")
+@RequestMapping("/files")
 @RequiredArgsConstructor
 public class FileController {
     
@@ -66,6 +66,7 @@ public class FileController {
 
     @GetMapping("/resources/{filename:.+}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String filename) throws Exception {
+        System.out.println("下载文件接口被调用：" + filename);
         Path file = Paths.get("upload/resources").resolve(filename).normalize();
         if (!Files.exists(file)) {
             return ResponseEntity.notFound().build();
