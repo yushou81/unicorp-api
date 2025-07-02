@@ -31,10 +31,11 @@ public class ResultVO<T> {
     private T data;
     
     /**
-     * 对话用户ID（用于聊天功能）
+     * 聊天会话中的对方用户ID（仅在聊天相关接口中使用）
      */
-    @Schema(description = "对话用户ID", example = "10")
+    @Schema(description = "聊天会话中的对方用户ID")
     private Long otherUserId;
+    
     
     /**
      * 构造函数
@@ -116,5 +117,16 @@ public class ResultVO<T> {
      */
     public static <T> ResultVO<T> serverError(String message) {
         return new ResultVO<>(500, message, null);
+    }
+    
+    /**
+     * 设置聊天会话中的对方用户ID
+     * 
+     * @param otherUserId 对方用户ID
+     * @return 当前对象（链式调用）
+     */
+    public ResultVO<T> setOtherUserId(Long otherUserId) {
+        this.otherUserId = otherUserId;
+        return this;
     }
 }

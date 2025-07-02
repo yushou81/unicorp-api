@@ -1,12 +1,12 @@
 package com.csu.unicorp.vo;
 
+import java.time.LocalDateTime;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 /**
  * 资源视图对象，用于返回给前端
@@ -39,7 +39,7 @@ public class ResourceVO {
     /**
      * 资源类型
      */
-    @Schema(description = "资源类型，如技术文档、教学课件、案例分析等")
+    @Schema(description = "资源类型，如技术文档、教学课件、案例分析、专利、著作权等")
     private String resourceType;
     
     /**
@@ -47,6 +47,12 @@ public class ResourceVO {
      */
     @Schema(description = "文件URL")
     private String fileUrl;
+    
+    /**
+     * 图片URL（用于专利、著作权等类型资源的图片展示）
+     */
+    @Schema(description = "图片URL，用于专利、著作权等类型资源的图片展示")
+    private String imageUrl;
     
     /**
      * 创建时间

@@ -1,5 +1,7 @@
 package com.csu.unicorp.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,9 +20,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.csu.unicorp.dto.BookingCreationDTO;
+import com.csu.unicorp.dto.BookingReviewDTO;
 import com.csu.unicorp.dto.ResourceCreationDTO;
+import com.csu.unicorp.service.EquipmentService;
 import com.csu.unicorp.service.FileService;
 import com.csu.unicorp.service.ResourceService;
+import com.csu.unicorp.vo.BookingVO;
+import com.csu.unicorp.vo.ResourceTimeSlotVO;
 import com.csu.unicorp.vo.ResourceVO;
 import com.csu.unicorp.vo.ResultVO;
 
@@ -46,6 +53,7 @@ public class ResourceController {
     
     private final ResourceService resourceService;
     private final FileService fileService;
+    private final EquipmentService equipmentService;
     
     /**
      * 获取资源列表
@@ -157,32 +165,55 @@ public class ResourceController {
             @RequestParam("resourceType") String resourceType,
             @RequestParam(value = "description", required = false) String description,
             @RequestParam(value = "visibility", required = false) String visibility,
-            @RequestPart("file") MultipartFile file,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            @RequestPart(value = "image", required = false) MultipartFile image,
             @AuthenticationPrincipal UserDetails userDetails) {
         
         try {
-            // 1. 上传文件
-            log.info("正在上传资源文件: {}, 大小: {} bytes", file.getOriginalFilename(), file.getSize());
-            String fileUrl = fileService.uploadFile(file, "resource");
-            log.info("文件上传成功，URL: {}", fileUrl);
-            
-            // 2. 创建资源DTO
+            // 创建资源DTO
             ResourceCreationDTO resourceDTO = new ResourceCreationDTO();
             resourceDTO.setTitle(title);
             resourceDTO.setResourceType(resourceType);
             resourceDTO.setDescription(description);
-            resourceDTO.setFileUrl(fileUrl);
             resourceDTO.setVisibility(visibility);
             
-            // 3. 创建资源
+            // 如果提供了文件，则上传文件
+            if (file != null && !file.isEmpty()) {
+                log.info("正在上传资源文件: {}, 大小: {} bytes", file.getOriginalFilename(), file.getSize());
+                String fileUrl = fileService.uploadFile(file, "resource");
+                log.info("文件上传成功，URL: {}", fileUrl);
+                resourceDTO.setFileUrl(fileUrl);
+            } else if (!("专利".equals(resourceType) || "著作权".equals(resourceType))) {
+                // 非专利/著作权类型资源必须提供文件
+                return ResponseEntity.badRequest()
+                        .body(ResultVO.error("非专利/著作权类型资源必须提供文件"));
+            }
+            
+            // 如果提供了图片，则上传图片（主要用于专利和著作权类型资源）
+            if (image != null && !image.isEmpty()) {
+                log.info("正在上传资源图片: {}, 大小: {} bytes", image.getOriginalFilename(), image.getSize());
+                String imageUrl = fileService.uploadFile(image, "resource_images");
+                log.info("图片上传成功，URL: {}", imageUrl);
+                resourceDTO.setImageUrl(imageUrl);
+            }
+            
+            // 专利和著作权类型资源必须至少提供文件或图片之一
+            if (("专利".equals(resourceType) || "著作权".equals(resourceType)) 
+                    && (resourceDTO.getFileUrl() == null || resourceDTO.getFileUrl().isEmpty())
+                    && (resourceDTO.getImageUrl() == null || resourceDTO.getImageUrl().isEmpty())) {
+                return ResponseEntity.badRequest()
+                        .body(ResultVO.error("专利/著作权类型资源必须提供文件或图片"));
+            }
+            
+            // 创建资源
             ResourceVO resource = resourceService.createResource(resourceDTO, userDetails);
             log.info("资源创建成功，ID: {}", resource.getId());
             
-            return ResponseEntity.ok(ResultVO.success("资源上传成功", resource));
+            return ResponseEntity.ok(ResultVO.success("资源创建成功", resource));
         } catch (Exception e) {
-            log.error("资源上传失败", e);
+            log.error("资源创建失败", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ResultVO.error("资源上传失败: " + e.getMessage()));
+                    .body(ResultVO.error("资源创建失败: " + e.getMessage()));
         }
     }
     
@@ -201,11 +232,12 @@ public class ResourceController {
     @PostMapping(value = "/{id}/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResultVO<ResourceVO>> uploadAndUpdateResource(
             @PathVariable Integer id,
-            @RequestParam(value = "title" , required = false) String title,
-            @RequestParam(value = "resourceType" , required = false) String resourceType,
+            @RequestParam("title") String title,
+            @RequestParam(value = "resourceType", required = false) String resourceType,
             @RequestParam(value = "description", required = false) String description,
             @RequestParam(value = "visibility", required = false) String visibility,
             @RequestPart(value = "file", required = false) MultipartFile file,
+            @RequestPart(value = "image", required = false) MultipartFile image,
             @AuthenticationPrincipal UserDetails userDetails) {
         
         try {
@@ -231,7 +263,19 @@ public class ResourceController {
                 log.info("未提供新文件，保留原有文件URL: {}", existingResource.getFileUrl());
             }
             
-            // 3. 更新资源
+            // 3. 如果提供了新图片，则上传并更新imageUrl
+            if (image != null && !image.isEmpty()) {
+                log.info("正在上传更新的资源图片: {}, 大小: {} bytes", image.getOriginalFilename(), image.getSize());
+                String imageUrl = fileService.uploadFile(image, "resource_images");
+                log.info("图片上传成功，URL: {}", imageUrl);
+                resourceDTO.setImageUrl(imageUrl);
+            } else {
+                // 如果没有提供新图片，则保留原来的imageUrl
+                resourceDTO.setImageUrl(existingResource.getImageUrl());
+                log.info("未提供新图片，保留原有图片URL: {}", existingResource.getImageUrl());
+            }
+            
+            // 4. 更新资源
             ResourceVO resource = resourceService.updateResource(id, resourceDTO, userDetails);
             log.info("资源更新成功，ID: {}", resource.getId());
             
@@ -279,5 +323,143 @@ public class ResourceController {
             log.error("文件下载失败", e);
             return ResponseEntity.notFound().build();
         }
+    }
+
+    /**
+     * 申请使用实验设备
+     */
+    @Operation(summary = "[登录用户] 申请使用实验设备", description = "创建设备使用申请")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "申请创建成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = BookingVO.class))),
+        @ApiResponse(responseCode = "400", description = "请求参数错误"),
+        @ApiResponse(responseCode = "403", description = "权限不足")
+    })
+    @PostMapping("/equipment/bookings")
+    public ResponseEntity<ResultVO<BookingVO>> createEquipmentBooking(
+            @Valid @RequestBody BookingCreationDTO dto,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        BookingVO booking = equipmentService.createBooking(dto, userDetails);
+        return new ResponseEntity<>(ResultVO.success("设备预约申请成功", booking), HttpStatus.CREATED);
+    }
+    
+    /**
+     * 获取预约列表
+     */
+    @Operation(summary = "[管理员/教师] 获取实验设备预约列表", description = "获取设备预约列表，支持分页和搜索")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "成功获取预约列表", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @GetMapping("/equipment/bookings")
+    public ResultVO<IPage<BookingVO>> getEquipmentBookings(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false) Integer resourceId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Integer organizationId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        IPage<BookingVO> bookings = equipmentService.getBookings(page, size, userId, resourceId, status, organizationId, userDetails);
+        return ResultVO.success("获取预约列表成功", bookings);
+    }
+    
+    /**
+     * 获取预约详情
+     */
+    @Operation(summary = "获取设备预约详情", description = "获取特定预约的详细信息")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "成功获取预约详情", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "404", description = "预约未找到")
+    })
+    @GetMapping("/equipment/bookings/{id}")
+    public ResultVO<BookingVO> getEquipmentBookingById(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        BookingVO booking = equipmentService.getBookingById(id, userDetails);
+        return ResultVO.success("获取预约详情成功", booking);
+    }
+    
+    /**
+     * 取消预约
+     */
+    @Operation(summary = "[预约者] 取消实验设备预约", description = "取消自己的预约")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "预约取消成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = BookingVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足"),
+        @ApiResponse(responseCode = "404", description = "预约不存在")
+    })
+    @PostMapping("/equipment/bookings/{id}/cancel")
+    public ResponseEntity<ResultVO<BookingVO>> cancelEquipmentBooking(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        BookingVO booking = equipmentService.cancelBooking(id, userDetails);
+        return ResponseEntity.ok(ResultVO.success("预约取消成功", booking));
+    }
+    
+    /**
+     * 审核预约
+     */
+    @Operation(summary = "[设备管理员/管理员] 审核实验设备预约", description = "批准或拒绝预约申请")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "预约审核完成", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = BookingVO.class))),
+        @ApiResponse(responseCode = "400", description = "请求参数错误"),
+        @ApiResponse(responseCode = "403", description = "权限不足"),
+        @ApiResponse(responseCode = "404", description = "预约不存在")
+    })
+    @PostMapping("/equipment/bookings/review")
+    public ResponseEntity<ResultVO<BookingVO>> reviewEquipmentBooking(
+            @Valid @RequestBody BookingReviewDTO dto,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        BookingVO booking = equipmentService.reviewBooking(dto, userDetails);
+        return ResponseEntity.ok(ResultVO.success("预约审核完成", booking));
+    }
+
+    /**
+     * 获取当前用户的所有预约
+     */
+    @Operation(summary = "获取当前用户的所有预约", description = "获取当前登录用户的所有设备预约申请")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "成功获取预约列表", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @GetMapping("/equipment/my-bookings")
+    public ResultVO<List<BookingVO>> getCurrentUserBookings(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        List<BookingVO> bookings = equipmentService.getCurrentUserBookings(userDetails);
+        return ResultVO.success("获取我的预约列表成功", bookings);
+    }
+    
+    /**
+     * 获取资源的占用时间段
+     */
+    @Operation(summary = "获取资源的占用时间段", description = "获取特定资源的被占用时间段，只有APPROVED状态的预约才是真正占用时间")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "成功获取资源的占用时间段", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "404", description = "资源未找到")
+    })
+    @GetMapping("/{id}/bookings")
+    public ResultVO<List<ResourceTimeSlotVO>> getResourceTimeSlots(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        List<ResourceTimeSlotVO> timeSlots = equipmentService.getResourceTimeSlots(id, userDetails);
+        return ResultVO.success("获取资源占用时间段成功", timeSlots);
     }
 } 

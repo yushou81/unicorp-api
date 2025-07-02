@@ -435,3 +435,40 @@ paths:
           description: 无效的文件格式或大小
         '401':
           description: 未授权
+          
+  /v1/auth/search:
+    get:
+      tags:
+        - Authentication
+      summary: 搜索用户
+      description: 通过电话号码或邮箱搜索用户
+      operationId: searchUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: keyword
+          in: query
+          description: 搜索关键词（电话号码或邮箱）
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 查找用户成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: 查找用户成功
+                  data:
+                    $ref: '#/components/schemas/UserVO'
+        '400':
+          description: 未找到匹配的用户
+        '401':
+          description: 未授权

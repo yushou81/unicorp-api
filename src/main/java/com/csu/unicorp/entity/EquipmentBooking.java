@@ -19,9 +19,9 @@ public class EquipmentBooking {
     private Integer id;
     
     /**
-     * 关联的设备ID
+     * 关联的资源ID
      */
-    private Integer equipmentId;
+    private Integer resourceId;
     
     /**
      * 预约用户ID

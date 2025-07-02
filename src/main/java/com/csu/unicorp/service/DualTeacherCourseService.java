@@ -7,7 +7,10 @@ import com.csu.unicorp.dto.DualTeacherCourseDTO;
 import com.csu.unicorp.entity.CourseEnrollment;
 import com.csu.unicorp.entity.DualTeacherCourse;
 import com.csu.unicorp.vo.DualTeacherCourseVO;
+import com.csu.unicorp.vo.UserVO;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.List;
 
 /**
  * 双师课堂服务接口
@@ -123,4 +126,13 @@ public interface DualTeacherCourseService {
      * @param userDetails 当前登录用户
      */
     void updateEnrollmentStatus(Integer enrollmentId, String status, UserDetails userDetails);
+    
+    /**
+     * 获取课程已报名学生列表
+     * 
+     * @param courseId 课程ID
+     * @param userDetails 当前登录用户
+     * @return 学生列表
+     */
+    List<UserVO> getCourseStudents(Integer courseId, UserDetails userDetails);
 } 

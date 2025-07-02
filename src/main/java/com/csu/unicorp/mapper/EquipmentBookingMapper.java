@@ -20,19 +20,19 @@ public interface EquipmentBookingMapper extends BaseMapper<EquipmentBooking> {
      */
     @Select("<script>" +
             "SELECT b.* FROM equipment_bookings b " +
-            "LEFT JOIN equipment_resources e ON b.equipment_id = e.id " +
+            "LEFT JOIN resources r ON b.resource_id = r.id " +
             "<where>" +
             "  <if test=\"userId != null\"> " +
             "    AND b.user_id = #{userId} " +
             "  </if>" +
-            "  <if test=\"equipmentId != null\"> " +
-            "    AND b.equipment_id = #{equipmentId} " +
+            "  <if test=\"resourceId != null\"> " +
+            "    AND b.resource_id = #{resourceId} " +
             "  </if>" +
             "  <if test=\"status != null and status != ''\"> " +
             "    AND b.status = #{status} " +
             "  </if>" +
             "  <if test=\"organizationId != null\"> " +
-            "    AND e.organization_id = #{organizationId} " +
+            "    AND r.organization_id = #{organizationId} " +
             "  </if>" +
             "</where>" +
             " ORDER BY b.created_at DESC" +
@@ -40,14 +40,14 @@ public interface EquipmentBookingMapper extends BaseMapper<EquipmentBooking> {
     IPage<EquipmentBooking> findBookingsPage(
             Page<EquipmentBooking> page, 
             @Param("userId") Integer userId,
-            @Param("equipmentId") Integer equipmentId,
+            @Param("resourceId") Integer resourceId,
             @Param("status") String status,
             @Param("organizationId") Integer organizationId);
     
     /**
      * 检查时间段冲突
      * 
-     * @param equipmentId 设备ID
+     * @param resourceId 设备资源ID
      * @param startTime 开始时间
      * @param endTime 结束时间
      * @param excludeBookingId 排除的预约ID（用于更新时）
@@ -55,17 +55,17 @@ public interface EquipmentBookingMapper extends BaseMapper<EquipmentBooking> {
      */
     @Select("<script>" +
             "SELECT * FROM equipment_bookings " +
-            "WHERE equipment_id = #{equipmentId} " +
+            "WHERE resource_id = #{resourceId} " +
             "AND status = 'APPROVED' " +
             "<if test=\"excludeBookingId != null\"> " +
             "  AND id != #{excludeBookingId} " +
             "</if>" +
             "AND (" +
-            "  (start_time &lt;= #{endTime} AND end_time &gt;= #{startTime})" +
+            "  (start_time &lt; #{endTime} AND end_time &gt; #{startTime})" +
             ")" +
             "</script>")
     List<EquipmentBooking> findConflictBookings(
-            @Param("equipmentId") Integer equipmentId,
+            @Param("resourceId") Integer resourceId,
             @Param("startTime") LocalDateTime startTime,
             @Param("endTime") LocalDateTime endTime,
             @Param("excludeBookingId") Integer excludeBookingId);
