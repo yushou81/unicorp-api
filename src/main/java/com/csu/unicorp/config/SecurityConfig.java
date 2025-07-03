@@ -103,6 +103,9 @@ public class SecurityConfig {
                     .requestMatchers("/v1/course-resources/course/{courseId}").permitAll()
                     .requestMatchers("/v1/course-resources/download/{resourceId}").permitAll()
                     .requestMatchers("/v1/equipments", "/v1/equipments/{id}").permitAll()
+                    // 成果统计公开接口
+                    .requestMatchers("/api/v1/achievement/statistics/overview", "/api/v1/achievement/statistics/overview/{userId}").permitAll()
+                    .requestMatchers("/v1/achievement/statistics/overview", "/v1/achievement/statistics/overview/{userId}").permitAll()
                     // 用户搜索接口需要认证
                     .requestMatchers("/v1/auth/search").authenticated()
                     // 聊天接口需要认证

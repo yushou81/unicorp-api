@@ -4,7 +4,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * 文件上传服务接口
+ * 文件服务接口
  */
 public interface FileService {
     
@@ -16,6 +16,14 @@ public interface FileService {
      * @return 文件的相对路径，例如 "resumes/filename.docx"
      */
     String uploadFile(MultipartFile file, String type);
+    
+    /**
+     * 删除文件
+     * 
+     * @param fileUrl 文件URL
+     * @return 是否删除成功
+     */
+    boolean deleteFile(String fileUrl);
     
     /**
      * 根据相对路径获取文件的完整URL

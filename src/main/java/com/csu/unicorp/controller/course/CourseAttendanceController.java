@@ -48,7 +48,7 @@ public class CourseAttendanceController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN')")
     public ResultVO<Boolean> recordAttendance(
             @RequestBody @Valid CourseAttendanceDTO attendanceDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -100,7 +100,7 @@ public class CourseAttendanceController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN', 'EN_TEACHER')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN', 'EN_TEACHER')")
     public ResultVO<IPage<LocalDate>> getCourseAttendanceDates(
             @PathVariable @Parameter(description = "课程ID") Integer courseId,
             @RequestParam(defaultValue = "1") @Parameter(description = "页码") Integer page,

@@ -95,6 +95,34 @@ public class FileServiceImpl implements FileService {
     }
     
     @Override
+    public boolean deleteFile(String fileUrl) {
+        try {
+            // 如果提供的是完整URL，转换为相对路径
+            String relativePath = fileUrl;
+            if (fileUrl.startsWith(baseUrl)) {
+                relativePath = fileUrl.substring(fileUrl.indexOf("/api/v1/files/") + "/api/v1/files/".length());
+            }
+            
+            // 构建文件路径
+            Path filePath = Paths.get(uploadBaseDir).resolve(relativePath).normalize();
+            
+            // 检查文件是否存在
+            if (!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
+                log.warn("要删除的文件不存在: {}", filePath);
+                return false;
+            }
+            
+            // 删除文件
+            Files.delete(filePath);
+            log.info("文件已成功删除: {}", filePath);
+            return true;
+        } catch (IOException e) {
+            log.error("删除文件失败: {}", fileUrl, e);
+            return false;
+        }
+    }
+    
+    @Override
     public String getFullFileUrl(String relativePath) {
         if (relativePath == null || relativePath.isEmpty()) {
             return null;
