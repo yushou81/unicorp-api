@@ -1,17 +1,23 @@
-package com.csu.unicorp.entity;
+package com.csu.unicorp.entity.achievement;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
 
 /**
- * 作品集项目实体类
+ * 作品项目实体类
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @TableName("portfolio_items")
 public class PortfolioItem {
     
@@ -22,17 +28,17 @@ public class PortfolioItem {
     private Integer id;
     
     /**
-     * 所属学生的用户ID
+     * 所属学生ID
      */
     private Integer userId;
     
     /**
-     * 作品或项目标题
+     * 作品标题
      */
     private String title;
     
     /**
-     * 详细描述
+     * 作品描述
      */
     private String description;
     
@@ -42,15 +48,39 @@ public class PortfolioItem {
     private String projectUrl;
     
     /**
-     * 封面图URL
+     * 封面图片URL
      */
     private String coverImageUrl;
     
     /**
-     * 是否已删除
+     * 作品分类
      */
-    @TableLogic
-    private Boolean isDeleted;
+    private String category;
+    
+    /**
+     * 标签，以逗号分隔
+     */
+    private String tags;
+    
+    /**
+     * 团队成员，以逗号分隔
+     */
+    private String teamMembers;
+    
+    /**
+     * 是否公开
+     */
+    private Boolean isPublic;
+    
+    /**
+     * 查看次数
+     */
+    private Integer viewCount;
+    
+    /**
+     * 点赞数
+     */
+    private Integer likeCount;
     
     /**
      * 创建时间
@@ -61,4 +91,10 @@ public class PortfolioItem {
      * 更新时间
      */
     private LocalDateTime updatedAt;
+    
+    /**
+     * 是否已删除
+     */
+    @TableLogic
+    private Boolean isDeleted;
 } 

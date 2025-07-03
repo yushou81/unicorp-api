@@ -74,6 +74,17 @@ public class ResultVO<T> {
     }
     
     /**
+     * 创建成功响应（使用默认成功消息）
+     * 
+     * @param <T> 数据类型
+     * @param data 响应数据
+     * @return 成功响应对象
+     */
+    public static <T> ResultVO<T> success(T data) {
+        return new ResultVO<>(200, "操作成功", data);
+    }
+    
+    /**
      * 创建失败响应（客户端错误）
      * 
      * @param <T> 数据类型

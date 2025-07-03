@@ -186,4 +186,13 @@ public interface UserMapper extends BaseMapper<User> {
             "  SELECT ur.user_id FROM user_roles ur WHERE ur.role_id = #{excludeRoleId}" +
             ") AND u.is_deleted = 0")
     IPage<User> selectUsersExcludeRole(@Param("excludeRoleId") Integer excludeRoleId, @Param("page") Page<User> page);
+
+    /**
+     * 根据组织ID查询组织名称
+     *
+     * @param organizationId 组织ID
+     * @return 组织名称
+     */
+    @Select("SELECT organization_name FROM organizations WHERE id = #{organizationId}")
+    String selectOrganizationNameById(@Param("organizationId") Integer organizationId);
 }

@@ -122,6 +122,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
+        <!-- Spring Messaging 依赖 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-messaging</artifactId>
+        </dependency>
         <!-- Spring Boot 测试框架 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
