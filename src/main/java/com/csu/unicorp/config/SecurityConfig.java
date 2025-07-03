@@ -79,19 +79,44 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                     // 公共接口
-                    .requestMatchers("/v1/auth/login", "/v1/auth/register/**").permitAll()
+                    .requestMatchers("/v1/auth/login", "/v1/auth/register/**","/v1/files/**").permitAll()
+                        .requestMatchers("/v1/files/resumes/**").permitAll()
                     .requestMatchers("/v1/organizations/schools").permitAll()
-                    .requestMatchers("/v1/jobs", "/v1/jobs/**").permitAll()
+                    .requestMatchers("/v1/jobs", "/v1/jobs/**","/v1/job-categories").permitAll()
                     .requestMatchers("/v1/projects", "/v1/projects/{id}").permitAll()
                     // WebSocket端点 - 允许所有访问，认证在WebSocketAuthInterceptor中处理
                     .requestMatchers("/ws/**").permitAll()
                     // 资源共享中心公开接口
-                    .requestMatchers("/v1/resources", "/v1/resources/**").permitAll()
+                    .requestMatchers("/v1/resources", "/v1/resources/{id}").permitAll()
+                    .requestMatchers("/api/resources", "/api/resources/{id}").permitAll()
+                    .requestMatchers("/api/v1/resources", "/api/v1/resources/{id}").permitAll()
+                    .requestMatchers("/api/resources/upload").authenticated()
+                    .requestMatchers("/api/v1/resources/upload").authenticated()
+                    // 双师课堂公开接口
+                    .requestMatchers("/v1/dual-courses").permitAll()
+                    .requestMatchers("/v1/dual-courses/{id}").permitAll()
+                    .requestMatchers("/v1/dual-courses/enrollable").permitAll()
+                    // 双师课堂需要认证的接口
+                    .requestMatchers("/v1/dual-courses/{id}/students").authenticated()
+                    // 课程评价公开接口
+                    .requestMatchers("/v1/course-ratings/course/{courseId}").permitAll()
+                    .requestMatchers("/v1/course-ratings/{ratingId}").permitAll()
+                    .requestMatchers("/v1/course-ratings/average/{courseId}").permitAll()
+                    // 课程资源公开接口
+                    .requestMatchers("/v1/course-resources/{resourceId}").permitAll()
+                    .requestMatchers("/v1/course-resources/course/{courseId}").permitAll()
+                    .requestMatchers("/v1/course-resources/download/{resourceId}").permitAll()
+                    .requestMatchers("/v1/equipments", "/v1/equipments/{id}").permitAll()
+                    // 用户搜索接口需要认证
+                    .requestMatchers("/v1/auth/search").authenticated()
                     // 聊天接口需要认证
                     .requestMatchers("/v1/chat/**").authenticated()
-                    // 静态资源访问
-                    .requestMatchers("/files/**").permitAll()
-                    .requestMatchers("/v1/chat/**").authenticated()
+
+                    // 静态资源访问 - 权限验证通过拦截器而不是这里处理
+                    .requestMatchers("/v1/files/resources/**").permitAll()
+                    .requestMatchers("/v1/files/resource_images/**").permitAll()
+                    .requestMatchers("/v1/files/resumes/**").authenticated()
+                    .requestMatchers("/v1/files/avatars/**").permitAll()
                     // Swagger UI and API docs
                     .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     // 管理接口需要SYSADMIN权限

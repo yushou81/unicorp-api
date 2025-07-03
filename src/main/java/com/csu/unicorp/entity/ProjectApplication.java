@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 /**
@@ -55,10 +56,10 @@ public class ProjectApplication {
     /**
      * 创建时间
      */
-    private LocalDateTime createdAt;
+    private Timestamp createdAt;
     
     /**
      * 更新时间
      */
-    private LocalDateTime updatedAt;
+    private Timestamp updatedAt;
 } 

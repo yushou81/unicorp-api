@@ -1,5 +1,6 @@
 package com.csu.unicorp.service.impl;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,6 +9,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.csu.unicorp.service.FileService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +40,7 @@ public class ChatServiceImpl implements ChatService {
     private final ChatSessionMapper chatSessionMapper;
     private final ChatMessageMapper chatMessageMapper;
     private final UserMapper userMapper;
+    private final FileService fileService;
     
     @Override
     public List<ChatSessionVO> getUserSessions(Long userId) {
@@ -75,7 +78,8 @@ public class ChatServiceImpl implements ChatService {
             if (otherUser != null) {
                 vo.setUserId(otherUserId);
                 vo.setUserName(otherUser.getNickname());
-                vo.setUserAvatar(otherUser.getAvatar());
+                String avatar = fileService.getFullFileUrl(otherUser.getAvatar());
+                vo.setUserAvatar(avatar);
             }
             
             // 获取最近一条消息
@@ -195,10 +199,19 @@ public class ChatServiceImpl implements ChatService {
     }
     
     @Override
-    public List<ChatMessageVO> getSessionMessages(Long sessionId, Integer page, Integer size) {
+    public List<ChatMessageVO> getSessionMessages(Long sessionId, Long currentUserId, Integer page, Integer size) {
         // 默认值处理
         page = page == null || page < 1 ? 1 : page;
         size = size == null || size < 1 ? 20 : size;
+        
+        // 获取会话信息，确定对话另一方的ID
+        ChatSession session = chatSessionMapper.selectById(sessionId);
+        if (session == null) {
+            return Collections.emptyList();
+        }
+        
+        // 获取接收方ID（对话的另一方）
+        Long receiverId = session.getUser1Id().equals(currentUserId) ? session.getUser2Id() : session.getUser1Id();
         
         // 分页查询消息
         IPage<ChatMessage> messagePage = new Page<>(page, size);
@@ -233,6 +246,9 @@ public class ChatServiceImpl implements ChatService {
                         vo.setSenderName(sender.getNickname());
                     }
                     
+                    // 设置接收方ID
+                    vo.setReceiverId(receiverId);
+                    
                     return vo;
                 })
                 .collect(Collectors.toList());
@@ -257,6 +273,15 @@ public class ChatServiceImpl implements ChatService {
         User sender = userMapper.selectById(message.getSenderId().intValue());
         if (sender != null) {
             vo.setSenderName(sender.getNickname());
+        }
+        
+        // 获取会话信息以确定接收方ID
+        ChatSession session = chatSessionMapper.selectById(message.getSessionId());
+        if (session != null) {
+            // 接收方是会话中发送者之外的另一个用户
+            Long receiverId = session.getUser1Id().equals(message.getSenderId()) ? 
+                session.getUser2Id() : session.getUser1Id();
+            vo.setReceiverId(receiverId);
         }
         
         vo.setType(ChatMessageDTO.MessageType.CHAT);

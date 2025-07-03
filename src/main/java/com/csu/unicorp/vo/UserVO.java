@@ -44,6 +44,12 @@ public class UserVO {
     private String phone;
     
     /**
+     * 用户头像URL
+     */
+    @Schema(description = "用户头像URL")
+    private String avatar;
+    
+    /**
      * 用户状态
      */
     @Schema(description = "用户状态")
@@ -54,6 +60,12 @@ public class UserVO {
      */
     @Schema(description = "所属组织ID")
     private Integer organizationId;
+    
+    /**
+     * 所属组织名称
+     */
+    @Schema(description = "所属组织名称")
+    private String organizationName;
     
     /**
      * 用户角色列表

@@ -31,6 +31,13 @@ public class ResultVO<T> {
     private T data;
     
     /**
+     * 聊天会话中的对方用户ID（仅在聊天相关接口中使用）
+     */
+    @Schema(description = "聊天会话中的对方用户ID")
+    private Long otherUserId;
+    
+    
+    /**
      * 构造函数
      * 
      * @param code 状态码
@@ -90,6 +97,18 @@ public class ResultVO<T> {
     }
     
     /**
+     * 创建失败响应（指定状态码），与error方法功能相同，提供更语义化的命名
+     * 
+     * @param <T> 数据类型
+     * @param code 错误状态码
+     * @param message 错误消息
+     * @return 失败响应对象
+     */
+    public static <T> ResultVO<T> fail(Integer code, String message) {
+        return new ResultVO<>(code, message, null);
+    }
+    
+    /**
      * 创建失败响应（服务端错误）
      * 
      * @param <T> 数据类型
@@ -98,5 +117,16 @@ public class ResultVO<T> {
      */
     public static <T> ResultVO<T> serverError(String message) {
         return new ResultVO<>(500, message, null);
+    }
+    
+    /**
+     * 设置聊天会话中的对方用户ID
+     * 
+     * @param otherUserId 对方用户ID
+     * @return 当前对象（链式调用）
+     */
+    public ResultVO<T> setOtherUserId(Long otherUserId) {
+        this.otherUserId = otherUserId;
+        return this;
     }
 }

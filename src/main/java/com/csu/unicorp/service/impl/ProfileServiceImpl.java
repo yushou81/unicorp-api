@@ -3,7 +3,7 @@ package com.csu.unicorp.service.impl;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.dto.ProfileUpdateDTO;
-import com.csu.unicorp.entity.Organization;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.StudentInfo;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.OrganizationMapper;
@@ -12,11 +12,10 @@ import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.PortfolioService;
 import com.csu.unicorp.service.ProfileService;
 import com.csu.unicorp.vo.PortfolioItemVO;
-import com.csu.unicorp.vo.StudentProfileVO;
+import com.csu.unicorp.vo.ResumeVO;
 import com.csu.unicorp.vo.UserProfileVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -120,10 +119,10 @@ public class ProfileServiceImpl implements ProfileService {
             // 获取学生档案信息
             StudentInfo studentInfo = studentInfoMapper.selectByUserId(user.getId());
             if (studentInfo != null) {
-                StudentProfileVO studentProfileVO = new StudentProfileVO();
-                studentProfileVO.setMajor(studentInfo.getMajor());
-                studentProfileVO.setEducationLevel(studentInfo.getEducationLevel());
-                profileVO.setStudentProfile(studentProfileVO);
+                ResumeVO resumeVO = new ResumeVO();
+                resumeVO.setMajor(studentInfo.getMajor());
+                resumeVO.setEducationLevel(studentInfo.getEducationLevel());
+                profileVO.setResume(resumeVO);
             }
             
             // 获取作品集列表

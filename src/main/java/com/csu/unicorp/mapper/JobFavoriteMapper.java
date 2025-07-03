@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Select;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.csu.unicorp.entity.JobFavorite;
+import com.csu.unicorp.entity.job.JobFavorite;
 import com.csu.unicorp.vo.JobVO;
 
 /**

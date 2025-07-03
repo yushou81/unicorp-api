@@ -8,18 +8,18 @@ import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.dto.ApplicationStatusUpdateDTO;
 import com.csu.unicorp.entity.Application;
-import com.csu.unicorp.entity.Job;
-import com.csu.unicorp.entity.StudentProfile;
+import com.csu.unicorp.entity.job.Job;
+import com.csu.unicorp.entity.Resume;
 import com.csu.unicorp.entity.User;
-import com.csu.unicorp.entity.UserVerification;
 import com.csu.unicorp.mapper.ApplicationMapper;
 import com.csu.unicorp.mapper.JobMapper;
-import com.csu.unicorp.mapper.StudentProfileMapper;
+import com.csu.unicorp.mapper.ResumeMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.mapper.UserVerificationMapper;
 import com.csu.unicorp.service.ApplicationService;
 import com.csu.unicorp.vo.ApplicationDetailVO;
 import com.csu.unicorp.vo.MyApplicationDetailVO;
+import com.csu.unicorp.vo.ResumeVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -41,7 +41,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     private final ApplicationMapper applicationMapper;
     private final JobMapper jobMapper;
     private final UserMapper userMapper;
-    private final StudentProfileMapper studentProfileMapper;
+    private final ResumeMapper resumeMapper;
     private final UserVerificationMapper userVerificationMapper;
     
     // 有效的申请状态列表
@@ -49,7 +49,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     
     @Override
     @Transactional
-    public Integer applyJob(Integer jobId, Integer studentId) {
+    public Integer applyJob(Integer jobId, Integer studentId, Integer resumeId) {
         // 检查岗位是否存在
         Job job = jobMapper.selectById(jobId);
         if (job == null || job.getIsDeleted() || !"open".equals(job.getStatus())) {
@@ -62,10 +62,17 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
             throw new BusinessException("您已申请过该岗位");
         }
         
+        // 检查简历是否存在且属于该学生
+        Resume resume = resumeMapper.selectById(resumeId);
+        if (resume == null || !resume.getUserId().equals(studentId)) {
+            throw new ResourceNotFoundException("简历不存在或不属于当前用户");
+        }
+        
         // 创建申请记录
         Application application = new Application();
         application.setJobId(jobId);
         application.setStudentId(studentId);
+        application.setResumeId(resumeId);
         application.setStatus("submitted");
         application.setAppliedAt(LocalDateTime.now());
         
@@ -124,7 +131,18 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     @Override
     public IPage<MyApplicationDetailVO> pageStudentApplications(Integer studentId, int page, int size) {
         Page<MyApplicationDetailVO> pageParam = new Page<>(page, size);
-        return applicationMapper.pageApplicationsByStudentId(pageParam, studentId);
+        IPage<MyApplicationDetailVO> applications = applicationMapper.pageApplicationsByStudentId(pageParam, studentId);
+        
+        // 由于修改了SQL别名为jobInfo.xxxx的格式，MyBatis应该已经自动处理了嵌套对象
+        // 不过我们还是检查一下，确保每个记录都有jobInfo对象
+        applications.getRecords().forEach(app -> {
+            if (app.getJobInfo() == null) {
+                app.setJobInfo(new MyApplicationDetailVO.JobInfoVO());
+            }
+        });
+        
+        log.info("获取我的申请列表成功:{}", applications);
+        return applications;
     }
     
     /**
@@ -134,30 +152,24 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         ApplicationDetailVO vo = new ApplicationDetailVO();
         BeanUtils.copyProperties(application, vo);
         
-        // 设置学生资料
-        ApplicationDetailVO.StudentProfileVO profileVO = new ApplicationDetailVO.StudentProfileVO();
+        // 设置简历信息
+        ResumeVO resumeVO = new ResumeVO();
         
         // 获取用户基本信息
         User student = userMapper.selectById(application.getStudentId());
         if (student != null) {
-            profileVO.setNickname(student.getNickname());
-            
-            // 获取实名认证信息
-            UserVerification verification = userVerificationMapper.selectById(application.getStudentId());
-            if (verification != null) {
-                profileVO.setRealName(verification.getRealName());
-            }
-            
-            // 获取学生档案信息
-            StudentProfile profile = studentProfileMapper.selectByUserId(application.getStudentId());
-            if (profile != null) {
-                profileVO.setMajor(profile.getMajor());
-                profileVO.setEducationLevel(profile.getEducationLevel());
-                profileVO.setResumeUrl(profile.getResumeUrl());
+            // 获取简历信息
+            Resume resume = resumeMapper.selectByUserId(application.getStudentId());
+            if (resume != null) {
+                resumeVO.setId(resume.getId());
+                resumeVO.setMajor(resume.getMajor());
+                resumeVO.setEducationLevel(resume.getEducationLevel());
+                resumeVO.setResumeUrl(resume.getResumeUrl());
+                resumeVO.setAchievements(resume.getAchievements());
             }
         }
         
-        vo.setStudentProfile(profileVO);
+        vo.setResume(resumeVO);
         return vo;
     }
     

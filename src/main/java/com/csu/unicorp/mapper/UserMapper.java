@@ -134,7 +134,7 @@ public interface UserMapper extends BaseMapper<User> {
     @Select("SELECT uv.real_name, sp.major " +
             "FROM users u " +
             "LEFT JOIN user_verifications uv ON u.id = uv.user_id " +
-            "LEFT JOIN student_profiles sp ON u.id = sp.user_id " +
+            "LEFT JOIN resumes sp ON u.id = sp.user_id " +
             "WHERE u.id = #{userId}")
     Map<String, Object> getUserVerificationAndProfile(@Param("userId") Integer userId);
 
@@ -161,4 +161,29 @@ public interface UserMapper extends BaseMapper<User> {
     Page<User> selectUsersByOrganizationIdAndRoleId(@Param("organizationId") Integer organizationId, 
                                                    @Param("roleId") Integer roleId, 
                                                    Page<User> page);
+    
+    /**
+     * 根据角色ID查询用户（系统管理员使用）
+     *
+     * @param roleId 角色ID
+     * @param page 分页参数
+     * @return 用户分页列表
+     */
+    @Select("SELECT u.* FROM users u " +
+            "JOIN user_roles ur ON u.id = ur.user_id " +
+            "WHERE ur.role_id = #{roleId} AND u.is_deleted = 0")
+    IPage<User> selectUsersByRoleId(@Param("roleId") Integer roleId, @Param("page") Page<User> page);
+    
+    /**
+     * 查询所有用户，排除特定角色的用户（系统管理员使用）
+     *
+     * @param excludeRoleId 要排除的角色ID
+     * @param page 分页参数
+     * @return 用户分页列表
+     */
+    @Select("SELECT u.* FROM users u " +
+            "WHERE u.id NOT IN (" +
+            "  SELECT ur.user_id FROM user_roles ur WHERE ur.role_id = #{excludeRoleId}" +
+            ") AND u.is_deleted = 0")
+    IPage<User> selectUsersExcludeRole(@Param("excludeRoleId") Integer excludeRoleId, @Param("page") Page<User> page);
 }

@@ -6,6 +6,7 @@ import com.csu.unicorp.dto.ProjectApplicationStatusUpdateDTO;
 import com.csu.unicorp.service.ProjectApplicationService;
 import com.csu.unicorp.vo.MyProjectApplicationDetailVO;
 import com.csu.unicorp.vo.ProjectApplicationDetailVO;
+import com.csu.unicorp.vo.ProjectVO;
 import com.csu.unicorp.vo.ResultVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,7 +24,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.util.List;
+import com.csu.unicorp.mapper.UserMapper;
+import com.csu.unicorp.entity.User;
 
 /**
  * 项目申请控制器
@@ -34,6 +38,7 @@ import java.util.List;
 public class ProjectApplicationController {
     
     private final ProjectApplicationService projectApplicationService;
+    private final UserMapper userMapper;
     
     /**
      * 学生申请加入项目
@@ -109,7 +114,7 @@ public class ProjectApplicationController {
     })
     @PatchMapping("/v1/project-applications/{id}")
     @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER','STUDENT')")
     public ResultVO<ProjectApplicationDetailVO> updateApplicationStatus(
             @PathVariable("id") Integer applicationId,
             @Valid @RequestBody ProjectApplicationStatusUpdateDTO dto,
@@ -132,14 +137,22 @@ public class ProjectApplicationController {
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @GetMapping("/v1/me/project-applications")
-    @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasRole('STUDENT')")
-    public ResultVO<IPage<MyProjectApplicationDetailVO>> getMyApplications(
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        
-        IPage<MyProjectApplicationDetailVO> applications = projectApplicationService.getMyApplications(page, size, userDetails);
-        return ResultVO.success("获取申请列表成功", applications);
-    }
+        @PreAuthorize("hasRole('STUDENT')")
+        public ResultVO<IPage<MyProjectApplicationDetailVO>> getMyApplications(
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(required = false) String keyword,
+        @RequestParam(required = false) List<String> difficulty,
+        @RequestParam(required = false) List<String> supportLanguages,
+        @RequestParam(required = false) List<String> techFields,
+        @RequestParam(required = false) List<String> programmingLanguages,
+        @AuthenticationPrincipal UserDetails userDetails
+        ) {
+        // 通过 userDetails.getUsername() 查 userId
+        User user = userMapper.findByUsername(userDetails.getUsername());
+        Integer userId = user != null ? user.getId() : null;
+        IPage<MyProjectApplicationDetailVO> result = projectApplicationService.getMyProjectApplications(
+                page, size, keyword, userId, difficulty, supportLanguages, techFields, programmingLanguages);
+        return ResultVO.success("获取申请列表成功", result);
+        }
 } 

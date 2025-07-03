@@ -18,6 +18,9 @@ public class JobApplicationVO {
     @Schema(description = "岗位ID")
     private Long jobPostId;
     
+    @Schema(description = "简历ID")
+    private Long resumeId;
+    
     @Schema(description = "岗位标题")
     private String jobTitle;
     

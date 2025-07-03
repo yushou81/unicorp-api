@@ -32,10 +32,28 @@ public class JobVO {
     private String organizationName;
     
     /**
+     * 组织详情
+     */
+    @Schema(description = "组织详情")
+    private OrganizationVO organization;
+    
+    /**
+     * 企业详情
+     */
+    @Schema(description = "企业详情")
+    private EnterpriseDetailVO enterpriseDetail;
+    
+    /**
      * 发布用户ID
      */
     @Schema(description = "发布用户ID")
     private Integer postedByUserId;
+    
+    /**
+     * 发布用户信息
+     */
+    @Schema(description = "发布用户信息")
+    private UserVO postedByUser;
     
     /**
      * 岗位标题
@@ -110,18 +128,6 @@ public class JobVO {
     private String experienceRequirement;
     
     /**
-     * 职能分类
-     */
-    @Schema(description = "职能分类")
-    private String jobCategory;
-    
-    /**
-     * 技能标签 (以逗号分隔)
-     */
-    @Schema(description = "技能标签 (以逗号分隔)")
-    private String skillTags;
-    
-    /**
      * 申请截止日期
      */
     @Schema(description = "申请截止日期")
@@ -132,4 +138,28 @@ public class JobVO {
      */
     @Schema(description = "浏览量")
     private Integer viewCount;
+    
+    /**
+     * 企业自定义的岗位亮点标签 (逗号分隔)
+     */
+    @Schema(description = "企业自定义的岗位亮点标签 (逗号分隔)")
+    private String tags;
+    
+    /**
+     * 岗位具体要求
+     */
+    @Schema(description = "岗位具体要求")
+    private String jobRequirements;
+    
+    /**
+     * 工作福利描述
+     */
+    @Schema(description = "工作福利描述")
+    private String jobBenefits;
+    
+    /**
+     * 岗位分类（三级分类）
+     */
+    @Schema(description = "岗位分类（三级分类）")
+    private JobCategoryVO category;
 } 

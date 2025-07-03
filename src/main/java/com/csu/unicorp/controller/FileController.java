@@ -11,10 +11,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,7 +31,7 @@ import java.util.Map;
  */
 @Tag(name = "File Upload", description = "文件上传服务")
 @RestController
-@RequestMapping("/v1/files")
+@RequestMapping("/files")
 @RequiredArgsConstructor
 public class FileController {
     
@@ -43,15 +51,29 @@ public class FileController {
     })
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/upload")
-    public ResponseEntity<ResultVO<Map<String, String>>> uploadFile(
+    public ResultVO<Map<String, String>> uploadFile(
             @Parameter(description = "要上传的文件") @RequestParam("file") MultipartFile file,
             @Parameter(description = "文件类型标识 (e.g., avatar, resume, resource)") @RequestParam(value = "type", required = false, defaultValue = "resource") String type) {
         
+                System.out.println("文件上传接口被调用");
         String fileUrl = fileService.uploadFile(file, type);
         
         Map<String, String> result = new HashMap<>();
         result.put("file_url", fileUrl);
         
-        return ResponseEntity.ok(ResultVO.success("文件上传成功", result));
+        return ResultVO.success("文件上传成功", result);
+    }
+
+    @GetMapping("/resources/{filename:.+}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String filename) throws Exception {
+        System.out.println("下载文件接口被调用：" + filename);
+        Path file = Paths.get("upload/resources").resolve(filename).normalize();
+        if (!Files.exists(file)) {
+            return ResponseEntity.notFound().build();
+        }
+        Resource resource = new UrlResource(file.toUri());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .body(resource);
     }
 } 

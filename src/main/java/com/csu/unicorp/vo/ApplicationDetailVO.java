@@ -30,6 +30,12 @@ public class ApplicationDetailVO {
     private Integer studentId;
     
     /**
+     * 简历ID
+     */
+    @Schema(description = "简历ID")
+    private Integer resumeId;
+    
+    /**
      * 申请状态
      */
     @Schema(description = "申请状态")
@@ -42,45 +48,8 @@ public class ApplicationDetailVO {
     private LocalDateTime appliedAt;
     
     /**
-     * 学生档案信息
+     * 简历信息
      */
-    @Schema(description = "学生档案信息")
-    private StudentProfileVO studentProfile;
-    
-    /**
-     * 学生档案信息VO
-     */
-    @Data
-    @Schema(description = "学生档案信息VO")
-    public static class StudentProfileVO {
-        /**
-         * 昵称
-         */
-        @Schema(description = "昵称")
-        private String nickname;
-        
-        /**
-         * 真实姓名
-         */
-        @Schema(description = "真实姓名")
-        private String realName;
-        
-        /**
-         * 专业
-         */
-        @Schema(description = "专业")
-        private String major;
-        
-        /**
-         * 教育水平
-         */
-        @Schema(description = "教育水平")
-        private String educationLevel;
-        
-        /**
-         * 简历URL
-         */
-        @Schema(description = "简历URL")
-        private String resumeUrl;
-    }
+    @Schema(description = "简历信息")
+    private ResumeVO resume;
 } 

@@ -24,12 +24,12 @@ public interface ApplicationMapper extends BaseMapper<Application> {
      * @return 申请列表
      */
     @Select({
-            "SELECT a.id, a.job_id, a.student_id, a.status, a.applied_at, ",
-            "u.nickname, v.real_name, sp.major, sp.education_level, sp.resume_url ",
+            "SELECT a.id, a.job_id, a.student_id, a.resume_id, a.status, a.applied_at, ",
+            "u.nickname, v.real_name, r.major, r.education_level, r.resume_url ",
             "FROM applications a ",
             "LEFT JOIN users u ON a.student_id = u.id ",
             "LEFT JOIN user_verifications v ON a.student_id = v.user_id ",
-            "LEFT JOIN student_profiles sp ON a.student_id = sp.user_id ",
+            "LEFT JOIN resumes r ON a.resume_id = r.id ",
             "WHERE a.job_id = #{jobId} ",
             "ORDER BY a.applied_at DESC"
     })
@@ -43,8 +43,8 @@ public interface ApplicationMapper extends BaseMapper<Application> {
      * @return 申请列表
      */
     @Select({
-            "SELECT a.id as application_id, a.status, a.applied_at, ",
-            "j.id as job_id, j.title as job_title, o.organization_name ",
+            "SELECT a.id as application_id, a.resume_id, a.status, a.applied_at, ",
+            "j.id as 'jobInfo.jobId', j.title as 'jobInfo.jobTitle', o.organization_name as 'jobInfo.organizationName' ",
             "FROM applications a ",
             "LEFT JOIN jobs j ON a.job_id = j.id ",
             "LEFT JOIN organizations o ON j.organization_id = o.id ",
@@ -70,12 +70,12 @@ public interface ApplicationMapper extends BaseMapper<Application> {
      * @return 申请详情
      */
     @Select({
-            "SELECT a.id, a.job_id, a.student_id, a.status, a.applied_at, ",
-            "u.nickname, v.real_name, sp.major, sp.education_level, sp.resume_url ",
+            "SELECT a.id, a.job_id, a.student_id, a.resume_id, a.status, a.applied_at, ",
+            "u.nickname, v.real_name, r.major, r.education_level, r.resume_url ",
             "FROM applications a ",
             "LEFT JOIN users u ON a.student_id = u.id ",
             "LEFT JOIN user_verifications v ON a.student_id = v.user_id ",
-            "LEFT JOIN student_profiles sp ON a.student_id = sp.user_id ",
+            "LEFT JOIN resumes r ON a.resume_id = r.id ",
             "WHERE a.id = #{id}"
     })
     ApplicationDetailVO getApplicationDetailById(@Param("id") Integer id);

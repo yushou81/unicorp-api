@@ -55,10 +55,10 @@ public class UserProfileVO {
     private String role;
     
     /**
-     * 学生档案信息（仅学生角色有此字段）
+     * 简历信息（仅学生角色有此字段）
      */
-    @Schema(description = "学生档案信息（仅学生角色有此字段）")
-    private StudentProfileVO studentProfile;
+    @Schema(description = "简历信息（仅学生角色有此字段）")
+    private ResumeVO resume;
     
     /**
      * 作品集列表（仅学生角色有此字段）

@@ -1,12 +1,18 @@
 package com.csu.unicorp.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.dto.SchoolCreationDTO;
+import com.csu.unicorp.dto.UserStatusUpdateDTO;
+import com.csu.unicorp.dto.UserUpdateDTO;
 import com.csu.unicorp.service.EnterpriseService;
 import com.csu.unicorp.service.OrganizationService;
+import com.csu.unicorp.service.UserService;
 import com.csu.unicorp.vo.OrganizationVO;
 import com.csu.unicorp.vo.ResultVO;
+import com.csu.unicorp.vo.UserVO;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -33,6 +39,7 @@ public class AdminController {
     
     private final OrganizationService organizationService;
     private final EnterpriseService enterpriseService;
+    private final UserService userService;
     
     /**
      * 创建学校
@@ -83,5 +90,67 @@ public class AdminController {
     public ResultVO<OrganizationVO> approveEnterprise(@PathVariable Integer id) {
         OrganizationVO approvedEnterprise = enterpriseService.approveEnterprise(id);
         return ResultVO.success("企业审核通过", approvedEnterprise);
+    }
+    
+    /**
+     * 获取用户列表（可根据角色筛选）
+     */
+    @Operation(summary = "获取用户列表", description = "获取所有用户列表，不包括系统管理员，可根据角色进行筛选。")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "成功获取用户列表", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @GetMapping("/users")
+    public ResultVO<IPage<UserVO>> getUsers(
+            @Parameter(description = "页码，从1开始") @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "每页大小") @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "角色名称，可选值：STUDENT, TEACHER, SCH_ADMIN, ENT_ADMIN, EN_TEACHER") 
+            @RequestParam(required = false) String role) {
+        IPage<UserVO> users = userService.getUsersByRole(page, size, role);
+        return ResultVO.success("获取用户列表成功", users);
+    }
+    
+    /**
+     * 修改用户状态
+     */
+    @Operation(summary = "修改用户状态", description = "修改指定用户的状态，如激活或禁用用户。")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "用户状态修改成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "404", description = "用户不存在", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PutMapping("/users/{id}/status")
+    public ResultVO<UserVO> updateUserStatus(
+            @PathVariable Integer id, 
+            @Valid @RequestBody UserStatusUpdateDTO statusUpdateDTO) {
+        UserVO updatedUser = userService.updateUserStatus(id, statusUpdateDTO.getStatus());
+        return ResultVO.success("用户状态修改成功", updatedUser);
+    }
+    
+    /**
+     * 修改用户基本信息
+     */
+    @Operation(summary = "修改用户基本信息", description = "修改指定用户的昵称、邮箱、手机号等基本信息。")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "用户信息修改成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "404", description = "用户不存在", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "400", description = "邮箱或手机号已被使用", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PutMapping("/users/{id}")
+    public ResultVO<UserVO> updateUser(
+            @PathVariable Integer id, 
+            @Valid @RequestBody UserUpdateDTO userUpdateDTO) {
+        UserVO updatedUser = userService.updateUserByAdmin(id, userUpdateDTO);
+        return ResultVO.success("用户信息修改成功", updatedUser);
     }
 } 

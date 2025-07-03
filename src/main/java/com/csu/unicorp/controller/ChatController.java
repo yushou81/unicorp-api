@@ -21,6 +21,10 @@ import com.csu.unicorp.vo.ResultVO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,10 +45,15 @@ public class ChatController {
     /**
      * 获取用户所有聊天会话
      * @param userDetails 当前登录用户
-     * @return 聊天会话列表
+     * @return 聊天会话列表，包含对方的头像URL和昵称
      */
     @GetMapping("/sessions")
-    @Operation(summary = "获取用户所有聊天会话")
+    @Operation(summary = "获取用户所有聊天会话", description = "获取用户的所有聊天会话列表，包含对方用户的昵称和头像")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取聊天会话成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
     public ResultVO<List<ChatSessionVO>> getSessions(@AuthenticationPrincipal CustomUserDetails userDetails) {
         List<ChatSessionVO> sessions = chatService.getUserSessions(Long.valueOf(userDetails.getUser().getId()));
         return ResultVO.success("获取聊天会话成功", sessions);
@@ -78,10 +87,25 @@ public class ChatController {
     public ResultVO<List<ChatMessageVO>> getSessionMessages(
             @PathVariable @Parameter(description = "会话ID") Long sessionId,
             @RequestParam(required = false, defaultValue = "1") @Parameter(description = "页码") Integer page,
-            @RequestParam(required = false, defaultValue = "20") @Parameter(description = "每页大小") Integer size) {
+            @RequestParam(required = false, defaultValue = "20") @Parameter(description = "每页大小") Integer size,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        log.info("请求{}",sessionId);
+        System.out.println(sessionId);
+        Long currentUserId = Long.valueOf(userDetails.getUser().getId());
         
-        List<ChatMessageVO> messages = chatService.getSessionMessages(sessionId, page, size);
-        return ResultVO.success("获取消息历史成功", messages);
+        // 获取会话信息，确定对话另一方的ID
+        ChatSessionVO sessionDetail = chatService.getSessionDetail(sessionId, currentUserId);
+        Long otherUserId = sessionDetail != null ? sessionDetail.getUserId() : null;
+        
+        List<ChatMessageVO> messages = chatService.getSessionMessages(sessionId, currentUserId, page, size);
+        
+        // 创建带有对方ID的ResultVO
+        ResultVO<List<ChatMessageVO>> result = ResultVO.success("获取消息历史成功", messages);
+
+        result.setOtherUserId(otherUserId); // 将对方ID添加到结果中
+
+        log.info("result:{}",result);
+        return result;
     }
     
     /**

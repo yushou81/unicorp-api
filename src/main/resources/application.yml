@@ -1,6 +1,8 @@
 # 服务器相关配置
 server:
   port: 8081 # 设置应用的端口号，避免使用常见的8080以防冲突
+  address: 0.0.0.0 # 监听所有网络接口，使应用可以在局域网中访问
+
   servlet:
     context-path: /api # 设置应用的统一访问前缀
 
@@ -30,8 +32,10 @@ spring:
     out-of-order: false # 是否允许无序执行
     validate-on-migrate: false # 临时禁用迁移验证，解决校验和问题
     table: flyway_schema_history # Flyway元数据表名
+    repair-on-migrate: true # 启用修复功能，修复失败的迁移
+    validate-migration-naming: true # 验证迁移文件命名是否符合规范
     # 如果需要清理数据库（开发环境可用，生产环境禁用）
-    clean-disabled: false # 禁用clean操作，防止意外删除数据
+    clean-disabled: true # 禁用clean操作，防止意外删除数据
   logging:
     level:
       root: INFO
@@ -55,7 +59,7 @@ app:
   upload:
     dir: upload
     max-size: 10485760  # 10MB
-  base-url: http://localhost:8081
+  base-url: http://${server.address:0.0.0.0}:${server.port:8081}
 
 # SpringDoc配置
 springdoc:
@@ -68,6 +72,39 @@ springdoc:
     operations-sorter: alpha
     display-request-duration: true
     doc-expansion: none
+
+  paths-to-match:
+    - /v1/auth/**
+    - /v1/admin/**
+    - /v1/organizations/**
+    - /v1/schools/**
+    - /v1/enterprises/**
+    - /v1/jobs/**
+    - /v1/applications/**
+    - /v1/files/**
+    - /v1/students/**
+    - /v1/teachers/**
+    - /v1/mentors/**
+    - /v1/admin/job-categories/**
+    - /v1/job-categories/**
+    - /v1/enterprise-admin/**
+    - /v1/school-admin/**
+    - /v1/resources/**
+    - /v1/me/**
+    - /v1/chat/**
+    - /v1/projects/**
+    - /v1/map/**
+    - /v1/project-applications/**
+    - /v1/docs/**
+    - /v1/resumes/**
+    - /v1/me/resume/**
+    - /v1/me/resumes/**
+    - /v1/dual-courses/**
+    - /v1/dual-courses/enrollment/**
+    - /v1/course-resources/**
+    - /v1/course-ratings/**
+    - /v1/auth/search/**
+
   default-flat-param-object: true
   # API分组配置
   group-configs:
@@ -75,11 +112,14 @@ springdoc:
       paths-to-match: 
         - /v1/auth/**
         - /v1/admin/**
+        - /v1/admin/users/**
         - /v1/school-admin/**
         - /v1/enterprise-admin/**
         - /v1/profiles/**
         - /v1/me/**
+        - /v1/auth/search/**
       packages-to-scan: com.csu.unicorp.controller
+      description: "包括用户注册、登录、个人信息管理以及用户搜索功能，支持通过电话号码或邮箱查找用户"
     - group: '组织与机构管理'
       paths-to-match: 
         - /v1/organizations/**
@@ -89,7 +129,11 @@ springdoc:
         - /v1/jobs/**
         - /v1/applications/**
         - /v1/me/applications/**
+        - /v1/admin/job-categories/**
+        - /v1/job-categories/**
+        - /v1/job-categories/hierarchical
       packages-to-scan: com.csu.unicorp.controller
+      description: "包括岗位发布、查询、申请等功能，岗位详情包含具体要求和福利描述。岗位申请现在与学生简历关联，企业导师可直接查看申请者简历。"
     - group: '项目与合作'
       paths-to-match: 
         - /v1/projects/**
@@ -120,28 +164,22 @@ springdoc:
         - /v1/chat/**
         - /v1/docs/websocket/**
       packages-to-scan: com.csu.unicorp.controller
-  # 用于路径匹配的全局配置
-  paths-to-match:
-    - /v1/auth/**
-    - /v1/organizations/**
-    - /v1/admin/**
-    - /v1/school-admin/**
-    - /v1/enterprise-admin/**
-    - /v1/resources/**
-    - /v1/files/**
-    - /v1/me/**
-    - /v1/chat/**
-    - /v1/jobs/**
-    - /v1/projects/**
-    - /v1/map/**
-    - /v1/applications/**
-    - /v1/project-applications/**
-    - /v1/docs/**
-    - /v1/schools/**
-    - /v1/enterprises/**
-    - /v1/students/**
-    - /v1/teachers/**
-    - /v1/mentors/**
+    - group: '简历管理'
+      paths-to-match:
+        - /v1/resumes/**
+        - /v1/me/resume/**
+        - /v1/me/resumes/**
+      packages-to-scan: com.csu.unicorp.controller
+      description: "提供简历的创建、查询、更新和删除功能"
+    - group: '双师课堂'
+      paths-to-match:
+        - /v1/dual-courses/**
+        - /v1/dual-courses/{id}/students
+        - /v1/course-resources/**
+        - /v1/course-ratings/**
+      packages-to-scan: com.csu.unicorp.controller
+      description: "提供双师课堂的创建、查询、报名等功能，支持教师、企业导师、学生等角色的课程管理，包括课程资源管理和评价系统"
+
 
 # MyBatis-Plus 相关配置
 mybatis-plus:

@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.List;
 
 /**
  * 项目创建数据传输对象
@@ -33,4 +34,34 @@ public class ProjectCreationDTO {
      * 项目状态
      */
     private String status;
+    
+    /**
+     * 计划人数
+     */
+    private Integer planMemberCount;
+    
+    /**
+     * 项目难度
+     */
+    private String difficulty;
+    
+    /**
+     * 支持语言
+     */
+    private List<String> supportLanguages;
+    
+    /**
+     * 技术领域
+     */
+    private List<String> techFields;
+    
+    /**
+     * 编程语言
+     */
+    private List<String> programmingLanguages;
+    
+    /**
+     * 项目计划书文件URL列表（前端先上传文件，拿到URL后再传）
+     */
+    private List<String> projectProposalUrls;
 } 

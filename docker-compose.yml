@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  # MySQL 服务
+  mysql:
+    image: mysql:8.0
+    container_name: unicorp-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: unicorp_test
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+    command: 
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+
+  # Docker API暴露服务 - 仅用于测试环境
+  socat:
+    image: alpine/socat
+    container_name: docker-socat
+    command: tcp-listen:2375,fork,reuseaddr unix-connect:/var/run/docker.sock
+    ports:
+      - "2375:2375"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+volumes:
+  mysql-data: 

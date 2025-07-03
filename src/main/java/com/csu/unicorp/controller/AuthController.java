@@ -10,17 +10,17 @@ import com.csu.unicorp.vo.ResultVO;
 import com.csu.unicorp.vo.TokenVO;
 import com.csu.unicorp.vo.UserVO;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import java.util.stream.Collectors;
@@ -46,13 +46,13 @@ public class AuthController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "登录成功", 
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = TokenVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "401", description = "认证失败")
     })
     @PostMapping("/login")
-    public ResponseEntity<ResultVO<TokenVO>> login(@Valid @RequestBody LoginCredentialsDTO loginDto) {
+    public ResultVO<TokenVO> login(@Valid @RequestBody LoginCredentialsDTO loginDto) {
         TokenVO tokenResponse = userService.login(loginDto);
-        return ResponseEntity.ok(ResultVO.success("登录成功", tokenResponse));
+        return ResultVO.success("登录成功", tokenResponse);
     }
     
     /**
@@ -60,15 +60,15 @@ public class AuthController {
      */
     @Operation(summary = "学生注册接口", description = "学生选择已存在的学校进行注册，并提供实名信息")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "学生注册成功", 
+        @ApiResponse(responseCode = "200", description = "学生注册成功", 
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = UserVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "400", description = "无效的输入，或账号/邮箱已存在")
     })
     @PostMapping("/register/student")
-    public ResponseEntity<ResultVO<UserVO>> registerStudent(@Valid @RequestBody StudentRegistrationDTO registrationDto) {
+    public ResultVO<UserVO> registerStudent(@Valid @RequestBody StudentRegistrationDTO registrationDto) {
         UserVO user = userService.registerStudent(registrationDto);
-        return new ResponseEntity<>(ResultVO.success("注册成功", user), HttpStatus.CREATED);
+        return ResultVO.success("注册成功", user);
     }
     
     /**
@@ -76,15 +76,15 @@ public class AuthController {
      */
     @Operation(summary = "企业注册接口", description = "企业代表进行公开注册。注册后，企业和其管理员账号状态均为'pending'，需要系统管理员审核")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "202", description = "注册申请已提交，等待审核", 
+        @ApiResponse(responseCode = "200", description = "注册申请已提交，等待审核", 
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = UserVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "400", description = "无效的输入，或邮箱/手机号/企业名称已存在")
     })
     @PostMapping("/register/enterprise")
-    public ResponseEntity<ResultVO<UserVO>> registerEnterprise(@Valid @RequestBody EnterpriseRegistrationDTO registrationDto) {
+    public ResultVO<UserVO> registerEnterprise(@Valid @RequestBody EnterpriseRegistrationDTO registrationDto) {
         UserVO user = userService.registerEnterprise(registrationDto);
-        return new ResponseEntity<>(ResultVO.success("企业注册申请已提交，等待审核", user), HttpStatus.ACCEPTED);
+        return ResultVO.success("企业注册申请已提交，等待审核", user);
     }
     
     /**
@@ -94,11 +94,11 @@ public class AuthController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "成功获取用户信息", 
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = UserVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "401", description = "未授权")
     })
     @GetMapping("/me")
-    public ResponseEntity<ResultVO<UserVO>> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResultVO<UserVO> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         // 输出用户角色信息，用于调试
         log.info("当前用户: {}, 角色: {}", userDetails.getUsername(), 
                 userDetails.getAuthorities().stream()
@@ -106,7 +106,7 @@ public class AuthController {
                         .collect(Collectors.joining(", ")));
         
         UserVO user = userService.getCurrentUser(userDetails);
-        return ResponseEntity.ok(ResultVO.success("获取用户信息成功", user));
+        return ResultVO.success("获取用户信息成功", user);
     }
     
     /**
@@ -116,16 +116,16 @@ public class AuthController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "信息更新成功", 
                 content = @Content(mediaType = "application/json", 
-                schema = @Schema(implementation = UserVO.class))),
+                schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "400", description = "无效的输入，或邮箱/手机号已被其他用户使用"),
         @ApiResponse(responseCode = "401", description = "未授权")
     })
     @PutMapping("/profile")
-    public ResponseEntity<ResultVO<UserVO>> updateUserProfile(
+    public ResultVO<UserVO> updateUserProfile(
             @Valid @RequestBody UserProfileUpdateDTO profileUpdateDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
         UserVO updatedUser = userService.updateUserProfile(profileUpdateDTO, userDetails);
-        return ResponseEntity.ok(ResultVO.success("个人信息更新成功", updatedUser));
+        return ResultVO.success("个人信息更新成功", updatedUser);
     }
     
     /**
@@ -140,10 +140,59 @@ public class AuthController {
         @ApiResponse(responseCode = "401", description = "未授权")
     })
     @PutMapping("/password")
-    public ResponseEntity<ResultVO<Void>> updatePassword(
+    public ResultVO<Void> updatePassword(
             @Valid @RequestBody PasswordUpdateDTO passwordUpdateDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
         userService.updatePassword(passwordUpdateDTO, userDetails);
-        return ResponseEntity.ok(ResultVO.success("密码修改成功"));
+        return ResultVO.success("密码修改成功");
+    }
+    
+    /**
+     * 上传头像
+     */
+    @Operation(summary = "上传用户头像", description = "允许用户上传自己的头像")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "头像上传成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "400", description = "无效的文件格式或大小"),
+        @ApiResponse(responseCode = "401", description = "未授权")
+    })
+    @PostMapping(value = "/avatar", consumes = "multipart/form-data")
+    public ResultVO<UserVO> updateAvatar(
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UserVO updatedUser = userService.updateAvatar(file, userDetails);
+        return ResultVO.success("头像上传成功", updatedUser);
+    }
+    
+    /**
+     * 搜索用户
+     */
+    @Operation(summary = "搜索用户", description = "通过电话号码或邮箱搜索用户")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "查找用户成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "400", description = "未找到匹配的用户"),
+        @ApiResponse(responseCode = "401", description = "未授权")
+    })
+    @GetMapping("/search")
+    public ResultVO<UserVO> searchUser(
+            @RequestParam @Parameter(description = "搜索关键词（电话号码或邮箱）") String keyword,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        // 用户需要登录才能搜索
+        if (userDetails == null) {
+            return ResultVO.error("请先登录");
+        }
+        
+        // 调用service进行搜索
+        try {
+            UserVO user = userService.searchUserByPhoneOrEmail(keyword);
+            return ResultVO.success("查找用户成功", user);
+        } catch (Exception e) {
+            return ResultVO.error(e.getMessage());
+        }
     }
 } 
