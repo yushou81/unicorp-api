@@ -1,47 +1,132 @@
 package com.csu.unicorp.service;
 
-import com.csu.unicorp.dto.PortfolioItemCreationDTO;
-import com.csu.unicorp.vo.PortfolioItemVO;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.csu.unicorp.dto.achievement.PortfolioItemCreationDTO;
+import com.csu.unicorp.dto.achievement.PortfolioResourceUploadDTO;
+import com.csu.unicorp.vo.achievement.PortfolioItemVO;
+import com.csu.unicorp.vo.achievement.PortfolioResourceVO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 /**
- * 作品集服务接口
+ * 作品集Service接口
  */
 public interface PortfolioService {
     
     /**
-     * 获取用户的作品集列表
+     * 获取用户的作品列表
      * 
      * @param userId 用户ID
-     * @return 作品集列表
+     * @return 作品列表
      */
     List<PortfolioItemVO> getPortfolioItems(Integer userId);
     
     /**
-     * 添加新的作品集项目
+     * 分页获取用户的作品列表
      * 
      * @param userId 用户ID
-     * @param portfolioItemCreationDTO 作品集项目创建信息
-     * @return 创建后的作品集项目
+     * @param page 页码
+     * @param size 每页大小
+     * @return 作品分页列表
      */
-    PortfolioItemVO addPortfolioItem(Integer userId, PortfolioItemCreationDTO portfolioItemCreationDTO);
+    Page<PortfolioItemVO> getPortfolioItemPage(Integer userId, Integer page, Integer size);
     
     /**
-     * 更新作品集项目
+     * 分页获取公开的作品列表
      * 
-     * @param userId 用户ID
-     * @param itemId 项目ID
-     * @param portfolioItemCreationDTO 作品集项目更新信息
-     * @return 更新后的作品集项目
+     * @param page 页码
+     * @param size 每页大小
+     * @return 公开作品分页列表
      */
-    PortfolioItemVO updatePortfolioItem(Integer userId, Integer itemId, PortfolioItemCreationDTO portfolioItemCreationDTO);
+    Page<PortfolioItemVO> getPublicPortfolioItemPage(Integer page, Integer size);
     
     /**
-     * 删除作品集项目
+     * 根据分类分页获取公开的作品列表
+     * 
+     * @param category 作品分类
+     * @param page 页码
+     * @param size 每页大小
+     * @return 公开作品分页列表
+     */
+    Page<PortfolioItemVO> getPublicPortfolioItemPageByCategory(String category, Integer page, Integer size);
+    
+    /**
+     * 获取作品详情
+     * 
+     * @param id 作品ID
+     * @param viewerIp 查看者IP，用于记录访问记录
+     * @return 作品详情
+     */
+    PortfolioItemVO getPortfolioItemDetail(Integer id, String viewerIp);
+    
+    /**
+     * 创建作品
      * 
      * @param userId 用户ID
-     * @param itemId 项目ID
+     * @param portfolioItemCreationDTO 作品创建DTO
+     * @param coverImage 封面图片文件
+     * @return 创建成功的作品
      */
-    void deletePortfolioItem(Integer userId, Integer itemId);
-} 
+    PortfolioItemVO createPortfolioItem(Integer userId, PortfolioItemCreationDTO portfolioItemCreationDTO, MultipartFile coverImage);
+    
+    /**
+     * 更新作品
+     * 
+     * @param id 作品ID
+     * @param userId 用户ID
+     * @param portfolioItemCreationDTO 作品创建DTO
+     * @param coverImage 封面图片文件
+     * @return 更新后的作品
+     */
+    PortfolioItemVO updatePortfolioItem(Integer id, Integer userId, PortfolioItemCreationDTO portfolioItemCreationDTO, MultipartFile coverImage);
+    
+    /**
+     * 删除作品
+     * 
+     * @param id 作品ID
+     * @param userId 用户ID
+     * @return 是否删除成功
+     */
+    boolean deletePortfolioItem(Integer id, Integer userId);
+    
+    /**
+     * 上传作品资源
+     * 
+     * @param portfolioItemId 作品ID
+     * @param userId 用户ID
+     * @param resourceUploadDTO 资源上传DTO
+     * @return 上传成功的资源
+     */
+    PortfolioResourceVO uploadResource(Integer portfolioItemId, Integer userId, PortfolioResourceUploadDTO resourceUploadDTO);
+    
+    /**
+     * 上传作品资源文件
+     * 
+     * @param portfolioItemId 作品ID
+     * @param userId 用户ID
+     * @param file 文件
+     * @param resourceType 资源类型
+     * @param description 资源描述
+     * @return 上传成功的资源
+     */
+    PortfolioResourceVO uploadResourceFile(Integer portfolioItemId, Integer userId, MultipartFile file, String resourceType, String description);
+    
+    /**
+     * 删除作品资源
+     * 
+     * @param portfolioItemId 作品ID
+     * @param resourceId 资源ID
+     * @param userId 用户ID
+     * @return 是否删除成功
+     */
+    boolean deleteResource(Integer portfolioItemId, Integer resourceId, Integer userId);
+    
+    /**
+     * 点赞作品
+     * 
+     * @param id 作品ID
+     * @return 是否点赞成功
+     */
+    boolean likePortfolioItem(Integer id);
+}

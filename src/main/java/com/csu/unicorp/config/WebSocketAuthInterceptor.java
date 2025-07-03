@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * WebSocket认证拦截器
  */
-@Configuration
+@Configuration(proxyBeanMethods=false)
 @RequiredArgsConstructor
 @Slf4j
 public class WebSocketAuthInterceptor implements ChannelInterceptor {

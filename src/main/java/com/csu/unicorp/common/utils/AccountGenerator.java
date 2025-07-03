@@ -1,9 +1,5 @@
 package com.csu.unicorp.common.utils;
 
-import java.util.concurrent.ThreadLocalRandom;
-
-import org.springframework.stereotype.Component;
-
 import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.mapper.UserMapper;
 

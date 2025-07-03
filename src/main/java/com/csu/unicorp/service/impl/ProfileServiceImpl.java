@@ -126,8 +126,8 @@ public class ProfileServiceImpl implements ProfileService {
             }
             
             // 获取作品集列表
-            List<PortfolioItemVO> portfolioItems = portfolioService.getPortfolioItems(user.getId());
-            profileVO.setPortfolio(portfolioItems);
+//            List<PortfolioItemVO> portfolioItems = portfolioService.getPortfolioItems(user.getId());
+//            profileVO.setPortfolio(portfolioItems);
         }
         
         return profileVO;
