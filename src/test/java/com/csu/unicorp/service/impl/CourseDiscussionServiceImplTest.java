@@ -1,9 +1,8 @@
 package com.csu.unicorp.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.dto.CourseDiscussionDTO;
-import com.csu.unicorp.entity.CourseDiscussion;
+import com.csu.unicorp.entity.course.CourseDiscussion;
 import com.csu.unicorp.entity.DualTeacherCourse;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.CourseDiscussionMapper;

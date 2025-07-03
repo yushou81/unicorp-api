@@ -8,10 +8,9 @@ import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.dto.ApplicationStatusUpdateDTO;
 import com.csu.unicorp.entity.Application;
-import com.csu.unicorp.entity.Job;
+import com.csu.unicorp.entity.job.Job;
 import com.csu.unicorp.entity.Resume;
 import com.csu.unicorp.entity.User;
-import com.csu.unicorp.entity.UserVerification;
 import com.csu.unicorp.mapper.ApplicationMapper;
 import com.csu.unicorp.mapper.JobMapper;
 import com.csu.unicorp.mapper.ResumeMapper;
@@ -132,7 +131,18 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     @Override
     public IPage<MyApplicationDetailVO> pageStudentApplications(Integer studentId, int page, int size) {
         Page<MyApplicationDetailVO> pageParam = new Page<>(page, size);
-        return applicationMapper.pageApplicationsByStudentId(pageParam, studentId);
+        IPage<MyApplicationDetailVO> applications = applicationMapper.pageApplicationsByStudentId(pageParam, studentId);
+        
+        // 由于修改了SQL别名为jobInfo.xxxx的格式，MyBatis应该已经自动处理了嵌套对象
+        // 不过我们还是检查一下，确保每个记录都有jobInfo对象
+        applications.getRecords().forEach(app -> {
+            if (app.getJobInfo() == null) {
+                app.setJobInfo(new MyApplicationDetailVO.JobInfoVO());
+            }
+        });
+        
+        log.info("获取我的申请列表成功:{}", applications);
+        return applications;
     }
     
     /**

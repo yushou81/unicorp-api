@@ -1,11 +1,9 @@
 package com.csu.unicorp.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.dto.CourseEnrollmentDTO;
 import com.csu.unicorp.dto.DualTeacherCourseDTO;
-import com.csu.unicorp.entity.CourseEnrollment;
-import com.csu.unicorp.entity.DualTeacherCourse;
+import com.csu.unicorp.entity.course.CourseEnrollment;
 import com.csu.unicorp.vo.DualTeacherCourseVO;
 import com.csu.unicorp.vo.UserVO;
 import org.springframework.security.core.userdetails.UserDetails;

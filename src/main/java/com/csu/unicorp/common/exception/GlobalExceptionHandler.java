@@ -3,6 +3,7 @@ package com.csu.unicorp.common.exception;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -79,6 +80,58 @@ public class GlobalExceptionHandler {
     }
     
     /**
+     * 处理课程相关异常
+     */
+    @ExceptionHandler(CourseException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResultVO<Void> handleCourseException(CourseException e) {
+        log.error("课程异常: {}", e.getMessage());
+        return ResultVO.error(400, e.getMessage());
+    }
+    
+    /**
+     * 处理学习进度相关异常
+     */
+    @ExceptionHandler(LearningProgressException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResultVO<Void> handleLearningProgressException(LearningProgressException e) {
+        log.error("学习进度异常: {}", e.getMessage());
+        return ResultVO.error(400, e.getMessage());
+    }
+    
+    /**
+     * 处理资源不存在异常
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResultVO<Void> handleResourceNotFoundException(ResourceNotFoundException e) {
+        log.error("资源不存在异常: {}", e.getMessage());
+        return ResultVO.error(404, e.getMessage());
+    }
+
+    /**
+     * 处理数据完整性违规异常（如外键约束、唯一约束等）
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResultVO<Void> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        log.error("数据完整性异常: ", e);
+        String message = "数据操作失败，可能是引用了不存在的记录或违反了数据约束";
+        
+        // 尝试提取更具体的错误信息
+        String errorMessage = e.getMessage();
+        if (errorMessage != null) {
+            if (errorMessage.contains("foreign key constraint fails")) {
+                message = "操作失败：引用了不存在的记录";
+            } else if (errorMessage.contains("Duplicate entry")) {
+                message = "操作失败：该记录已存在";
+            }
+        }
+        
+        return ResultVO.error(400, message);
+    }
+    
+    /**
      * 处理请求体参数校验异常 (@Valid注解引起的异常)
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -143,6 +196,16 @@ public class GlobalExceptionHandler {
             return ResultVO.error("文件上传失败：文件大小超出最大限制（10MB）");
         }
         return ResultVO.error("文件上传失败：请确保请求格式为multipart/form-data，并且文件大小不超过限制");
+    }
+    
+    /**
+     * 处理运行时异常，避免返回500状态码
+     */
+    @ExceptionHandler(RuntimeException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResultVO<Void> handleRuntimeException(RuntimeException e) {
+        log.error("运行时异常: ", e);
+        return ResultVO.error(400, e.getMessage() != null ? e.getMessage() : "操作失败，请检查参数");
     }
     
     /**

@@ -9,7 +9,7 @@ import com.csu.unicorp.dto.LoginCredentialsDTO;
 import com.csu.unicorp.dto.OrgMemberCreationDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
 import com.csu.unicorp.entity.EnterpriseDetail;
-import com.csu.unicorp.entity.Organization;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.mapper.UserRoleMapper;

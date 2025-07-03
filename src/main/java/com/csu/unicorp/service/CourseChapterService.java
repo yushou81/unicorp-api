@@ -1,9 +1,6 @@
 package com.csu.unicorp.service;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.dto.CourseChapterDTO;
-import com.csu.unicorp.entity.CourseChapter;
 import com.csu.unicorp.vo.CourseChapterVO;
 import org.springframework.security.core.userdetails.UserDetails;
 

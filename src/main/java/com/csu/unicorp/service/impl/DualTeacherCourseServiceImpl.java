@@ -7,9 +7,9 @@ import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.dto.CourseEnrollmentDTO;
 import com.csu.unicorp.dto.DualTeacherCourseDTO;
-import com.csu.unicorp.entity.CourseEnrollment;
+import com.csu.unicorp.entity.course.CourseEnrollment;
 import com.csu.unicorp.entity.DualTeacherCourse;
-import com.csu.unicorp.entity.Organization;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.CourseEnrollmentMapper;
 import com.csu.unicorp.mapper.DualTeacherCourseMapper;
@@ -28,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 双师课堂服务实现类
@@ -58,9 +57,22 @@ public class DualTeacherCourseServiceImpl implements DualTeacherCourseService {
             throw new BusinessException("权限不足，只有教师或学校管理员可以创建双师课堂");
         }
 
+        // 检查mentorId对应的用户是否是企业导师
+        if (courseDTO.getMentorId() != null) {
+            User mentor = userService.getById(courseDTO.getMentorId());
+            if (mentor == null) {
+                throw new BusinessException("指定的企业导师不存在");
+            }
+            
+            String mentorRole = userService.getUserRole(mentor.getId());
+            if (!RoleConstants.DB_ROLE_ENTERPRISE_MENTOR.equals(mentorRole)) {
+                throw new BusinessException("指定的用户不是企业导师，无法担任课程导师");
+            }
+        }
+
         // 创建课程
         DualTeacherCourse course = new DualTeacherCourse();
-        BeanUtils.copyProperties(courseDTO, course);
+        updateCourseFromDTO(course, courseDTO);
         
         // 如果没有指定教师，则设置为当前用户
         if (course.getTeacherId() == null) {
@@ -110,17 +122,30 @@ public class DualTeacherCourseServiceImpl implements DualTeacherCourseService {
                 && currentUser.getOrganizationId() != null
                 && currentUser.getOrganizationId().equals(getUserOrganizationId(course.getTeacherId()));
 
+        // 检查mentorId对应的用户是否是企业导师
+        if (courseDTO.getMentorId() != null) {
+            User mentor = userService.getById(courseDTO.getMentorId());
+            if (mentor == null) {
+                throw new BusinessException("指定的企业导师不存在");
+            }
+
+            String mentorRole = userService.getUserRole(mentor.getId());
+            if (!RoleConstants.DB_ROLE_ENTERPRISE_MENTOR.equals(mentorRole)) {
+                throw new BusinessException("指定的用户不是企业导师，无法担任课程导师");
+            }
+        }
+
         if (!isTeacher && !isSchoolAdmin) {
             throw new BusinessException("权限不足，只有课程教师或学校管理员可以删除课程");
         }
 
-        // 更新课程信息
-        BeanUtils.copyProperties(courseDTO, course);
+        // 应用DTO中的非空字段到课程实体
+        updateCourseFromDTO(course, courseDTO);
+        
         course.setUpdatedAt(LocalDateTime.now());
         
         // 保存更新
         courseMapper.updateById(course);
-        
         // 返回更新后的VO
         return convertToVO(course);
     }
@@ -246,10 +271,11 @@ public class DualTeacherCourseServiceImpl implements DualTeacherCourseService {
             throw new BusinessException("该课程当前不可报名");
         }
 
-        // 检查是否已经报名
-        CourseEnrollment existingEnrollment = enrollmentMapper.selectEnrollmentByCourseIdAndStudentId(
+        // 检查是否已经有有效报名记录
+        CourseEnrollment validEnrollment = enrollmentMapper.selectEnrollmentByCourseIdAndStudentId(
                 enrollmentDTO.getCourseId(), currentUser.getId());
-        if (existingEnrollment != null) {
+        
+        if (validEnrollment != null) {
             throw new BusinessException("您已经报名了该课程");
         }
 
@@ -258,17 +284,37 @@ public class DualTeacherCourseServiceImpl implements DualTeacherCourseService {
         if (enrolledCount >= course.getMaxStudents()) {
             throw new BusinessException("课程已达到最大人数限制，无法报名");
         }
-
-        // 创建报名记录
-        CourseEnrollment enrollment = new CourseEnrollment();
-        enrollment.setCourseId(enrollmentDTO.getCourseId());
-        enrollment.setStudentId(currentUser.getId());
-        enrollment.setStatus("enrolled");
-        enrollment.setEnrollmentTime(LocalDateTime.now());
-        enrollment.setIsDeleted(false);
         
-        // 保存报名记录
-        enrollmentMapper.insert(enrollment);
+        // 查询是否有已取消的报名记录，我们需要额外进行查询
+        LambdaQueryWrapper<CourseEnrollment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CourseEnrollment::getCourseId, enrollmentDTO.getCourseId())
+               .eq(CourseEnrollment::getStudentId, currentUser.getId())
+               .eq(CourseEnrollment::getStatus, "cancelled")
+               .eq(CourseEnrollment::getIsDeleted, false);
+        CourseEnrollment cancelledEnrollment = enrollmentMapper.selectOne(wrapper);
+        
+        CourseEnrollment enrollment;
+        
+        // 如果有已取消的报名记录，则更新它
+        if (cancelledEnrollment != null) {
+            enrollment = cancelledEnrollment;
+            enrollment.setStatus("enrolled");
+            enrollment.setEnrollmentTime(LocalDateTime.now());
+            
+            // 更新报名记录
+            enrollmentMapper.updateById(enrollment);
+        } else {
+            // 创建新的报名记录
+            enrollment = new CourseEnrollment();
+            enrollment.setCourseId(enrollmentDTO.getCourseId());
+            enrollment.setStudentId(currentUser.getId());
+            enrollment.setStatus("enrolled");
+            enrollment.setEnrollmentTime(LocalDateTime.now());
+            enrollment.setIsDeleted(false);
+            
+            // 保存新报名记录
+            enrollmentMapper.insert(enrollment);
+        }
         
         return enrollment;
     }
@@ -340,6 +386,8 @@ public class DualTeacherCourseServiceImpl implements DualTeacherCourseService {
 
         // 获取课程信息
         DualTeacherCourse course = courseMapper.selectById(id);
+
+
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
             throw new BusinessException("课程不存在");
         }
@@ -556,5 +604,21 @@ public class DualTeacherCourseServiceImpl implements DualTeacherCourseService {
         }
         
         return students;
+    }
+
+    /**
+     * 将DTO中的非空字段应用到课程实体
+     * @param course 需要更新的课程实体
+     * @param courseDTO 包含更新数据的DTO
+     */
+    private void updateCourseFromDTO(DualTeacherCourse course, DualTeacherCourseDTO courseDTO) {
+        if (courseDTO.getTitle() != null) course.setTitle(courseDTO.getTitle());
+        if (courseDTO.getDescription() != null) course.setDescription(courseDTO.getDescription());
+        if (courseDTO.getTeacherId() != null) course.setTeacherId(courseDTO.getTeacherId());
+        if (courseDTO.getMentorId() != null) course.setMentorId(courseDTO.getMentorId());
+        if (courseDTO.getScheduledTime() != null) course.setScheduledTime(courseDTO.getScheduledTime());
+        if (courseDTO.getMaxStudents() != null) course.setMaxStudents(courseDTO.getMaxStudents());
+        if (courseDTO.getLocation() != null) course.setLocation(courseDTO.getLocation());
+        if (courseDTO.getCourseType() != null) course.setCourseType(courseDTO.getCourseType());
     }
 } 

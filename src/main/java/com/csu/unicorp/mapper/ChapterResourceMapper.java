@@ -2,7 +2,7 @@ package com.csu.unicorp.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.csu.unicorp.entity.ChapterResource;
-import com.csu.unicorp.entity.CourseResource;
+import com.csu.unicorp.entity.course.CourseResource;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;

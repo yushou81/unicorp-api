@@ -1,6 +1,5 @@
 package com.csu.unicorp.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.BusinessException;
@@ -8,7 +7,7 @@ import com.csu.unicorp.common.utils.AccountGenerator;
 import com.csu.unicorp.dto.TeacherCreationDTO;
 import com.csu.unicorp.dto.TeacherUpdateDTO;
 import com.csu.unicorp.dto.UserUpdateDTO;
-import com.csu.unicorp.entity.Organization;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.OrganizationMapper;
 import com.csu.unicorp.mapper.UserMapper;

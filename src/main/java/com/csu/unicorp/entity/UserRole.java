@@ -13,7 +13,7 @@ import lombok.AllArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("roles")
+@TableName("user_roles")
 public class UserRole {
     /**
      * 用户ID

@@ -3,7 +3,7 @@ package com.csu.unicorp.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.csu.unicorp.entity.CourseEnrollment;
+import com.csu.unicorp.entity.course.CourseEnrollment;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -25,13 +25,13 @@ public interface CourseEnrollmentMapper extends BaseMapper<CourseEnrollment> {
     IPage<CourseEnrollment> selectEnrollmentsByCourseId(@Param("courseId") Integer courseId, Page<CourseEnrollment> page);
     
     /**
-     * 根据学生ID查询报名的课程
+     * 根据学生ID查询报名的课程（不包括已取消的报名）
      * 
      * @param studentId 学生ID
      * @param page 分页参数
      * @return 学生报名的课程列表
      */
-    @Select("SELECT ce.* FROM course_enrollments ce WHERE ce.student_id = #{studentId} AND ce.is_deleted = 0")
+    @Select("SELECT ce.* FROM course_enrollments ce WHERE ce.student_id = #{studentId} AND ce.status != 'cancelled' AND ce.is_deleted = 0")
     IPage<CourseEnrollment> selectEnrollmentsByStudentId(@Param("studentId") Integer studentId, Page<CourseEnrollment> page);
     
     /**
@@ -61,4 +61,6 @@ public interface CourseEnrollmentMapper extends BaseMapper<CourseEnrollment> {
      */
     @Select("SELECT * FROM course_enrollments WHERE course_id = #{courseId} AND student_id = #{studentId} AND is_deleted = 0 LIMIT 1")
     CourseEnrollment selectEnrollmentByCourseIdAndStudentId(@Param("courseId") Integer courseId, @Param("studentId") Integer studentId);
+
+    
 } 

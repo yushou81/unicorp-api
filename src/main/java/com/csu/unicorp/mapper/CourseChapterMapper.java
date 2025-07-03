@@ -1,9 +1,7 @@
 package com.csu.unicorp.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.csu.unicorp.entity.CourseChapter;
+import com.csu.unicorp.entity.course.CourseChapter;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -49,4 +47,20 @@ public interface CourseChapterMapper extends BaseMapper<CourseChapter> {
      */
     @Update("UPDATE course_chapters SET sequence = #{sequence} WHERE id = #{chapterId}")
     int updateChapterSequence(@Param("chapterId") Integer chapterId, @Param("sequence") Integer sequence);
+    
+    /**
+     * 统计已完成该章节的学生人数
+     * @param chapterId 章节ID
+     * @return 完成人数
+     */
+    @Select("SELECT COUNT(*) FROM learning_progress WHERE chapter_id = #{chapterId} AND status = 'completed'")
+    Integer countStudentsCompletedChapter(@Param("chapterId") Integer chapterId);
+    
+    /**
+     * 统计课程的总学生人数（已报名人数）
+     * @param courseId 课程ID
+     * @return 学生总数
+     */
+    @Select("SELECT COUNT(*) FROM course_enrollments WHERE course_id = #{courseId} AND status = 'enrolled'")
+    Integer countStudentsInCourse(@Param("courseId") Integer courseId);
 } 

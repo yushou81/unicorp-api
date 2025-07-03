@@ -7,7 +7,7 @@ import com.csu.unicorp.common.utils.AccountGenerator;
 import com.csu.unicorp.dto.MentorCreationDTO;
 import com.csu.unicorp.dto.MentorUpdateDTO;
 import com.csu.unicorp.dto.UserUpdateDTO;
-import com.csu.unicorp.entity.Organization;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.OrganizationMapper;
 import com.csu.unicorp.mapper.UserMapper;
