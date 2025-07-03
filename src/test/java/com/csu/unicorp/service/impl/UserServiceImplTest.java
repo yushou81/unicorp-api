@@ -1,33 +1,5 @@
 package com.csu.unicorp.service.impl;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.utils.AccountGenerator;
@@ -37,9 +9,8 @@ import com.csu.unicorp.dto.LoginCredentialsDTO;
 import com.csu.unicorp.dto.OrgMemberCreationDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
 import com.csu.unicorp.entity.EnterpriseDetail;
-import com.csu.unicorp.entity.User;
-import com.csu.unicorp.entity.UserVerification;
 import com.csu.unicorp.entity.organization.Organization;
+import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.mapper.UserRoleMapper;
 import com.csu.unicorp.mapper.UserVerificationMapper;
@@ -49,6 +20,25 @@ import com.csu.unicorp.service.OrganizationService;
 import com.csu.unicorp.service.RoleService;
 import com.csu.unicorp.vo.TokenVO;
 import com.csu.unicorp.vo.UserVO;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceImplTest {
@@ -189,7 +179,7 @@ public class UserServiceImplTest {
         when(passwordEncoder.encode(registrationDto.getPassword())).thenReturn("encoded_password");
         when(fileService.getRandomDefaultAvatarPath()).thenReturn("avatars/default.jpg");
         doNothing().when(userMapper).insert(any(User.class));
-        doNothing().when(userVerificationMapper).insert(any(UserVerification.class));
+        doNothing().when(userVerificationMapper).insert(any());
         doNothing().when(roleService).assignRoleToUser(anyInt(), eq(RoleConstants.DB_ROLE_STUDENT));
 
         // 执行测试
@@ -211,7 +201,7 @@ public class UserServiceImplTest {
         verify(accountGenerator).generateStudentAccount(any(Organization.class));
         verify(passwordEncoder).encode(registrationDto.getPassword());
         verify(userMapper).insert(any(User.class));
-        verify(userVerificationMapper).insert(any(UserVerification.class));
+        verify(userVerificationMapper).insert(any());
         verify(roleService).assignRoleToUser(anyInt(), eq(RoleConstants.DB_ROLE_STUDENT));
     }
 

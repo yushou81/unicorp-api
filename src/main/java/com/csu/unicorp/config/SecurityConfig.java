@@ -88,10 +88,6 @@ public class SecurityConfig {
                     .requestMatchers("/ws/**").permitAll()
                     // 资源共享中心公开接口
                     .requestMatchers("/v1/resources", "/v1/resources/{id}").permitAll()
-                    .requestMatchers("/api/resources", "/api/resources/{id}").permitAll()
-                    .requestMatchers("/api/v1/resources", "/api/v1/resources/{id}").permitAll()
-                    .requestMatchers("/api/resources/upload").authenticated()
-                    .requestMatchers("/api/v1/resources/upload").authenticated()
                     // 双师课堂公开接口
                     .requestMatchers("/v1/dual-courses").permitAll()
                     .requestMatchers("/v1/dual-courses/{id}").permitAll()

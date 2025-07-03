@@ -55,11 +55,11 @@ public class WebConfig implements WebMvcConfigurer {
 
         //我之前写的，先别删，我再看看
         registry.addResourceHandler("/v1/files/**")
-                .addResourceLocations("file:" + uploadPath + "/");
-                
-        // 配置静态资源路径，但明确排除API路径
-        registry.addResourceHandler("/resources/**")
-                .addResourceLocations("classpath:/static/resources/");
+
+        // System.out.println("静态资源映射: /api/v1/files/** -> file:" + uploadPath + "/");
+        // registry.addResourceHandler("/v1/files/**")
+
+                 .addResourceLocations("file:" + uploadPath + "/");
     }
     
     /**
@@ -69,8 +69,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // 添加资源图片拦截器，检查访问权限
         registry.addInterceptor(resourceImageInterceptor)
-                .addPathPatterns("/v1/files/resource_images/**")
-                .addPathPatterns("/api/v1/files/resource_images/**");
+                .addPathPatterns("/v1/files/resource_images/**");
     }
     
     /**

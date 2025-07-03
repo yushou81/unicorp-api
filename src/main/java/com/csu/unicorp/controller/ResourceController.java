@@ -165,8 +165,8 @@ public class ResourceController {
             @RequestParam("resourceType") String resourceType,
             @RequestParam(value = "description", required = false) String description,
             @RequestParam(value = "visibility", required = false) String visibility,
-            @RequestParam(value = "file", required = false) MultipartFile file,
-            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            @RequestPart(value = "image", required = false) MultipartFile image,
             @AuthenticationPrincipal UserDetails userDetails) {
         
         try {
