@@ -61,7 +61,7 @@ public class ProjectCreationDTO {
     private List<String> programmingLanguages;
     
     /**
-     * 项目计划书文件URL（前端先上传文件，拿到URL后再传）
+     * 项目计划书文件URL列表（前端先上传文件，拿到URL后再传）
      */
-    private String projectProposalUrl;
+    private List<String> projectProposalUrls;
 } 

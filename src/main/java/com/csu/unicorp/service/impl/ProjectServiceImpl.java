@@ -250,6 +250,10 @@ public class ProjectServiceImpl implements ProjectService {
         if (projectCreationDTO.getProgrammingLanguages() != null) {
             project.setProgrammingLanguages(String.join(",", projectCreationDTO.getProgrammingLanguages()));
         }
+        // 新增：处理项目计划书多文件URL
+        if (projectCreationDTO.getProjectProposalUrls() != null) {
+            project.setProjectProposalUrl(String.join(",", projectCreationDTO.getProjectProposalUrls()));
+        }
 
         // 6. 设置组织ID
         project.setOrganizationId(currentUser.getOrganizationId());
@@ -324,6 +328,10 @@ public class ProjectServiceImpl implements ProjectService {
         if (projectCreationDTO.getProgrammingLanguages() != null) {
             project.setProgrammingLanguages(String.join(",", projectCreationDTO.getProgrammingLanguages()));
         }
+        // 新增：处理项目计划书多文件URL
+        if (projectCreationDTO.getProjectProposalUrls() != null) {
+            project.setProjectProposalUrl(String.join(",", projectCreationDTO.getProjectProposalUrls()));
+        }
 
         projectMapper.updateById(project);
         
@@ -391,7 +399,7 @@ public class ProjectServiceImpl implements ProjectService {
                 vo.setOrganizationName(organization.getOrganizationName());
             }
         }
-        
+       
         return vo;
     }
     

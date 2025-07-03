@@ -2,6 +2,7 @@ package com.csu.unicorp.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.access.AccessDeniedException;
@@ -17,18 +18,16 @@ import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.dto.BookingCreationDTO;
 import com.csu.unicorp.dto.BookingReviewDTO;
-import com.csu.unicorp.dto.EquipmentCreationDTO;
 import com.csu.unicorp.entity.EquipmentBooking;
-import com.csu.unicorp.entity.EquipmentResource;
 import com.csu.unicorp.entity.organization.Organization;
+import com.csu.unicorp.entity.Resource;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.EquipmentBookingMapper;
-import com.csu.unicorp.mapper.EquipmentResourceMapper;
-import com.csu.unicorp.mapper.OrganizationMapper;
+import com.csu.unicorp.mapper.ResourceMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.EquipmentService;
 import com.csu.unicorp.vo.BookingVO;
-import com.csu.unicorp.vo.EquipmentVO;
+import com.csu.unicorp.vo.ResourceTimeSlotVO;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,110 +37,10 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class EquipmentServiceImpl implements EquipmentService {
 
-    private final EquipmentResourceMapper equipmentMapper;
     private final EquipmentBookingMapper bookingMapper;
+    private final ResourceMapper resourceMapper;
     private final UserMapper userMapper;
-    private final OrganizationMapper organizationMapper;
     
-    // 角色常量
-    private static final String ROLE_ADMIN = "ROLE_" + RoleConstants.ROLE_SYSTEM_ADMIN;
-    private static final String ROLE_SCHOOL_ADMIN = "ROLE_" + RoleConstants.ROLE_SCHOOL_ADMIN;
-    private static final String ROLE_ENTERPRISE_ADMIN = "ROLE_" + RoleConstants.ROLE_ENTERPRISE_ADMIN;
-    private static final String ROLE_TEACHER = "ROLE_" + RoleConstants.ROLE_TEACHER;
-    private static final String ROLE_ENTERPRISE_MENTOR = "ROLE_" + RoleConstants.ROLE_ENTERPRISE_MENTOR;
-
-    @Override
-    @Transactional
-    public EquipmentVO createEquipment(EquipmentCreationDTO dto, UserDetails userDetails) {
-        // 获取用户ID
-        Integer userId = getUserIdFromUserDetails(userDetails);
-        
-        // 检查用户权限
-        if (!hasEquipmentManagementPermission(userDetails)) {
-            throw new AccessDeniedException("只有教师或管理员可以创建设备");
-        }
-        
-        // 创建设备实体
-        EquipmentResource equipment = new EquipmentResource();
-        BeanUtils.copyProperties(dto, equipment);
-        equipment.setStatus("AVAILABLE");
-        equipment.setManagerId(userId);
-        equipment.setCreatedAt(LocalDateTime.now());
-        equipment.setUpdatedAt(LocalDateTime.now());
-        
-        // 保存到数据库
-        equipmentMapper.insert(equipment);
-        
-        // 返回VO
-        return convertToVO(equipment);
-    }
-
-    @Override
-    @Transactional
-    public EquipmentVO updateEquipment(Integer id, EquipmentCreationDTO dto, UserDetails userDetails) {
-        // 获取设备
-        EquipmentResource equipment = getEquipmentEntityById(id);
-        
-        // 检查权限
-        if (!isEquipmentManager(equipment, userDetails) && !isAdmin(userDetails)) {
-            throw new AccessDeniedException("只有设备管理员或系统管理员才能更新设备信息");
-        }
-        
-        // 更新属性
-        BeanUtils.copyProperties(dto, equipment);
-        equipment.setUpdatedAt(LocalDateTime.now());
-        
-        // 保存更新
-        equipmentMapper.updateById(equipment);
-        
-        // 返回更新后的VO
-        return convertToVO(equipment);
-    }
-
-    @Override
-    @Transactional
-    public void deleteEquipment(Integer id, UserDetails userDetails) {
-        // 获取设备
-        EquipmentResource equipment = getEquipmentEntityById(id);
-        
-        // 检查权限
-        if (!isEquipmentManager(equipment, userDetails) && !isAdmin(userDetails)) {
-            throw new AccessDeniedException("只有设备管理员或系统管理员才能删除设备");
-        }
-        
-        // 检查是否有未完成的预约
-        LambdaQueryWrapper<EquipmentBooking> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(EquipmentBooking::getEquipmentId, id)
-                   .in(EquipmentBooking::getStatus, "PENDING", "APPROVED")
-                   .ge(EquipmentBooking::getEndTime, LocalDateTime.now());
-        
-        if (bookingMapper.selectCount(queryWrapper) > 0) {
-            throw new BusinessException("该设备有未完成的预约，无法删除");
-        }
-        
-        // 删除设备
-        equipmentMapper.deleteById(id);
-    }
-
-    @Override
-    public IPage<EquipmentVO> getEquipments(int page, int size, String keyword, Integer organizationId, String status) {
-        // 创建分页对象
-        Page<EquipmentResource> pageParam = new Page<>(page, size);
-        
-        // 执行查询
-        IPage<EquipmentResource> result = equipmentMapper.findEquipmentResourcesPage(
-                pageParam, keyword, organizationId, status);
-        
-        // 转换为VO
-        return result.convert(this::convertToVO);
-    }
-
-    @Override
-    public EquipmentVO getEquipmentById(Integer id) {
-        EquipmentResource equipment = getEquipmentEntityById(id);
-        return convertToVO(equipment);
-    }
-
     @Override
     @Transactional
     public BookingVO createBooking(BookingCreationDTO dto, UserDetails userDetails) {
@@ -149,11 +48,11 @@ public class EquipmentServiceImpl implements EquipmentService {
         Integer userId = getUserIdFromUserDetails(userDetails);
         
         // 验证设备存在
-        EquipmentResource equipment = getEquipmentEntityById(dto.getEquipmentId());
+        Resource resource = getResourceEntityById(dto.getResourceId());
         
-        // 验证设备状态
-        if (!"AVAILABLE".equals(equipment.getStatus())) {
-            throw new BusinessException("设备当前不可预约");
+        // 验证资源是设备类型
+        if (!"实验设备".equals(resource.getResourceType())) {
+            throw new BusinessException("预约的资源不是设备类型");
         }
         
         // 验证预约时间
@@ -166,194 +65,291 @@ public class EquipmentServiceImpl implements EquipmentService {
         }
         
         // 检查时间冲突
-        checkTimeConflict(dto.getEquipmentId(), dto.getStartTime(), dto.getEndTime(), null);
+        checkTimeConflict(dto.getResourceId(), dto.getStartTime(), dto.getEndTime(), null);
         
         // 创建预约
         EquipmentBooking booking = new EquipmentBooking();
-        booking.setEquipmentId(dto.getEquipmentId());
+        booking.setResourceId(dto.getResourceId());
         booking.setUserId(userId);
         booking.setStartTime(dto.getStartTime());
         booking.setEndTime(dto.getEndTime());
         booking.setPurpose(dto.getPurpose());
-        booking.setStatus("PENDING");  // 默认为待审核
+        booking.setStatus("PENDING");
         booking.setCreatedAt(LocalDateTime.now());
         booking.setUpdatedAt(LocalDateTime.now());
         
-        // 保存到数据库
+        // 保存预约
         bookingMapper.insert(booking);
         
         // 返回VO
-        return convertToBookingVO(booking);
+        return convertBookingToVO(booking);
     }
 
     @Override
-    public IPage<BookingVO> getBookings(int page, int size, Integer userId, Integer equipmentId, 
-                                     String status, Integer organizationId, UserDetails userDetails) {
+    public IPage<BookingVO> getBookings(int page, int size, Integer userId, Integer resourceId, 
+            String status, Integer organizationId, UserDetails userDetails) {
         // 创建分页对象
         Page<EquipmentBooking> pageParam = new Page<>(page, size);
         
+        // 校验权限（管理员或教师可以查看所有预约，学生只能查看自己的预约）
+        Integer currentUserId = getUserIdFromUserDetails(userDetails);
+        boolean isAdmin = hasEquipmentManagementPermission(userDetails);
+        
+        if (!isAdmin) {
+            // 非管理员只能查看自己的预约
+            userId = currentUserId;
+        }
+        
         // 执行查询
         IPage<EquipmentBooking> result = bookingMapper.findBookingsPage(
-                pageParam, userId, equipmentId, status, organizationId);
+                pageParam, userId, resourceId, status, organizationId);
         
         // 转换为VO
-        return result.convert(this::convertToBookingVO);
+        return result.convert(this::convertBookingToVO);
     }
 
     @Override
     public BookingVO getBookingById(Integer id, UserDetails userDetails) {
         EquipmentBooking booking = getBookingEntityById(id);
         
-        // 权限检查：只有预约用户、设备管理员或管理员可以查看预约详情
+        // 检查权限（只有预约者、资源拥有者、管理员可以查看预约详情）
         Integer currentUserId = getUserIdFromUserDetails(userDetails);
-        if (!booking.getUserId().equals(currentUserId) && 
-            !isEquipmentManagerById(booking.getEquipmentId(), userDetails) && 
-            !isAdmin(userDetails)) {
-            throw new AccessDeniedException("没有权限查看该预约");
+        boolean isAdmin = hasEquipmentManagementPermission(userDetails);
+        Resource resource = getResourceEntityById(booking.getResourceId());
+        
+        if (!isAdmin && !currentUserId.equals(booking.getUserId()) 
+                && !currentUserId.equals(resource.getUploadedByUserId())) {
+            throw new AccessDeniedException("没有权限查看此预约详情");
         }
         
-        return convertToBookingVO(booking);
+        return convertBookingToVO(booking);
     }
 
     @Override
     @Transactional
     public BookingVO cancelBooking(Integer id, UserDetails userDetails) {
-        // 获取预约
         EquipmentBooking booking = getBookingEntityById(id);
-        
-        // 权限检查：只有预约用户可以取消自己的预约
         Integer currentUserId = getUserIdFromUserDetails(userDetails);
-        if (!booking.getUserId().equals(currentUserId) && !isAdmin(userDetails)) {
-            throw new AccessDeniedException("只有预约用户或管理员可以取消预约");
+        
+        // 检查权限（只有预约者或管理员可以取消预约）
+        boolean isAdmin = hasEquipmentManagementPermission(userDetails);
+        
+        if (!isAdmin && !currentUserId.equals(booking.getUserId())) {
+            throw new AccessDeniedException("没有权限取消此预约");
         }
         
         // 检查状态
         if ("CANCELED".equals(booking.getStatus()) || "COMPLETED".equals(booking.getStatus())) {
-            throw new BusinessException("该预约已取消或已完成，无法操作");
+            throw new BusinessException("已取消或已完成的预约不能再次取消");
         }
         
-        // 取消预约
+        // 更新状态
         booking.setStatus("CANCELED");
         booking.setUpdatedAt(LocalDateTime.now());
         bookingMapper.updateById(booking);
         
-        return convertToBookingVO(booking);
+        return convertBookingToVO(booking);
     }
 
     @Override
     @Transactional
     public BookingVO reviewBooking(BookingReviewDTO dto, UserDetails userDetails) {
-        // 获取预约
         EquipmentBooking booking = getBookingEntityById(dto.getBookingId());
+        Integer currentUserId = getUserIdFromUserDetails(userDetails);
         
-        // 权限检查：只有设备管理员或管理员才能审核预约
-        if (!isEquipmentManagerById(booking.getEquipmentId(), userDetails) && !isAdmin(userDetails)) {
-            throw new AccessDeniedException("只有设备管理员或系统管理员才能审核预约");
+        // 检查权限（只有资源拥有者或管理员可以审核预约）
+        boolean isAdmin = hasEquipmentManagementPermission(userDetails);
+        Resource resource = getResourceEntityById(booking.getResourceId());
+        
+        if (!isAdmin && !currentUserId.equals(resource.getUploadedByUserId())) {
+            throw new AccessDeniedException("没有权限审核此预约");
         }
         
         // 检查状态
         if (!"PENDING".equals(booking.getStatus())) {
-            throw new BusinessException("只能审核待审核状态的预约");
+            throw new BusinessException("只有待审核状态的预约可以被审核");
         }
-        
-        // 获取用户信息
-        Integer reviewerId = getUserIdFromUserDetails(userDetails);
         
         // 如果是批准，检查时间冲突
-        if ("APPROVED".equals(dto.getStatus())) {
-            checkTimeConflict(booking.getEquipmentId(), booking.getStartTime(), booking.getEndTime(), booking.getId());
+        if ("APPROVED".equals(dto.getApprove())) {
+            checkTimeConflict(booking.getResourceId(), booking.getStartTime(), booking.getEndTime(), booking.getId());
             booking.setStatus("APPROVED");
-        } else if ("REJECTED".equals(dto.getStatus())) {
-            if (dto.getRejectReason() == null || dto.getRejectReason().trim().isEmpty()) {
-                throw new BusinessException("拒绝预约时必须提供原因");
-            }
+        } else {
             booking.setStatus("REJECTED");
             booking.setRejectReason(dto.getRejectReason());
-        } else {
-            throw new BusinessException("无效的审核结果");
         }
         
-        // 更新预约
-        booking.setReviewerId(reviewerId);
+        booking.setReviewerId(currentUserId);
         booking.setUpdatedAt(LocalDateTime.now());
+        
         bookingMapper.updateById(booking);
-        
-        return convertToBookingVO(booking);
+        return convertBookingToVO(booking);
     }
-
-    // 辅助方法：获取用户ID
-    private Integer getUserIdFromUserDetails(UserDetails userDetails) {
-        // 从Principal获取用户名
-        String username = userDetails.getUsername();
+    
+    @Override
+    public List<BookingVO> getCurrentUserBookings(UserDetails userDetails) {
+        // 获取当前用户ID
+        Integer userId = getUserIdFromUserDetails(userDetails);
         
-        // 根据用户名查询用户
-        User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
-            .eq(User::getAccount, username)
-            .eq(User::getIsDeleted, 0));
-            
+        // 查询用户的所有预约
+        LambdaQueryWrapper<EquipmentBooking> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(EquipmentBooking::getUserId, userId)
+                   .orderByDesc(EquipmentBooking::getCreatedAt);
+        
+        List<EquipmentBooking> bookings = bookingMapper.selectList(queryWrapper);
+        
+        // 转换为VO并返回
+        return bookings.stream()
+                .map(this::convertBookingToVO)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<BookingVO> getResourceBookings(Integer resourceId, UserDetails userDetails) {
+        // 检查资源是否存在
+        Resource resource = getResourceEntityById(resourceId);
+        
+        // 检查资源类型是否为设备
+        if (!"实验设备".equals(resource.getResourceType())) {
+            throw new BusinessException("指定的资源不是设备类型");
+        }
+        
+        // 获取当前用户ID
+        Integer currentUserId = getUserIdFromUserDetails(userDetails);
+        boolean isAdmin = hasEquipmentManagementPermission(userDetails);
+        boolean isResourceOwner = currentUserId.equals(resource.getUploadedByUserId());
+        
+        // 查询资源的所有预约
+        LambdaQueryWrapper<EquipmentBooking> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(EquipmentBooking::getResourceId, resourceId);
+        
+        // 非管理员且非资源所有者只能查看已审批的预约
+        if (!isAdmin && !isResourceOwner) {
+            queryWrapper.and(wrapper -> wrapper
+                    .eq(EquipmentBooking::getStatus, "APPROVED")
+                    .or()
+                    .eq(EquipmentBooking::getUserId, currentUserId));
+        }
+        
+        queryWrapper.orderByAsc(EquipmentBooking::getStartTime);
+        
+        List<EquipmentBooking> bookings = bookingMapper.selectList(queryWrapper);
+        
+        // 转换为VO并返回
+        return bookings.stream()
+                .map(this::convertBookingToVO)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<ResourceTimeSlotVO> getResourceTimeSlots(Integer resourceId, UserDetails userDetails) {
+        // 检查资源是否存在
+        Resource resource = getResourceEntityById(resourceId);
+        
+        // 检查资源类型是否为设备
+        if (!"实验设备".equals(resource.getResourceType())) {
+            throw new BusinessException("指定的资源不是设备类型");
+        }
+        
+        // 获取当前用户ID
+        Integer currentUserId = getUserIdFromUserDetails(userDetails);
+        
+        // 查询资源的所有预约
+        LambdaQueryWrapper<EquipmentBooking> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(EquipmentBooking::getResourceId, resourceId);
+        
+        // 只返回已批准的预约（真正占用时间的预约）和当前用户的所有预约
+        queryWrapper.and(wrapper -> wrapper
+                .eq(EquipmentBooking::getStatus, "APPROVED")
+                );
+        System.out.println("输出了这一行刚queryWrapper: " + queryWrapper);
+        // 按开始时间升序排序
+        queryWrapper.orderByAsc(EquipmentBooking::getStartTime);
+        
+        List<EquipmentBooking> bookings = bookingMapper.selectList(queryWrapper);
+        
+        // 转换为时间段VO
+        return bookings.stream()
+                .map(booking -> {
+                    ResourceTimeSlotVO timeSlot = new ResourceTimeSlotVO();
+                    timeSlot.setBookingId(booking.getId());
+                    timeSlot.setStartTime(booking.getStartTime());
+                    timeSlot.setEndTime(booking.getEndTime());
+                    timeSlot.setStatus(booking.getStatus());
+                    // 标记是否为被占用时间（只有APPROVED状态才是真正被占用）
+                    timeSlot.setCurrentUser(booking.getUserId().equals(currentUserId));
+                    timeSlot.setOccupied("APPROVED".equals(booking.getStatus()));
+                    return timeSlot;
+                })
+                .collect(Collectors.toList());
+    }
+    
+    // =========== 辅助方法 ===========
+    
+    /**
+     * 检查用户是否有设备管理权限
+     */
+    private boolean hasEquipmentManagementPermission(UserDetails userDetails) {
+        return userDetails.getAuthorities().stream()
+                .anyMatch(auth -> {
+                    String role = auth.getAuthority();
+                    return role.equals("ROLE_" + RoleConstants.ROLE_SYSTEM_ADMIN) || 
+                           role.equals("ROLE_" + RoleConstants.ROLE_SCHOOL_ADMIN) || 
+                           role.equals("ROLE_" + RoleConstants.ROLE_TEACHER);
+                });
+    }
+    
+    /**
+     * 从UserDetails获取用户ID
+     */
+    private Integer getUserIdFromUserDetails(UserDetails userDetails) {
+        String username = userDetails.getUsername();
+        User user = userMapper.selectByAccount(username);
         if (user == null) {
             throw new ResourceNotFoundException("用户不存在");
         }
-        
         return user.getId();
     }
-
-    // 辅助方法：判断用户是否有设备管理权限
-    private boolean hasEquipmentManagementPermission(UserDetails userDetails) {
-        return hasAnyRole(userDetails, ROLE_ADMIN, ROLE_SCHOOL_ADMIN, 
-                        ROLE_ENTERPRISE_ADMIN, ROLE_TEACHER, 
-                        ROLE_ENTERPRISE_MENTOR);
-    }
-
-    // 辅助方法：判断用户是否是设备的管理员
-    private boolean isEquipmentManager(EquipmentResource equipment, UserDetails userDetails) {
-        Integer currentUserId = getUserIdFromUserDetails(userDetails);
-        return equipment.getManagerId().equals(currentUserId);
-    }
     
-    // 辅助方法：判断用户是否是设备的管理员（通过设备ID）
-    private boolean isEquipmentManagerById(Integer equipmentId, UserDetails userDetails) {
-        EquipmentResource equipment = getEquipmentEntityById(equipmentId);
-        return isEquipmentManager(equipment, userDetails);
-    }
-    
-    // 辅助方法：判断用户是否是管理员
-    private boolean isAdmin(UserDetails userDetails) {
-        return hasAnyRole(userDetails, ROLE_ADMIN, ROLE_SCHOOL_ADMIN, 
-                        ROLE_ENTERPRISE_ADMIN);
-    }
-    
-    // 辅助方法：判断用户是否有任一指定角色
-    private boolean hasAnyRole(UserDetails userDetails, String... roles) {
-        for (String role : roles) {
-            if (userDetails.getAuthorities().stream()
-                    .anyMatch(auth -> auth.getAuthority().equals(role))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // 辅助方法：检查时间冲突
-    private void checkTimeConflict(Integer equipmentId, LocalDateTime startTime, LocalDateTime endTime, Integer excludeBookingId) {
+    private void checkTimeConflict(Integer resourceId, LocalDateTime startTime, LocalDateTime endTime, Integer excludeBookingId) {
+        // 查询冲突的预约
         List<EquipmentBooking> conflictBookings = bookingMapper.findConflictBookings(
-                equipmentId, startTime, endTime, excludeBookingId);
+                resourceId, startTime, endTime, excludeBookingId);
         
         if (!conflictBookings.isEmpty()) {
-            throw new BusinessException("该时间段已有其他预约，请选择其他时间");
+            // 构造冲突信息
+            StringBuilder conflictInfo = new StringBuilder("预约时间冲突：该时间段已有预约。冲突的预约：");
+            for (int i = 0; i < conflictBookings.size(); i++) {
+                EquipmentBooking conflict = conflictBookings.get(i);
+                conflictInfo.append(String.format(
+                        "预约ID=%d，时间=%s至%s", 
+                        conflict.getId(), 
+                        conflict.getStartTime(), 
+                        conflict.getEndTime()));
+                
+                if (i < conflictBookings.size() - 1) {
+                    conflictInfo.append("; ");
+                }
+            }
+            
+            throw new BusinessException(conflictInfo.toString());
         }
-    }
-
-    // 辅助方法：通过ID获取设备实体
-    private EquipmentResource getEquipmentEntityById(Integer id) {
-        EquipmentResource equipment = equipmentMapper.selectById(id);
-        if (equipment == null) {
-            throw new ResourceNotFoundException("设备不存在");
-        }
-        return equipment;
     }
     
-    // 辅助方法：通过ID获取预约实体
+    /**
+     * 获取设备资源实体
+     */
+    private Resource getResourceEntityById(Integer id) {
+        Resource resource = resourceMapper.selectById(id);
+        if (resource == null) {
+            throw new ResourceNotFoundException("设备资源不存在");
+        }
+        return resource;
+    }
+    
+    /**
+     * 获取预约实体
+     */
     private EquipmentBooking getBookingEntityById(Integer id) {
         EquipmentBooking booking = bookingMapper.selectById(id);
         if (booking == null) {
@@ -362,52 +358,26 @@ public class EquipmentServiceImpl implements EquipmentService {
         return booking;
     }
     
-    // 辅助方法：将设备实体转换为VO
-    private EquipmentVO convertToVO(EquipmentResource equipment) {
-        if (equipment == null) {
-            return null;
-        }
-        
-        EquipmentVO vo = new EquipmentVO();
-        BeanUtils.copyProperties(equipment, vo);
-        
-        // 填充管理员姓名
-        User manager = userMapper.selectById(equipment.getManagerId());
-        if (manager != null) {
-            vo.setManagerName(manager.getNickname());
-        }
-        
-        // 填充组织名称
-        Organization org = organizationMapper.selectById(equipment.getOrganizationId());
-        if (org != null) {
-            vo.setOrganizationName(org.getOrganizationName());
-        }
-        
-        return vo;
-    }
-    
-    // 辅助方法：将预约实体转换为VO
-    private BookingVO convertToBookingVO(EquipmentBooking booking) {
-        if (booking == null) {
-            return null;
-        }
-        
+    /**
+     * 将预约实体转换为VO
+     */
+    private BookingVO convertBookingToVO(EquipmentBooking booking) {
         BookingVO vo = new BookingVO();
         BeanUtils.copyProperties(booking, vo);
         
-        // 填充用户名
+        // 设置资源标题
+        Resource resource = resourceMapper.selectById(booking.getResourceId());
+        if (resource != null) {
+            vo.setResourceTitle(resource.getTitle());
+        }
+        
+        // 设置用户姓名
         User user = userMapper.selectById(booking.getUserId());
         if (user != null) {
             vo.setUserName(user.getNickname());
         }
         
-        // 填充设备名称
-        EquipmentResource equipment = equipmentMapper.selectById(booking.getEquipmentId());
-        if (equipment != null) {
-            vo.setEquipmentName(equipment.getName());
-        }
-        
-        // 填充审核人姓名
+        // 设置审核人姓名
         if (booking.getReviewerId() != null) {
             User reviewer = userMapper.selectById(booking.getReviewerId());
             if (reviewer != null) {

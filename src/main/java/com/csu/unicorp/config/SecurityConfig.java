@@ -107,8 +107,12 @@ public class SecurityConfig {
                     .requestMatchers("/v1/auth/search").authenticated()
                     // 聊天接口需要认证
                     .requestMatchers("/v1/chat/**").authenticated()
-                    // 静态资源访问
-                    .requestMatchers("/files/**").permitAll()
+
+                    // 静态资源访问 - 权限验证通过拦截器而不是这里处理
+                    .requestMatchers("/v1/files/resources/**").permitAll()
+                    .requestMatchers("/v1/files/resource_images/**").permitAll()
+                    .requestMatchers("/v1/files/resumes/**").authenticated()
+                    .requestMatchers("/v1/files/avatars/**").permitAll()
                     // Swagger UI and API docs
                     .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     // 管理接口需要SYSADMIN权限

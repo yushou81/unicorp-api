@@ -191,6 +191,10 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResultVO<Void> handleMultipartException(org.springframework.web.multipart.MultipartException e) {
         log.error("文件上传异常: {}", e.getMessage());
+        String msg = e.getMessage();
+        if (msg != null && msg.contains("Maximum upload size")) {
+            return ResultVO.error("文件上传失败：文件大小超出最大限制（10MB）");
+        }
         return ResultVO.error("文件上传失败：请确保请求格式为multipart/form-data，并且文件大小不超过限制");
     }
     

@@ -1,6 +1,5 @@
 package com.csu.unicorp.dto;
 
-import com.csu.unicorp.common.constants.VisibilityEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -36,15 +35,20 @@ public class ResourceCreationDTO {
      * 资源类型
      */
     @NotBlank(message = "资源类型不能为空")
-    @Schema(description = "资源类型，如技术文档、教学课件、案例分析等", required = true)
+    @Schema(description = "资源类型，如技术文档、教学课件、案例分析、专利、著作权等", required = true)
     private String resourceType;
     
     /**
      * 文件URL
      */
-    @NotBlank(message = "文件URL不能为空")
-    @Schema(description = "文件上传后获取到的URL", required = true)
+    @Schema(description = "文件上传后获取到的URL")
     private String fileUrl;
+    
+    /**
+     * 图片URL（用于专利、著作权等类型资源的图片展示）
+     */
+    @Schema(description = "图片URL，用于专利、著作权等类型资源的图片展示")
+    private String imageUrl;
     
     /**
      * 可见性
