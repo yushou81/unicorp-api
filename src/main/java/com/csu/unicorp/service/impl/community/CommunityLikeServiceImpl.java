@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -12,11 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.csu.unicorp.common.constants.CacheConstants;
 import com.csu.unicorp.entity.community.CommunityAnswer;
 import com.csu.unicorp.entity.community.CommunityLike;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.community.CommunityAnswerMapper;
 import com.csu.unicorp.mapper.community.CommunityLikeMapper;
+import com.csu.unicorp.service.CacheService;
 import com.csu.unicorp.service.CommunityLikeService;
 import com.csu.unicorp.service.CommunityNotificationService;
 import com.csu.unicorp.service.UserService;
@@ -37,6 +40,7 @@ public class CommunityLikeServiceImpl extends ServiceImpl<CommunityLikeMapper, C
     private final CommunityAnswerMapper answerMapper;
     private final CommunityNotificationService notificationService;
     private final UserService userService;
+    private final CacheService cacheService;
     
     @Override
     @Transactional
@@ -56,8 +60,20 @@ public class CommunityLikeServiceImpl extends ServiceImpl<CommunityLikeMapper, C
         
         boolean result = save(like);
         
-        // 发送通知
         if (result) {
+            // 清除点赞计数缓存
+            String countCacheKey = CacheConstants.CONTENT_LIKE_COUNT_CACHE_KEY_PREFIX + contentType + ":" + contentId;
+            cacheService.delete(countCacheKey);
+            
+            // 清除用户点赞状态缓存
+            String statusCacheKey = CacheConstants.USER_LIKE_STATUS_CACHE_KEY_PREFIX + userId + ":" + contentType + ":" + contentId;
+            cacheService.delete(statusCacheKey);
+            
+            // 清除用户点赞内容列表缓存
+            String userLikedCacheKey = CacheConstants.USER_LIKED_CONTENT_IDS_CACHE_KEY_PREFIX + userId + ":" + contentType;
+            cacheService.delete(userLikedCacheKey);
+            
+            // 发送通知
             // 获取内容作者ID
             Long authorId = getContentAuthorId(contentType, contentId);
             if (authorId != null && !authorId.equals(userId)) {
@@ -80,17 +96,59 @@ public class CommunityLikeServiceImpl extends ServiceImpl<CommunityLikeMapper, C
     @Override
     @Transactional
     public boolean unlikeContent(Long userId, String contentType, Long contentId) {
-        return likeMapper.deleteUserLike(userId, contentType, contentId) > 0;
+        boolean result = likeMapper.deleteUserLike(userId, contentType, contentId) > 0;
+        
+        if (result) {
+            // 清除点赞计数缓存
+            String countCacheKey = CacheConstants.CONTENT_LIKE_COUNT_CACHE_KEY_PREFIX + contentType + ":" + contentId;
+            cacheService.delete(countCacheKey);
+            
+            // 清除用户点赞状态缓存
+            String statusCacheKey = CacheConstants.USER_LIKE_STATUS_CACHE_KEY_PREFIX + userId + ":" + contentType + ":" + contentId;
+            cacheService.delete(statusCacheKey);
+            
+            // 清除用户点赞内容列表缓存
+            String userLikedCacheKey = CacheConstants.USER_LIKED_CONTENT_IDS_CACHE_KEY_PREFIX + userId + ":" + contentType;
+            cacheService.delete(userLikedCacheKey);
+        }
+        
+        return result;
     }
     
     @Override
     public boolean checkUserLiked(Long userId, String contentType, Long contentId) {
-        return likeMapper.checkUserLiked(userId, contentType, contentId) > 0;
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.USER_LIKE_STATUS_CACHE_KEY_PREFIX + userId + ":" + contentType + ":" + contentId;
+        Boolean cachedStatus = cacheService.get(cacheKey, Boolean.class);
+        if (cachedStatus != null) {
+            return cachedStatus;
+        }
+        
+        // 从数据库查询
+        boolean liked = likeMapper.checkUserLiked(userId, contentType, contentId) > 0;
+        
+        // 缓存结果
+        cacheService.set(cacheKey, liked, CacheConstants.LIKE_STATUS_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return liked;
     }
     
     @Override
     public List<Long> getUserLikedContentIds(Long userId, String contentType) {
-        return likeMapper.selectUserLikedContentIds(userId, contentType);
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.USER_LIKED_CONTENT_IDS_CACHE_KEY_PREFIX + userId + ":" + contentType;
+        List<Long> cachedIds = cacheService.getList(cacheKey, Long.class);
+        if (cachedIds != null) {
+            return cachedIds;
+        }
+        
+        // 从数据库查询
+        List<Long> contentIds = likeMapper.selectUserLikedContentIds(userId, contentType);
+        
+        // 缓存结果
+        cacheService.setList(cacheKey, contentIds, CacheConstants.LIKE_STATUS_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return contentIds;
     }
     
     @Override
@@ -101,7 +159,20 @@ public class CommunityLikeServiceImpl extends ServiceImpl<CommunityLikeMapper, C
     
     @Override
     public int getContentLikeCount(String contentType, Long contentId) {
-        return likeMapper.countLikesByContent(contentType, contentId);
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.CONTENT_LIKE_COUNT_CACHE_KEY_PREFIX + contentType + ":" + contentId;
+        Integer cachedCount = cacheService.get(cacheKey, Integer.class);
+        if (cachedCount != null) {
+            return cachedCount;
+        }
+        
+        // 从数据库查询
+        int count = likeMapper.countLikesByContent(contentType, contentId);
+        
+        // 缓存结果
+        cacheService.set(cacheKey, count, CacheConstants.LIKE_STATUS_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return count;
     }
     
     @Override
@@ -110,6 +181,7 @@ public class CommunityLikeServiceImpl extends ServiceImpl<CommunityLikeMapper, C
             return Collections.emptyList();
         }
         
+        // 对于批量查询，直接查询数据库更高效
         LambdaQueryWrapper<CommunityLike> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(CommunityLike::getUserId, userId)
                   .eq(CommunityLike::getContentType, contentType)

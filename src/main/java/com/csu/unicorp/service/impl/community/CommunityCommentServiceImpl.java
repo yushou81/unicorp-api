@@ -3,6 +3,7 @@ package com.csu.unicorp.service.impl.community;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,11 +14,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.csu.unicorp.common.constants.CacheConstants;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.dto.community.CommentDTO;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.entity.community.CommunityComment;
 import com.csu.unicorp.mapper.community.CommunityCommentMapper;
+import com.csu.unicorp.service.CacheService;
 import com.csu.unicorp.service.CommunityCommentService;
 import com.csu.unicorp.service.CommunityLikeService;
 import com.csu.unicorp.service.CommunityNotificationService;
@@ -42,6 +45,7 @@ public class CommunityCommentServiceImpl extends ServiceImpl<CommunityCommentMap
     private final UserService userService;
     private final FileService fileService;
     private final CommunityNotificationService notificationService;
+    private final CacheService cacheService;
 
     @Override
     @Transactional
@@ -60,6 +64,18 @@ public class CommunityCommentServiceImpl extends ServiceImpl<CommunityCommentMap
         
         // 保存评论
         save(comment);
+        
+        // 清除相关缓存
+        if (comment.getParentId() != null) {
+            // 如果是回复评论，清除父评论的回复列表缓存
+            cacheService.deleteByPattern(CacheConstants.COMMENT_REPLIES_CACHE_KEY_PREFIX + comment.getParentId() + "*");
+        } else {
+            // 如果是评论话题，清除话题评论列表缓存
+            cacheService.deleteByPattern(CacheConstants.TOPIC_COMMENTS_CACHE_KEY_PREFIX + comment.getTopicId() + "*");
+        }
+        
+        // 清除用户评论列表缓存
+        cacheService.deleteByPattern(CacheConstants.USER_COMMENTS_CACHE_KEY_PREFIX + userId + "*");
         
         // 发送通知
         User user = userService.getById(userId.intValue());
@@ -106,11 +122,50 @@ public class CommunityCommentServiceImpl extends ServiceImpl<CommunityCommentMap
         comment.setStatus("DELETED");
         comment.setUpdatedAt(LocalDateTime.now());
         
-        return updateById(comment);
+        boolean result = updateById(comment);
+        
+        // 清除相关缓存
+        if (result) {
+            // 清除评论详情缓存
+            cacheService.delete(CacheConstants.COMMENT_DETAIL_CACHE_KEY_PREFIX + commentId);
+            
+            if (comment.getParentId() != null) {
+                // 如果是回复评论，清除父评论的回复列表缓存
+                cacheService.deleteByPattern(CacheConstants.COMMENT_REPLIES_CACHE_KEY_PREFIX + comment.getParentId() + "*");
+            } else {
+                // 如果是评论话题，清除话题评论列表缓存
+                cacheService.deleteByPattern(CacheConstants.TOPIC_COMMENTS_CACHE_KEY_PREFIX + comment.getTopicId() + "*");
+            }
+            
+            // 清除用户评论列表缓存
+            cacheService.deleteByPattern(CacheConstants.USER_COMMENTS_CACHE_KEY_PREFIX + comment.getUserId() + "*");
+        }
+        
+        return result;
     }
 
     @Override
     public Page<CommentVO> getTopicComments(Long topicId, int page, int size, Long userId) {
+        // 对于分页数据，只缓存第一页
+        if (page == 1) {
+            String cacheKey = CacheConstants.TOPIC_COMMENTS_CACHE_KEY_PREFIX + topicId + ":" + size;
+            Page<CommentVO> cachedPage = cacheService.get(cacheKey, Page.class);
+            if (cachedPage != null) {
+                log.debug("从缓存获取话题评论列表: {}", topicId);
+                // 更新用户交互状态
+                if (userId != null && cachedPage.getRecords() != null) {
+                    for (CommentVO comment : cachedPage.getRecords()) {
+                        comment.setLiked(likeService.checkLike(userId, comment.getId(), "COMMENT"));
+                        // 递归更新回复的点赞状态
+                        if (comment.getReplies() != null) {
+                            updateRepliesLikeStatus(comment.getReplies(), userId);
+                        }
+                    }
+                }
+                return cachedPage;
+            }
+        }
+        
         // 创建分页对象
         Page<CommunityComment> pageParam = new Page<>(page, size);
         
@@ -137,11 +192,49 @@ public class CommunityCommentServiceImpl extends ServiceImpl<CommunityCommentMap
                 .collect(Collectors.toList());
         
         voPage.setRecords(voList);
+        
+        // 缓存第一页数据
+        if (page == 1) {
+            String cacheKey = CacheConstants.TOPIC_COMMENTS_CACHE_KEY_PREFIX + topicId + ":" + size;
+            // 创建一个不包含用户交互状态的副本用于缓存
+            Page<CommentVO> cachePage = new Page<>(voPage.getCurrent(), voPage.getSize(), voPage.getTotal());
+            List<CommentVO> cacheList = voPage.getRecords().stream()
+                    .map(vo -> {
+                        CommentVO cacheVo = cloneCommentVO(vo);
+                        cacheVo.setLiked(false);
+                        if (cacheVo.getReplies() != null) {
+                            cacheVo.setReplies(cacheVo.getReplies().stream()
+                                    .map(reply -> {
+                                        CommentVO cacheReply = cloneCommentVO(reply);
+                                        cacheReply.setLiked(false);
+                                        return cacheReply;
+                                    })
+                                    .collect(Collectors.toList()));
+                        }
+                        return cacheVo;
+                    })
+                    .collect(Collectors.toList());
+            cachePage.setRecords(cacheList);
+            cacheService.set(cacheKey, cachePage, CacheConstants.COMMENT_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        }
+        
         return voPage;
     }
 
     @Override
     public List<CommentVO> getCommentReplies(Long commentId, Long userId) {
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.COMMENT_REPLIES_CACHE_KEY_PREFIX + commentId;
+        List<CommentVO> cachedReplies = cacheService.getList(cacheKey, CommentVO.class);
+        if (cachedReplies != null) {
+            log.debug("从缓存获取评论回复列表: {}", commentId);
+            // 更新用户交互状态
+            if (userId != null) {
+                updateRepliesLikeStatus(cachedReplies, userId);
+            }
+            return cachedReplies;
+        }
+        
         // 查询条件：父评论ID等于指定评论ID且状态为正常
         LambdaQueryWrapper<CommunityComment> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(CommunityComment::getParentId, commentId)
@@ -152,13 +245,35 @@ public class CommunityCommentServiceImpl extends ServiceImpl<CommunityCommentMap
         List<CommunityComment> replyList = list(queryWrapper);
         
         // 转换为VO
-        return replyList.stream()
+        List<CommentVO> result = replyList.stream()
                 .map(reply -> convertToVO(reply, userId))
                 .collect(Collectors.toList());
+        
+        // 缓存结果（不包含用户交互状态）
+        List<CommentVO> cacheList = replyList.stream()
+                .map(reply -> {
+                    CommentVO vo = convertToVO(reply, null);
+                    vo.setLiked(false);
+                    return vo;
+                })
+                .collect(Collectors.toList());
+        cacheService.setList(cacheKey, cacheList, CacheConstants.COMMENT_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return result;
     }
 
     @Override
     public Page<CommentVO> getUserComments(Long userId, int page, int size) {
+        // 对于分页数据，只缓存第一页
+        if (page == 1) {
+            String cacheKey = CacheConstants.USER_COMMENTS_CACHE_KEY_PREFIX + userId + ":" + size;
+            Page<CommentVO> cachedPage = cacheService.get(cacheKey, Page.class);
+            if (cachedPage != null) {
+                log.debug("从缓存获取用户评论列表: {}", userId);
+                return cachedPage;
+            }
+        }
+        
         // 创建分页对象
         Page<CommunityComment> pageParam = new Page<>(page, size);
         
@@ -178,6 +293,13 @@ public class CommunityCommentServiceImpl extends ServiceImpl<CommunityCommentMap
                 .collect(Collectors.toList());
         
         voPage.setRecords(voList);
+        
+        // 缓存第一页数据
+        if (page == 1) {
+            String cacheKey = CacheConstants.USER_COMMENTS_CACHE_KEY_PREFIX + userId + ":" + size;
+            cacheService.set(cacheKey, voPage, CacheConstants.USER_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        }
+        
         return voPage;
     }
 
@@ -196,6 +318,17 @@ public class CommunityCommentServiceImpl extends ServiceImpl<CommunityCommentMap
         if (liked) {
             // 增加评论点赞数
             commentMapper.incrementLikeCount(commentId);
+            
+            // 清除评论详情缓存
+            cacheService.delete(CacheConstants.COMMENT_DETAIL_CACHE_KEY_PREFIX + commentId);
+            
+            // 如果是回复，清除父评论的回复列表缓存
+            if (comment.getParentId() != null) {
+                cacheService.deleteByPattern(CacheConstants.COMMENT_REPLIES_CACHE_KEY_PREFIX + comment.getParentId() + "*");
+            } else {
+                // 如果是一级评论，清除话题评论列表缓存
+                cacheService.deleteByPattern(CacheConstants.TOPIC_COMMENTS_CACHE_KEY_PREFIX + comment.getTopicId() + "*");
+            }
         }
         
         return liked;
@@ -215,6 +348,17 @@ public class CommunityCommentServiceImpl extends ServiceImpl<CommunityCommentMap
         
         // 减少评论点赞数
         commentMapper.decrementLikeCount(commentId);
+        
+        // 清除评论详情缓存
+        cacheService.delete(CacheConstants.COMMENT_DETAIL_CACHE_KEY_PREFIX + commentId);
+        
+        // 如果是回复，清除父评论的回复列表缓存
+        if (comment.getParentId() != null) {
+            cacheService.deleteByPattern(CacheConstants.COMMENT_REPLIES_CACHE_KEY_PREFIX + comment.getParentId() + "*");
+        } else {
+            // 如果是一级评论，清除话题评论列表缓存
+            cacheService.deleteByPattern(CacheConstants.TOPIC_COMMENTS_CACHE_KEY_PREFIX + comment.getTopicId() + "*");
+        }
         
         return true;
     }
@@ -259,16 +403,39 @@ public class CommunityCommentServiceImpl extends ServiceImpl<CommunityCommentMap
 
     @Override
     public CommentVO getCommentDetail(Long commentId) {
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.COMMENT_DETAIL_CACHE_KEY_PREFIX + commentId;
+        CommentVO cachedComment = cacheService.get(cacheKey, CommentVO.class);
+        if (cachedComment != null) {
+            log.debug("从缓存获取评论详情: {}", commentId);
+            return cachedComment;
+        }
+        
         CommunityComment comment = getById(commentId);
         if (comment == null || !"NORMAL".equals(comment.getStatus())) {
             return null;
         }
         
-        return convertToVO(comment, null);
+        CommentVO commentVO = convertToVO(comment, null);
+        
+        // 缓存结果
+        cacheService.set(cacheKey, commentVO, CacheConstants.COMMENT_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return commentVO;
     }
 
     @Override
     public Page<CommentVO> getAnswerComments(Long answerId, int page, int size) {
+        // 对于分页数据，只缓存第一页
+        if (page == 1) {
+            String cacheKey = CacheConstants.ANSWER_COMMENTS_CACHE_KEY_PREFIX + answerId + ":" + size;
+            Page<CommentVO> cachedPage = cacheService.get(cacheKey, Page.class);
+            if (cachedPage != null) {
+                log.debug("从缓存获取回答评论列表: {}", answerId);
+                return cachedPage;
+            }
+        }
+        
         // 创建分页对象
         Page<CommunityComment> pageParam = new Page<>(page, size);
         
@@ -289,6 +456,13 @@ public class CommunityCommentServiceImpl extends ServiceImpl<CommunityCommentMap
                 .collect(Collectors.toList());
         
         voPage.setRecords(voList);
+        
+        // 缓存第一页数据
+        if (page == 1) {
+            String cacheKey = CacheConstants.ANSWER_COMMENTS_CACHE_KEY_PREFIX + answerId + ":" + size;
+            cacheService.set(cacheKey, voPage, CacheConstants.COMMENT_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        }
+        
         return voPage;
     }
     
@@ -370,5 +544,47 @@ public class CommunityCommentServiceImpl extends ServiceImpl<CommunityCommentMap
             log.error("获取内容作者ID失败", e);
             return null;
         }
+    }
+    
+    /**
+     * 更新回复列表中的点赞状态
+     * @param replies 回复列表
+     * @param userId 用户ID
+     */
+    private void updateRepliesLikeStatus(List<CommentVO> replies, Long userId) {
+        if (replies == null || userId == null) {
+            return;
+        }
+        
+        for (CommentVO reply : replies) {
+            reply.setLiked(likeService.checkLike(userId, reply.getId(), "COMMENT"));
+        }
+    }
+    
+    /**
+     * 克隆评论VO对象（浅拷贝）
+     * @param source 源对象
+     * @return 克隆后的对象
+     */
+    private CommentVO cloneCommentVO(CommentVO source) {
+        if (source == null) {
+            return null;
+        }
+        
+        return CommentVO.builder()
+                .id(source.getId())
+                .content(source.getContent())
+                .userId(source.getUserId())
+                .userName(source.getUserName())
+                .userAvatar(source.getUserAvatar())
+                .topicId(source.getTopicId())
+                .parentId(source.getParentId())
+                .parentUserName(source.getParentUserName())
+                .likeCount(source.getLikeCount())
+                .status(source.getStatus())
+                .createdAt(source.getCreatedAt())
+                .updatedAt(source.getUpdatedAt())
+                .replies(source.getReplies())
+                .build();
     }
 } 

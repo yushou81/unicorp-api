@@ -3,6 +3,7 @@ package com.csu.unicorp.service.impl.community;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.springframework.util.CollectionUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.csu.unicorp.common.constants.CacheConstants;
 import com.csu.unicorp.dto.community.QuestionDTO;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.entity.community.CommunityContentTag;
@@ -20,6 +22,7 @@ import com.csu.unicorp.entity.community.CommunityQuestion;
 import com.csu.unicorp.mapper.community.CommunityAnswerMapper;
 import com.csu.unicorp.mapper.community.CommunityContentTagMapper;
 import com.csu.unicorp.mapper.community.CommunityQuestionMapper;
+import com.csu.unicorp.service.CacheService;
 import com.csu.unicorp.service.CommunityFavoriteService;
 import com.csu.unicorp.service.CommunityLikeService;
 import com.csu.unicorp.service.CommunityNotificationService;
@@ -48,6 +51,7 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
     private final CommunityAnswerMapper answerMapper;
     private final CommunityNotificationService notificationService;
     private final UserService userService;
+    private final CacheService cacheService;
     
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -71,6 +75,13 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
             saveQuestionTags(questionId, questionDTO.getTagIds());
         }
         
+        // 清除相关缓存
+        cacheService.delete(CacheConstants.LATEST_QUESTIONS_CACHE_KEY);
+        cacheService.delete(CacheConstants.UNSOLVED_QUESTIONS_CACHE_KEY);
+        if (questionDTO.getCategoryId() != null) {
+            cacheService.delete(CacheConstants.CATEGORY_QUESTIONS_CACHE_KEY_PREFIX + questionDTO.getCategoryId());
+        }
+        
         return questionId;
     }
     
@@ -86,32 +97,110 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
         question.setContent(questionDTO.getContent());
         question.setUpdatedAt(LocalDateTime.now());
         
-        updateById(question);
+        boolean result = updateById(question);
         
         // 更新问题标签关联
         tagService.updateContentTags("QUESTION", questionId, questionDTO.getTagIds());
         
-        return true;
+        // 清除相关缓存
+        if (result) {
+            cacheService.delete(CacheConstants.QUESTION_DETAIL_CACHE_KEY_PREFIX + questionId);
+            
+            // 如果分类发生变化，清除相关分类问题缓存
+            if (questionDTO.getCategoryId() != null && !questionDTO.getCategoryId().equals(question.getCategoryId())) {
+                cacheService.delete(CacheConstants.CATEGORY_QUESTIONS_CACHE_KEY_PREFIX + question.getCategoryId());
+                cacheService.delete(CacheConstants.CATEGORY_QUESTIONS_CACHE_KEY_PREFIX + questionDTO.getCategoryId());
+            }
+            
+            // 清除热门和最新问题缓存
+            cacheService.delete(CacheConstants.HOT_QUESTIONS_CACHE_KEY);
+            cacheService.delete(CacheConstants.LATEST_QUESTIONS_CACHE_KEY);
+        }
+        
+        return result;
     }
     
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteQuestion(Long userId, Long questionId) {
-        return removeById(questionId);
+        CommunityQuestion question = getById(questionId);
+        if (question != null) {
+            boolean result = removeById(questionId);
+            
+            if (result) {
+                // 清除相关缓存
+                cacheService.delete(CacheConstants.QUESTION_DETAIL_CACHE_KEY_PREFIX + questionId);
+                cacheService.delete(CacheConstants.HOT_QUESTIONS_CACHE_KEY);
+                cacheService.delete(CacheConstants.LATEST_QUESTIONS_CACHE_KEY);
+                cacheService.delete(CacheConstants.UNSOLVED_QUESTIONS_CACHE_KEY);
+                
+                if (question.getCategoryId() != null) {
+                    cacheService.delete(CacheConstants.CATEGORY_QUESTIONS_CACHE_KEY_PREFIX + question.getCategoryId());
+                }
+                
+                // 清除相关问题缓存
+                cacheService.delete(CacheConstants.RELATED_QUESTIONS_CACHE_KEY_PREFIX + questionId);
+                
+                // 清除用户问题列表缓存
+                cacheService.delete(CacheConstants.USER_QUESTIONS_CACHE_KEY_PREFIX + question.getUserId());
+            }
+            
+            return result;
+        }
+        
+        return false;
     }
     
     @Override
     public QuestionVO getQuestionDetail(Long questionId, Long userId) {
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.QUESTION_DETAIL_CACHE_KEY_PREFIX + questionId;
+        QuestionVO cachedQuestion = cacheService.get(cacheKey, QuestionVO.class);
+        if (cachedQuestion != null) {
+            log.debug("从缓存获取问题详情: {}", questionId);
+            // 更新用户交互状态
+            if (userId != null) {
+                cachedQuestion.setFavorited(checkUserFavoritedQuestion(userId, questionId));
+            } else {
+                cachedQuestion.setFavorited(false);
+            }
+            return cachedQuestion;
+        }
+        
         CommunityQuestion question = getById(questionId);
         if (question == null) {
             return null;
         }
         
-        return convertToQuestionVO(question, userId);
+        QuestionVO questionVO = convertToQuestionVO(question, null);
+        
+        // 缓存问题详情，不包含用户交互状态
+        cacheService.set(cacheKey, questionVO, CacheConstants.QUESTION_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        // 设置用户交互状态
+        if (userId != null) {
+            questionVO.setFavorited(checkUserFavoritedQuestion(userId, questionId));
+        }
+        
+        return questionVO;
     }
     
     @Override
     public Page<QuestionVO> getQuestionsByCategory(Long categoryId, int page, int size, Long userId) {
+        // 对于分页数据，只缓存第一页
+        if (page == 1) {
+            String cacheKey = CacheConstants.CATEGORY_QUESTIONS_CACHE_KEY_PREFIX + categoryId + ":" + size;
+            Page<QuestionVO> cachedPage = cacheService.get(cacheKey, Page.class);
+            if (cachedPage != null) {
+                log.debug("从缓存获取分类问题列表: {}", categoryId);
+                // 更新用户交互状态
+                if (userId != null) {
+                    updateUserInteractionStatus(cachedPage.getRecords(), userId);
+                }
+                return cachedPage;
+            }
+        }
+        
         Page<CommunityQuestion> pageParam = new Page<>(page, size);
         
         LambdaQueryWrapper<CommunityQuestion> queryWrapper = new LambdaQueryWrapper<>();
@@ -120,11 +209,35 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
         
         Page<CommunityQuestion> questionPage = page(pageParam, queryWrapper);
         
-        return convertToQuestionVOPage(questionPage, userId);
+        Page<QuestionVO> result = convertToQuestionVOPage(questionPage, userId);
+        
+        // 缓存第一页数据
+        if (page == 1) {
+            String cacheKey = CacheConstants.CATEGORY_QUESTIONS_CACHE_KEY_PREFIX + categoryId + ":" + size;
+            // 缓存不包含用户交互状态的数据
+            Page<QuestionVO> cacheData = convertToQuestionVOPage(questionPage, null);
+            cacheService.set(cacheKey, cacheData, CacheConstants.QUESTION_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        }
+        
+        return result;
     }
     
     @Override
     public Page<QuestionVO> getHotQuestions(int page, int size, Long userId) {
+        // 对于分页数据，只缓存第一页
+        if (page == 1) {
+            String cacheKey = CacheConstants.HOT_QUESTIONS_CACHE_KEY + ":" + size;
+            Page<QuestionVO> cachedPage = cacheService.get(cacheKey, Page.class);
+            if (cachedPage != null) {
+                log.debug("从缓存获取热门问题列表");
+                // 更新用户交互状态
+                if (userId != null) {
+                    updateUserInteractionStatus(cachedPage.getRecords(), userId);
+                }
+                return cachedPage;
+            }
+        }
+        
         Page<CommunityQuestion> pageParam = new Page<>(page, size);
         
         LambdaQueryWrapper<CommunityQuestion> queryWrapper = new LambdaQueryWrapper<>();
@@ -133,11 +246,35 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
         
         Page<CommunityQuestion> questionPage = page(pageParam, queryWrapper);
         
-        return convertToQuestionVOPage(questionPage, userId);
+        Page<QuestionVO> result = convertToQuestionVOPage(questionPage, userId);
+        
+        // 缓存第一页数据
+        if (page == 1) {
+            String cacheKey = CacheConstants.HOT_QUESTIONS_CACHE_KEY + ":" + size;
+            // 缓存不包含用户交互状态的数据
+            Page<QuestionVO> cacheData = convertToQuestionVOPage(questionPage, null);
+            cacheService.set(cacheKey, cacheData, CacheConstants.HOT_QUESTIONS_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        }
+        
+        return result;
     }
     
     @Override
     public Page<QuestionVO> getLatestQuestions(int page, int size, Long userId) {
+        // 对于分页数据，只缓存第一页
+        if (page == 1) {
+            String cacheKey = CacheConstants.LATEST_QUESTIONS_CACHE_KEY + ":" + size;
+            Page<QuestionVO> cachedPage = cacheService.get(cacheKey, Page.class);
+            if (cachedPage != null) {
+                log.debug("从缓存获取最新问题列表");
+                // 更新用户交互状态
+                if (userId != null) {
+                    updateUserInteractionStatus(cachedPage.getRecords(), userId);
+                }
+                return cachedPage;
+            }
+        }
+        
         Page<CommunityQuestion> pageParam = new Page<>(page, size);
         
         LambdaQueryWrapper<CommunityQuestion> queryWrapper = new LambdaQueryWrapper<>();
@@ -145,7 +282,17 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
         
         Page<CommunityQuestion> questionPage = page(pageParam, queryWrapper);
         
-        return convertToQuestionVOPage(questionPage, userId);
+        Page<QuestionVO> result = convertToQuestionVOPage(questionPage, userId);
+        
+        // 缓存第一页数据
+        if (page == 1) {
+            String cacheKey = CacheConstants.LATEST_QUESTIONS_CACHE_KEY + ":" + size;
+            // 缓存不包含用户交互状态的数据
+            Page<QuestionVO> cacheData = convertToQuestionVOPage(questionPage, null);
+            cacheService.set(cacheKey, cacheData, CacheConstants.QUESTION_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        }
+        
+        return result;
     }
     
     @Override
@@ -156,6 +303,20 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
     
     @Override
     public Page<QuestionVO> getUserQuestions(Long userId, int page, int size, Long currentUserId) {
+        // 对于分页数据，只缓存第一页
+        if (page == 1) {
+            String cacheKey = CacheConstants.USER_QUESTIONS_CACHE_KEY_PREFIX + userId + ":" + size;
+            Page<QuestionVO> cachedPage = cacheService.get(cacheKey, Page.class);
+            if (cachedPage != null) {
+                log.debug("从缓存获取用户问题列表: {}", userId);
+                // 更新用户交互状态
+                if (currentUserId != null) {
+                    updateUserInteractionStatus(cachedPage.getRecords(), currentUserId);
+                }
+                return cachedPage;
+            }
+        }
+        
         Page<CommunityQuestion> pageParam = new Page<>(page, size);
         
         LambdaQueryWrapper<CommunityQuestion> queryWrapper = new LambdaQueryWrapper<>();
@@ -164,7 +325,17 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
         
         Page<CommunityQuestion> questionPage = page(pageParam, queryWrapper);
         
-        return convertToQuestionVOPage(questionPage, currentUserId);
+        Page<QuestionVO> result = convertToQuestionVOPage(questionPage, currentUserId);
+        
+        // 缓存第一页数据
+        if (page == 1) {
+            String cacheKey = CacheConstants.USER_QUESTIONS_CACHE_KEY_PREFIX + userId + ":" + size;
+            // 缓存不包含用户交互状态的数据
+            Page<QuestionVO> cacheData = convertToQuestionVOPage(questionPage, null);
+            cacheService.set(cacheKey, cacheData, CacheConstants.USER_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        }
+        
+        return result;
     }
     
     @Override
@@ -184,8 +355,12 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
         
         boolean result = updateById(question);
         
-        // 发送通知
+        // 清除相关缓存
         if (result) {
+            cacheService.delete(CacheConstants.QUESTION_DETAIL_CACHE_KEY_PREFIX + questionId);
+            cacheService.delete(CacheConstants.UNSOLVED_QUESTIONS_CACHE_KEY);
+            
+            // 发送通知
             // 获取回答作者ID
             Long answerAuthorId = getAnswerAuthorId(answerId);
             if (answerAuthorId != null && !answerAuthorId.equals(userId)) {
@@ -215,7 +390,15 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
         question.setStatus("CLOSED");
         question.setUpdatedAt(LocalDateTime.now());
         
-        return updateById(question);
+        boolean result = updateById(question);
+        
+        // 清除相关缓存
+        if (result) {
+            cacheService.delete(CacheConstants.QUESTION_DETAIL_CACHE_KEY_PREFIX + questionId);
+            cacheService.delete(CacheConstants.UNSOLVED_QUESTIONS_CACHE_KEY);
+        }
+        
+        return result;
     }
     
     @Override
@@ -295,6 +478,20 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
     
     @Override
     public Page<QuestionVO> getUnsolvedQuestions(Integer page, Integer size, Long userId) {
+        // 对于分页数据，只缓存第一页
+        if (page == 1) {
+            String cacheKey = CacheConstants.UNSOLVED_QUESTIONS_CACHE_KEY + ":" + size;
+            Page<QuestionVO> cachedPage = cacheService.get(cacheKey, Page.class);
+            if (cachedPage != null) {
+                log.debug("从缓存获取未解决问题列表");
+                // 更新用户交互状态
+                if (userId != null) {
+                    updateUserInteractionStatus(cachedPage.getRecords(), userId);
+                }
+                return cachedPage;
+            }
+        }
+        
         // 创建分页对象
         Page<CommunityQuestion> pageParam = new Page<>(page, size);
         
@@ -308,7 +505,17 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
         Page<CommunityQuestion> questionPage = page(pageParam, queryWrapper);
         
         // 转换为VO
-        return convertToQuestionVOPage(questionPage, userId);
+        Page<QuestionVO> result = convertToQuestionVOPage(questionPage, userId);
+        
+        // 缓存第一页数据
+        if (page == 1) {
+            String cacheKey = CacheConstants.UNSOLVED_QUESTIONS_CACHE_KEY + ":" + size;
+            // 缓存不包含用户交互状态的数据
+            Page<QuestionVO> cacheData = convertToQuestionVOPage(questionPage, null);
+            cacheService.set(cacheKey, cacheData, CacheConstants.QUESTION_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        }
+        
+        return result;
     }
     
     @Override
@@ -333,11 +540,31 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
         question.setStatus("SOLVED");
         question.setUpdatedAt(LocalDateTime.now());
         
-        return updateById(question);
+        boolean result = updateById(question);
+        
+        // 清除相关缓存
+        if (result) {
+            cacheService.delete(CacheConstants.QUESTION_DETAIL_CACHE_KEY_PREFIX + questionId);
+            cacheService.delete(CacheConstants.UNSOLVED_QUESTIONS_CACHE_KEY);
+        }
+        
+        return result;
     }
     
     @Override
     public Page<QuestionVO> getRelatedQuestions(Long questionId, Integer limit, Long userId) {
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.RELATED_QUESTIONS_CACHE_KEY_PREFIX + questionId + ":" + limit;
+        Page<QuestionVO> cachedPage = cacheService.get(cacheKey, Page.class);
+        if (cachedPage != null) {
+            log.debug("从缓存获取相关问题列表: {}", questionId);
+            // 更新用户交互状态
+            if (userId != null) {
+                updateUserInteractionStatus(cachedPage.getRecords(), userId);
+            }
+            return cachedPage;
+        }
+        
         // 创建分页对象
         Page<CommunityQuestion> pageParam = new Page<>(1, limit);
         
@@ -358,7 +585,13 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
         Page<CommunityQuestion> questionPage = page(pageParam, queryWrapper);
         
         // 转换为VO
-        return convertToQuestionVOPage(questionPage, userId);
+        Page<QuestionVO> result = convertToQuestionVOPage(questionPage, userId);
+        
+        // 缓存相关问题
+        Page<QuestionVO> cacheData = convertToQuestionVOPage(questionPage, null);
+        cacheService.set(cacheKey, cacheData, CacheConstants.QUESTION_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return result;
     }
     
     @Override
@@ -442,6 +675,21 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
         
         voPage.setRecords(voList);
         return voPage;
+    }
+    
+    /**
+     * 更新问题VO列表中的用户交互状态
+     * @param questionVOs 问题VO列表
+     * @param userId 当前用户ID
+     */
+    private void updateUserInteractionStatus(List<QuestionVO> questionVOs, Long userId) {
+        if (questionVOs == null || userId == null) {
+            return;
+        }
+        
+        for (QuestionVO questionVO : questionVOs) {
+            questionVO.setFavorited(checkUserFavoritedQuestion(userId, questionVO.getId()));
+        }
     }
     
     /**

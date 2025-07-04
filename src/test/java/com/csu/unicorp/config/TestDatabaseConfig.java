@@ -1,33 +1,30 @@
 package com.csu.unicorp.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.jdbc.datasource.init.DataSourceInitializer;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
-
 import javax.sql.DataSource;
 
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
 /**
- * 测试数据库配置
+ * 测试用数据库配置类
  */
-@Configuration
-@Profile("test")
+@TestConfiguration
 public class TestDatabaseConfig {
 
     /**
-     * 初始化测试数据库
+     * 配置测试数据源
+     * @return 测试数据源
      */
     @Bean
-    public DataSourceInitializer dataSourceInitializer(@Autowired DataSource dataSource) {
-        ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
-        resourceDatabasePopulator.addScript(new ClassPathResource("init-test-db.sql"));
-        
-        DataSourceInitializer dataSourceInitializer = new DataSourceInitializer();
-        dataSourceInitializer.setDataSource(dataSource);
-        dataSourceInitializer.setDatabasePopulator(resourceDatabasePopulator);
-        return dataSourceInitializer;
+    @Primary
+    public DataSource dataSource() {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        dataSource.setUrl("jdbc:mysql://localhost:3306/unicorp_test?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai");
+        dataSource.setUsername("root");
+        dataSource.setPassword("root");
+        return dataSource;
     }
 } 

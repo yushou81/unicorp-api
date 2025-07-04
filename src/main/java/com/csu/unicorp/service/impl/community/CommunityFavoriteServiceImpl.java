@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.csu.unicorp.common.constants.CacheConstants;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.entity.community.CommunityFavorite;
 import com.csu.unicorp.entity.community.CommunityQuestion;
@@ -19,6 +21,7 @@ import com.csu.unicorp.entity.community.CommunityTopic;
 import com.csu.unicorp.mapper.community.CommunityFavoriteMapper;
 import com.csu.unicorp.mapper.community.CommunityQuestionMapper;
 import com.csu.unicorp.mapper.community.CommunityTopicMapper;
+import com.csu.unicorp.service.CacheService;
 import com.csu.unicorp.service.CommunityFavoriteService;
 import com.csu.unicorp.service.CommunityLikeService;
 import com.csu.unicorp.service.CommunityNotificationService;
@@ -27,12 +30,14 @@ import com.csu.unicorp.vo.community.QuestionVO;
 import com.csu.unicorp.vo.community.TopicVO;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 社区收藏Service实现类
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CommunityFavoriteServiceImpl extends ServiceImpl<CommunityFavoriteMapper, CommunityFavorite> implements CommunityFavoriteService {
     
     private final CommunityFavoriteMapper favoriteMapper;
@@ -41,6 +46,7 @@ public class CommunityFavoriteServiceImpl extends ServiceImpl<CommunityFavoriteM
     private final CommunityLikeService likeService;
     private final CommunityNotificationService notificationService;
     private final UserService userService;
+    private final CacheService cacheService;
     
     @Override
     @Transactional
@@ -60,8 +66,27 @@ public class CommunityFavoriteServiceImpl extends ServiceImpl<CommunityFavoriteM
         
         boolean result = save(favorite);
         
-        // 发送通知
         if (result) {
+            // 清除收藏计数缓存
+            String countCacheKey = CacheConstants.CONTENT_FAVORITE_COUNT_CACHE_KEY_PREFIX + contentType + ":" + contentId;
+            cacheService.delete(countCacheKey);
+            
+            // 清除用户收藏状态缓存
+            String statusCacheKey = CacheConstants.USER_FAVORITE_STATUS_CACHE_KEY_PREFIX + userId + ":" + contentType + ":" + contentId;
+            cacheService.delete(statusCacheKey);
+            
+            // 清除用户收藏内容列表缓存
+            String userFavoritedCacheKey = CacheConstants.USER_FAVORITED_CONTENT_IDS_CACHE_KEY_PREFIX + userId + ":" + contentType;
+            cacheService.delete(userFavoritedCacheKey);
+            
+            // 清除用户收藏话题/问题列表缓存
+            if ("topic".equalsIgnoreCase(contentType)) {
+                cacheService.delete(CacheConstants.USER_FAVORITE_TOPICS_CACHE_KEY_PREFIX + userId);
+            } else if ("question".equalsIgnoreCase(contentType)) {
+                cacheService.delete(CacheConstants.USER_FAVORITE_QUESTIONS_CACHE_KEY_PREFIX + userId);
+            }
+            
+            // 发送通知
             // 获取内容作者ID
             Long authorId = getContentAuthorId(contentType, contentId);
             if (authorId != null && !authorId.equals(userId)) {
@@ -84,17 +109,66 @@ public class CommunityFavoriteServiceImpl extends ServiceImpl<CommunityFavoriteM
     @Override
     @Transactional
     public boolean unfavoriteContent(Long userId, String contentType, Long contentId) {
-        return favoriteMapper.deleteUserFavorite(userId, contentType, contentId) > 0;
+        boolean result = favoriteMapper.deleteUserFavorite(userId, contentType, contentId) > 0;
+        
+        if (result) {
+            // 清除收藏计数缓存
+            String countCacheKey = CacheConstants.CONTENT_FAVORITE_COUNT_CACHE_KEY_PREFIX + contentType + ":" + contentId;
+            cacheService.delete(countCacheKey);
+            
+            // 清除用户收藏状态缓存
+            String statusCacheKey = CacheConstants.USER_FAVORITE_STATUS_CACHE_KEY_PREFIX + userId + ":" + contentType + ":" + contentId;
+            cacheService.delete(statusCacheKey);
+            
+            // 清除用户收藏内容列表缓存
+            String userFavoritedCacheKey = CacheConstants.USER_FAVORITED_CONTENT_IDS_CACHE_KEY_PREFIX + userId + ":" + contentType;
+            cacheService.delete(userFavoritedCacheKey);
+            
+            // 清除用户收藏话题/问题列表缓存
+            if ("topic".equalsIgnoreCase(contentType)) {
+                cacheService.delete(CacheConstants.USER_FAVORITE_TOPICS_CACHE_KEY_PREFIX + userId);
+            } else if ("question".equalsIgnoreCase(contentType)) {
+                cacheService.delete(CacheConstants.USER_FAVORITE_QUESTIONS_CACHE_KEY_PREFIX + userId);
+            }
+        }
+        
+        return result;
     }
     
     @Override
     public boolean checkUserFavorited(Long userId, String contentType, Long contentId) {
-        return favoriteMapper.checkUserFavorited(userId, contentType, contentId) > 0;
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.USER_FAVORITE_STATUS_CACHE_KEY_PREFIX + userId + ":" + contentType + ":" + contentId;
+        Boolean cachedStatus = cacheService.get(cacheKey, Boolean.class);
+        if (cachedStatus != null) {
+            return cachedStatus;
+        }
+        
+        // 从数据库查询
+        boolean favorited = favoriteMapper.checkUserFavorited(userId, contentType, contentId) > 0;
+        
+        // 缓存结果
+        cacheService.set(cacheKey, favorited, CacheConstants.FAVORITE_STATUS_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return favorited;
     }
     
     @Override
     public List<Long> getUserFavoritedContentIds(Long userId, String contentType) {
-        return favoriteMapper.selectUserFavoritedContentIds(userId, contentType);
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.USER_FAVORITED_CONTENT_IDS_CACHE_KEY_PREFIX + userId + ":" + contentType;
+        List<Long> cachedIds = cacheService.getList(cacheKey, Long.class);
+        if (cachedIds != null) {
+            return cachedIds;
+        }
+        
+        // 从数据库查询
+        List<Long> contentIds = favoriteMapper.selectUserFavoritedContentIds(userId, contentType);
+        
+        // 缓存结果
+        cacheService.setList(cacheKey, contentIds, CacheConstants.FAVORITE_STATUS_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return contentIds;
     }
     
     @Override
@@ -105,7 +179,20 @@ public class CommunityFavoriteServiceImpl extends ServiceImpl<CommunityFavoriteM
     
     @Override
     public int getContentFavoriteCount(String contentType, Long contentId) {
-        return favoriteMapper.countFavoritesByContent(contentType, contentId);
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.CONTENT_FAVORITE_COUNT_CACHE_KEY_PREFIX + contentType + ":" + contentId;
+        Integer cachedCount = cacheService.get(cacheKey, Integer.class);
+        if (cachedCount != null) {
+            return cachedCount;
+        }
+        
+        // 从数据库查询
+        int count = favoriteMapper.countFavoritesByContent(contentType, contentId);
+        
+        // 缓存结果
+        cacheService.set(cacheKey, count, CacheConstants.FAVORITE_STATUS_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return count;
     }
     
     @Override
@@ -114,6 +201,7 @@ public class CommunityFavoriteServiceImpl extends ServiceImpl<CommunityFavoriteM
             return Collections.emptyList();
         }
         
+        // 对于批量查询，直接查询数据库更高效
         LambdaQueryWrapper<CommunityFavorite> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(CommunityFavorite::getUserId, userId)
                   .eq(CommunityFavorite::getContentType, contentType)
@@ -142,6 +230,16 @@ public class CommunityFavoriteServiceImpl extends ServiceImpl<CommunityFavoriteM
     
     @Override
     public Page<TopicVO> getFavoriteTopics(Long userId, int page, int size) {
+        // 尝试从缓存获取第一页数据
+        if (page == 1) {
+            String cacheKey = CacheConstants.USER_FAVORITE_TOPICS_CACHE_KEY_PREFIX + userId + ":" + size;
+            Page<TopicVO> cachedPage = cacheService.get(cacheKey, Page.class);
+            if (cachedPage != null) {
+                log.debug("从缓存获取用户收藏话题列表: {}", userId);
+                return cachedPage;
+            }
+        }
+        
         // 获取用户收藏的话题ID列表
         List<Long> topicIds = getUserFavoritedContentIds(userId, "topic");
         if (topicIds.isEmpty()) {
@@ -178,11 +276,27 @@ public class CommunityFavoriteServiceImpl extends ServiceImpl<CommunityFavoriteM
         Page<TopicVO> result = new Page<>(page, size, topics.getTotal());
         result.setRecords(topicVOs);
         
+        // 缓存第一页结果
+        if (page == 1) {
+            String cacheKey = CacheConstants.USER_FAVORITE_TOPICS_CACHE_KEY_PREFIX + userId + ":" + size;
+            cacheService.set(cacheKey, result, CacheConstants.USER_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        }
+        
         return result;
     }
     
     @Override
     public Page<QuestionVO> getFavoriteQuestions(Long userId, int page, int size) {
+        // 尝试从缓存获取第一页数据
+        if (page == 1) {
+            String cacheKey = CacheConstants.USER_FAVORITE_QUESTIONS_CACHE_KEY_PREFIX + userId + ":" + size;
+            Page<QuestionVO> cachedPage = cacheService.get(cacheKey, Page.class);
+            if (cachedPage != null) {
+                log.debug("从缓存获取用户收藏问题列表: {}", userId);
+                return cachedPage;
+            }
+        }
+        
         // 获取用户收藏的问题ID列表
         List<Long> questionIds = getUserFavoritedContentIds(userId, "question");
         if (questionIds.isEmpty()) {
@@ -219,6 +333,12 @@ public class CommunityFavoriteServiceImpl extends ServiceImpl<CommunityFavoriteM
         // 构造返回结果
         Page<QuestionVO> result = new Page<>(page, size, questions.getTotal());
         result.setRecords(questionVOs);
+        
+        // 缓存第一页结果
+        if (page == 1) {
+            String cacheKey = CacheConstants.USER_FAVORITE_QUESTIONS_CACHE_KEY_PREFIX + userId + ":" + size;
+            cacheService.set(cacheKey, result, CacheConstants.USER_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        }
         
         return result;
     }

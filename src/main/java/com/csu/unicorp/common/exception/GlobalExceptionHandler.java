@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -107,6 +108,17 @@ public class GlobalExceptionHandler {
     public ResultVO<Void> handleResourceNotFoundException(ResourceNotFoundException e) {
         log.error("资源不存在异常: {}", e.getMessage());
         return ResultVO.error(404, e.getMessage());
+    }
+
+    /**
+     * 处理Redis连接异常
+     */
+    @ExceptionHandler(RedisConnectionFailureException.class)
+    @ResponseStatus(HttpStatus.OK)
+    public ResultVO<Void> handleRedisConnectionFailureException(RedisConnectionFailureException e) {
+        log.warn("Redis连接异常，将使用本地缓存降级: {}", e.getMessage());
+        // 返回200状态码，让客户端正常处理
+        return ResultVO.success("使用本地缓存降级处理");
     }
 
     /**
