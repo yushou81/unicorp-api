@@ -1,0 +1,1887 @@
+openapi: 3.0.3
+info:
+  title: Unicorp Achievement API
+  description: 学生成就管理相关API接口
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: 本地开发环境
+tags:
+  - name: 学生成果统计
+    description: 学生成果统计相关接口
+  - name: 竞赛获奖管理
+    description: 竞赛获奖管理相关接口
+  - name: 作品集管理
+    description: 作品集管理相关接口
+  - name: 科研成果管理
+    description: 科研成果管理相关接口
+
+# 添加安全方案定义
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT 认证
+
+  schemas:
+    ResultVO:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 响应状态码
+        message:
+          type: string
+          description: 响应消息
+        data:
+          type: object
+          description: 响应数据
+      required:
+        - code
+        - message
+        
+    Page:
+      type: object
+      properties:
+        records:
+          type: array
+          items:
+            type: object
+        total:
+          type: integer
+          description: 总记录数
+        size:
+          type: integer
+          description: 每页条数
+        current:
+          type: integer
+          description: 当前页码
+        pages:
+          type: integer
+          description: 总页数
+      required:
+        - records
+        - total
+        - size
+        - current
+        
+    StudentAchievementOverviewVO:
+      type: object
+      properties:
+        userId:
+          type: integer
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        totalAchievements:
+          type: integer
+          description: 成就总数
+        verifiedAchievements:
+          type: integer
+          description: 已认证成就数
+        competitionAwards:
+          type: integer
+          description: 竞赛获奖数量
+        researchAchievements:
+          type: integer
+          description: 科研成果数量
+        portfolioItems:
+          type: integer
+          description: 作品集数量
+        totalViews:
+          type: integer
+          description: 总浏览量
+
+    CompetitionAwardVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 获奖ID
+        userId:
+          type: integer
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        competitionName:
+          type: string
+          description: 竞赛名称
+        awardName:
+          type: string
+          description: 奖项名称
+        awardDate:
+          type: string
+          format: date
+          description: 获奖日期
+        organizer:
+          type: string
+          description: 主办方
+        level:
+          type: string
+          description: 竞赛级别
+        participants:
+          type: string
+          description: 参与者
+        certificateUrl:
+          type: string
+          description: 证书URL
+        description:
+          type: string
+          description: 描述
+        isPublic:
+          type: boolean
+          description: 是否公开
+        isVerified:
+          type: boolean
+          description: 是否已认证
+        verifiedBy:
+          type: integer
+          description: 认证人ID
+        verifierName:
+          type: string
+          description: 认证人姓名
+        verifiedTime:
+          type: string
+          format: date-time
+          description: 认证时间
+        verificationComments:
+          type: string
+          description: 认证评语
+        viewCount:
+          type: integer
+          description: 浏览量
+          
+    PortfolioItemVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 作品ID
+        userId:
+          type: integer
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        title:
+          type: string
+          description: 作品标题
+        description:
+          type: string
+          description: 作品描述
+        projectUrl:
+          type: string
+          description: 项目URL
+        coverImageUrl:
+          type: string
+          description: 封面图片URL
+        category:
+          type: string
+          description: 分类
+        tags:
+          type: array
+          items:
+            type: string
+          description: 标签
+        teamMembers:
+          type: string
+          description: 团队成员
+        isPublic:
+          type: boolean
+          description: 是否公开
+        viewCount:
+          type: integer
+          description: 浏览量
+        likeCount:
+          type: integer
+          description: 点赞数
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortfolioResourceVO'
+          description: 作品资源
+          
+    PortfolioResourceVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 资源ID
+        portfolioItemId:
+          type: integer
+          description: 作品ID
+        resourceType:
+          type: string
+          description: 资源类型
+        resourceUrl:
+          type: string
+          description: 资源URL
+        originalFileName:
+          type: string
+          description: 原始文件名
+        description:
+          type: string
+          description: 描述
+          
+    ResearchAchievementVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 科研成果ID
+        userId:
+          type: integer
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        title:
+          type: string
+          description: 标题
+        type:
+          type: string
+          description: 类型
+        authors:
+          type: string
+          description: 作者
+        publicationDate:
+          type: string
+          format: date
+          description: 发表日期
+        publisher:
+          type: string
+          description: 发表单位
+        description:
+          type: string
+          description: 描述
+        fileUrl:
+          type: string
+          description: 文件URL
+        coverImageUrl:
+          type: string
+          description: 封面图片URL
+        isPublic:
+          type: boolean
+          description: 是否公开
+        isVerified:
+          type: boolean
+          description: 是否已认证
+        verifiedBy:
+          type: integer
+          description: 认证人ID
+        verifierName:
+          type: string
+          description: 认证人姓名
+        verifiedTime:
+          type: string
+          format: date-time
+          description: 认证时间
+        verificationComments:
+          type: string
+          description: 认证评语
+        viewCount:
+          type: integer
+          description: 浏览量
+
+    CompetitionAwardCreationDTO:
+      type: object
+      properties:
+        competitionName:
+          type: string
+          description: 竞赛名称
+        awardName:
+          type: string
+          description: 奖项名称
+        awardDate:
+          type: string
+          format: date
+          description: 获奖日期
+        organizer:
+          type: string
+          description: 主办方
+        level:
+          type: string
+          description: 竞赛级别
+        participants:
+          type: string
+          description: 参与者
+        description:
+          type: string
+          description: 描述
+        isPublic:
+          type: boolean
+          description: 是否公开
+          default: true
+      required:
+        - competitionName
+        - awardName
+        - awardDate
+        
+    ResearchAchievementCreationDTO:
+      type: object
+      properties:
+        title:
+          type: string
+          description: 标题
+        type:
+          type: string
+          description: 类型
+        authors:
+          type: string
+          description: 作者
+        publicationDate:
+          type: string
+          format: date
+          description: 发表日期
+        publisher:
+          type: string
+          description: 发表单位
+        description:
+          type: string
+          description: 描述
+        isPublic:
+          type: boolean
+          description: 是否公开
+          default: true
+      required:
+        - title
+        - type
+        - authors
+        
+    PortfolioItemCreationDTO:
+      type: object
+      properties:
+        title:
+          type: string
+          description: 作品标题
+        description:
+          type: string
+          description: 作品描述
+        projectUrl:
+          type: string
+          description: 项目URL
+        category:
+          type: string
+          description: 分类
+        tags:
+          type: array
+          items:
+            type: string
+          description: 标签
+        teamMembers:
+          type: string
+          description: 团队成员
+        isPublic:
+          type: boolean
+          description: 是否公开
+          default: true
+      required:
+        - title
+        
+    PortfolioResourceUploadDTO:
+      type: object
+      properties:
+        resourceType:
+          type: string
+          description: 资源类型
+        description:
+          type: string
+          description: 描述
+      required:
+        - resourceType
+        
+    AchievementVerifyDTO:
+      type: object
+      properties:
+        verifyResult:
+          type: boolean
+          description: 认证结果
+        comments:
+          type: string
+          description: 认证评语
+      required:
+        - verifyResult
+
+paths:
+  /v1/achievement/statistics/overview:
+    get:
+      tags:
+        - 学生成果统计
+      summary: 获取学生成果概览
+      description: 获取当前学生的成果概览
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/StudentAchievementOverviewVO'
+  
+  /v1/achievement/statistics/overview/{userId}:
+    get:
+      tags:
+        - 学生成果统计
+      summary: 获取指定学生成果概览
+      description: 获取指定学生的成果概览
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 用户ID
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/StudentAchievementOverviewVO'
+        '404':
+          description: 学生不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+                
+  /v1/achievement/statistics/views:
+    get:
+      tags:
+        - 学生成果统计
+      summary: 获取学生成果访问统计
+      description: 获取当前学生的成果访问统计
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          # 统计数据属性
+                          dailyViews:
+                            type: object
+                            additionalProperties:
+                              type: integer
+                            description: 每日浏览量
+                          achievementViews:
+                            type: object
+                            additionalProperties:
+                              type: integer
+                            description: 各成就浏览量
+  
+  /v1/achievement/statistics/organization/{organizationId}:
+    get:
+      tags:
+        - 学生成果统计
+      summary: 获取组织成果统计
+      description: 获取指定组织的成果统计
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 组织ID
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          # 组织统计数据属性
+                          totalStudents:
+                            type: integer
+                            description: 学生总数
+                          totalAchievements:
+                            type: integer
+                            description: 成就总数
+                          verifiedAchievements:
+                            type: integer
+                            description: 已认证成就数
+        '404':
+          description: 组织不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+
+  /v1/awards:
+    get:
+      tags:
+        - 竞赛获奖管理
+      summary: 获取获奖列表
+      description: 获取当前用户的获奖列表
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CompetitionAwardVO'
+    post:
+      tags:
+        - 竞赛获奖管理
+      summary: 创建获奖
+      description: 创建新的获奖
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompetitionAwardCreationDTO'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CompetitionAwardVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+                
+  /v1/awards/page:
+    get:
+      tags:
+        - 竞赛获奖管理
+      summary: 分页获取获奖列表
+      description: 分页获取当前用户的获奖列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: 页码
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: 每页条数
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Page'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/CompetitionAwardVO'
+                
+  /v1/awards/public:
+    get:
+      tags:
+        - 竞赛获奖管理
+      summary: 获取公开获奖列表
+      description: 分页获取公开的获奖列表
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: 页码
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: 每页条数
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Page'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/CompetitionAwardVO'
+
+  /v1/awards/unverified:
+    get:
+      tags:
+        - 竞赛获奖管理
+      summary: 获取待认证获奖列表
+      description: 分页获取待认证的获奖列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: organizationId
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: 组织ID
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: 页码
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: 每页条数
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Page'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/CompetitionAwardVO'
+        '403':
+          description: 无权限访问该组织数据
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+                
+  /v1/awards/{id}:
+    get:
+      tags:
+        - 竞赛获奖管理
+      summary: 获取获奖详情
+      description: 根据ID获取获奖详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 获奖ID
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CompetitionAwardVO'
+        '404':
+          description: 获奖不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    put:
+      tags:
+        - 竞赛获奖管理
+      summary: 更新获奖
+      description: 更新指定ID的获奖
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 获奖ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompetitionAwardCreationDTO'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CompetitionAwardVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 获奖不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    delete:
+      tags:
+        - 竞赛获奖管理
+      summary: 删除获奖
+      description: 删除指定ID的获奖
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 获奖ID
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: boolean
+        '403':
+          description: 无权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 获奖不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+
+  /v1/awards/{id}/certificate:
+    post:
+      tags:
+        - 竞赛获奖管理
+      summary: 上传获奖证书
+      description: 为指定获奖上传证书
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 获奖ID
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 证书文件
+              required:
+                - file
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CompetitionAwardVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 获奖不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+                
+  /v1/awards/{id}/verify:
+    post:
+      tags:
+        - 竞赛获奖管理
+      summary: 认证获奖
+      description: 认证指定ID的获奖
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 获奖ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AchievementVerifyDTO'
+      responses:
+        '200':
+          description: 认证成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CompetitionAwardVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 获奖不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+
+  /v1/portfolio/items:
+    get:
+      tags:
+        - 作品集管理
+      summary: 获取作品列表
+      description: 获取当前用户的作品列表
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PortfolioItemVO'
+                          
+  /v1/portfolio/items/page:
+    get:
+      tags:
+        - 作品集管理
+      summary: 分页获取作品列表
+      description: 分页获取当前用户的作品列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: 页码
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: 每页条数
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Page'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/PortfolioItemVO'
+                                  
+  /v1/portfolio/public/items:
+    get:
+      tags:
+        - 作品集管理
+      summary: 获取公开作品列表
+      description: 分页获取公开的作品列表
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: 页码
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: 每页条数
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Page'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/PortfolioItemVO'
+                                  
+  /v1/portfolio/public/items/category/{category}:
+    get:
+      tags:
+        - 作品集管理
+      summary: 根据分类获取公开作品列表
+      description: 根据分类分页获取公开的作品列表
+      parameters:
+        - name: category
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 分类名称
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: 页码
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: 每页条数
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Page'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/PortfolioItemVO'
+
+  /v1/portfolio/items/{id}:
+    get:
+      tags:
+        - 作品集管理
+      summary: 获取作品详情
+      description: 根据ID获取作品详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 作品ID
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PortfolioItemVO'
+        '404':
+          description: 作品不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    put:
+      tags:
+        - 作品集管理
+      summary: 更新作品
+      description: 更新指定ID的作品
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 作品ID
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: 作品标题
+                description:
+                  type: string
+                  description: 作品描述
+                projectUrl:
+                  type: string
+                  description: 项目URL
+                category:
+                  type: string
+                  description: 分类
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  description: 标签
+                teamMembers:
+                  type: string
+                  description: 团队成员
+                isPublic:
+                  type: boolean
+                  description: 是否公开
+                  default: true
+                coverImage:
+                  type: string
+                  format: binary
+                  description: 封面图片
+              required:
+                - title
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PortfolioItemVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 作品不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    delete:
+      tags:
+        - 作品集管理
+      summary: 删除作品
+      description: 删除指定ID的作品
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 作品ID
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: boolean
+        '403':
+          description: 无权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 作品不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+
+  /v1/portfolio/items/create:
+    post:
+      tags:
+        - 作品集管理
+      summary: 创建作品
+      description: 创建新的作品
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: 作品标题
+                description:
+                  type: string
+                  description: 作品描述
+                projectUrl:
+                  type: string
+                  description: 项目URL
+                category:
+                  type: string
+                  description: 分类
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  description: 标签
+                teamMembers:
+                  type: string
+                  description: 团队成员
+                isPublic:
+                  type: boolean
+                  description: 是否公开
+                  default: true
+                coverImage:
+                  type: string
+                  format: binary
+                  description: 封面图片
+              required:
+                - title
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PortfolioItemVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+
+  /v1/portfolio/items/{id}/resources:
+    get:
+      tags:
+        - 作品集管理
+      summary: 获取作品资源列表
+      description: 获取指定作品的资源列表
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 作品ID
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PortfolioResourceVO'
+        '404':
+          description: 作品不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+                
+    post:
+      tags:
+        - 作品集管理
+      summary: 上传作品资源
+      description: 为指定作品上传资源
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 作品ID
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                resourceType:
+                  type: string
+                  description: 资源类型
+                description:
+                  type: string
+                  description: 资源描述
+                file:
+                  type: string
+                  format: binary
+                  description: 资源文件
+              required:
+                - resourceType
+                - file
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PortfolioResourceVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 作品不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+
+  /v1/portfolio/resources/{resourceId}:
+    delete:
+      tags:
+        - 作品集管理
+      summary: 删除作品资源
+      description: 删除指定ID的作品资源
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: resourceId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 资源ID
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: boolean
+        '403':
+          description: 无权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 资源不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+
+  /v1/research/achievements:
+    get:
+      tags:
+        - 科研成果管理
+      summary: 获取科研成果列表
+      description: 获取当前用户的科研成果列表
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ResearchAchievementVO'
+    post:
+      tags:
+        - 科研成果管理
+      summary: 创建科研成果
+      description: 创建新的科研成果
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: 标题
+                type:
+                  type: string
+                  description: 类型
+                authors:
+                  type: string
+                  description: 作者
+                publicationDate:
+                  type: string
+                  format: date
+                  description: 发表日期
+                publisher:
+                  type: string
+                  description: 发表单位
+                description:
+                  type: string
+                  description: 描述
+                isPublic:
+                  type: boolean
+                  description: 是否公开
+                  default: true
+                file:
+                  type: string
+                  format: binary
+                  description: 科研成果文件
+                coverImage:
+                  type: string
+                  format: binary
+                  description: 封面图片
+              required:
+                - title
+                - type
+                - authors
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ResearchAchievementVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+
+  /v1/research/achievements/page:
+    get:
+      tags:
+        - 科研成果管理
+      summary: 分页获取科研成果列表
+      description: 分页获取当前用户的科研成果列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: 页码
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: 每页条数
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Page'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/ResearchAchievementVO'
+  
+  /v1/research/achievements/public:
+    get:
+      tags:
+        - 科研成果管理
+      summary: 获取公开科研成果列表
+      description: 分页获取公开的科研成果列表
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: 页码
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: 每页条数
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Page'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/ResearchAchievementVO'
+  
+  /v1/research/achievements/unverified:
+    get:
+      tags:
+        - 科研成果管理
+      summary: 获取待认证科研成果列表
+      description: 分页获取待认证的科研成果列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: organizationId
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: 组织ID
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: 页码
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: 每页条数
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Page'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/ResearchAchievementVO'
+        '403':
+          description: 无权限访问该组织数据
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+
+  /v1/research/achievements/{id}:
+    get:
+      tags:
+        - 科研成果管理
+      summary: 获取科研成果详情
+      description: 根据ID获取科研成果详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 科研成果ID
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ResearchAchievementVO'
+        '404':
+          description: 科研成果不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+                
+    put:
+      tags:
+        - 科研成果管理
+      summary: 更新科研成果
+      description: 更新指定ID的科研成果
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 科研成果ID
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: 标题
+                type:
+                  type: string
+                  description: 类型
+                authors:
+                  type: string
+                  description: 作者
+                publicationDate:
+                  type: string
+                  format: date
+                  description: 发表日期
+                publisher:
+                  type: string
+                  description: 发表单位
+                description:
+                  type: string
+                  description: 描述
+                isPublic:
+                  type: boolean
+                  description: 是否公开
+                file:
+                  type: string
+                  format: binary
+                  description: 科研成果文件
+                coverImage:
+                  type: string
+                  format: binary
+                  description: 封面图片
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ResearchAchievementVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 科研成果不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+                
+    delete:
+      tags:
+        - 科研成果管理
+      summary: 删除科研成果
+      description: 删除指定ID的科研成果
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 科研成果ID
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: boolean
+        '403':
+          description: 无权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 科研成果不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+                
+  /v1/research/achievements/{id}/verify:
+    post:
+      tags:
+        - 科研成果管理
+      summary: 认证科研成果
+      description: 认证指定ID的科研成果
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 科研成果ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AchievementVerifyDTO'
+      responses:
+        '200':
+          description: 认证成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ResearchAchievementVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 科研成果不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'

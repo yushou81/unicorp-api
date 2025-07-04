@@ -3,15 +3,18 @@ package com.csu.unicorp.service.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.common.exception.CourseException;
+import com.csu.unicorp.config.security.CustomUserDetails;
 import com.csu.unicorp.dto.CourseDiscussionDTO;
 import com.csu.unicorp.entity.course.CourseDiscussion;
 import com.csu.unicorp.entity.DualTeacherCourse;
 import com.csu.unicorp.entity.User;
-import com.csu.unicorp.mapper.CourseDiscussionMapper;
-import com.csu.unicorp.mapper.DualTeacherCourseMapper;
+import com.csu.unicorp.mapper.course.CourseDiscussionMapper;
+import com.csu.unicorp.mapper.course.DualTeacherCourseMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.CourseDiscussionService;
 import com.csu.unicorp.vo.CourseDiscussionVO;
+import com.csu.unicorp.config.security.CustomUserDetails;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -44,7 +47,7 @@ public class CourseDiscussionServiceImpl implements CourseDiscussionService {
         }
 
         // 获取当前用户ID
-        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
 
         // 创建讨论
         CourseDiscussion discussion = new CourseDiscussion();
@@ -71,7 +74,7 @@ public class CourseDiscussionServiceImpl implements CourseDiscussionService {
         }
 
         // 获取当前用户ID
-        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
 
         // 创建回复
         CourseDiscussion reply = new CourseDiscussion();
@@ -164,7 +167,7 @@ public class CourseDiscussionServiceImpl implements CourseDiscussionService {
         }
 
         // 获取当前用户ID
-        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
 
         // 验证是否是讨论发布者
         if (!discussion.getUserId().equals(userId)) {
@@ -192,7 +195,7 @@ public class CourseDiscussionServiceImpl implements CourseDiscussionService {
         }
 
         // 获取当前用户ID和角色
-        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
         boolean isAdmin = userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
         boolean isTeacher = userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_TEACHER"));
 

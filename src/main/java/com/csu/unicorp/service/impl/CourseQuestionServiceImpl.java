@@ -9,9 +9,9 @@ import com.csu.unicorp.entity.course.CourseChapter;
 import com.csu.unicorp.entity.course.CourseQuestion;
 import com.csu.unicorp.entity.DualTeacherCourse;
 import com.csu.unicorp.entity.User;
-import com.csu.unicorp.mapper.CourseChapterMapper;
-import com.csu.unicorp.mapper.CourseQuestionMapper;
-import com.csu.unicorp.mapper.DualTeacherCourseMapper;
+import com.csu.unicorp.mapper.course.CourseChapterMapper;
+import com.csu.unicorp.mapper.course.CourseQuestionMapper;
+import com.csu.unicorp.mapper.course.DualTeacherCourseMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.CourseQuestionService;
 import com.csu.unicorp.vo.CourseQuestionVO;
@@ -61,7 +61,7 @@ public class CourseQuestionServiceImpl implements CourseQuestionService {
         }
 
         // 获取当前用户ID
-        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
 
         // 创建问题
         CourseQuestion question = new CourseQuestion();
@@ -188,7 +188,7 @@ public class CourseQuestionServiceImpl implements CourseQuestionService {
         }
 
         // 获取当前用户ID
-        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
 
         // 验证是否是问题提问者
         if (!question.getStudentId().equals(userId)) {
