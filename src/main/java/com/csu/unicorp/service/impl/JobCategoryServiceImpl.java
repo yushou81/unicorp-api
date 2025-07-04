@@ -1,14 +1,13 @@
 package com.csu.unicorp.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.dto.job.JobCategoryCreationDTO;
 import com.csu.unicorp.dto.job.JobCategoryUpdateDTO;
-import com.csu.unicorp.entity.JobCategory;
-import com.csu.unicorp.mapper.JobCategoryMapper;
-import com.csu.unicorp.mapper.JobCategoryRelationMapper;
+import com.csu.unicorp.entity.job.JobCategory;
+import com.csu.unicorp.mapper.job.JobCategoryMapper;
+import com.csu.unicorp.mapper.job.JobCategoryRelationMapper;
 import com.csu.unicorp.service.JobCategoryService;
 import com.csu.unicorp.vo.JobCategoryVO;
 import lombok.RequiredArgsConstructor;

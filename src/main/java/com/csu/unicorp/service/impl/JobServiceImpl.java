@@ -8,15 +8,15 @@ import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.dto.JobCreationDTO;
-import com.csu.unicorp.entity.Job;
-import com.csu.unicorp.entity.JobCategory;
-import com.csu.unicorp.entity.JobCategoryRelation;
-import com.csu.unicorp.entity.Organization;
+import com.csu.unicorp.entity.job.Job;
+import com.csu.unicorp.entity.job.JobCategory;
+import com.csu.unicorp.entity.job.JobCategoryRelation;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.entity.EnterpriseDetail;
-import com.csu.unicorp.mapper.JobCategoryMapper;
-import com.csu.unicorp.mapper.JobCategoryRelationMapper;
-import com.csu.unicorp.mapper.JobMapper;
+import com.csu.unicorp.mapper.job.JobCategoryMapper;
+import com.csu.unicorp.mapper.job.JobCategoryRelationMapper;
+import com.csu.unicorp.mapper.job.JobMapper;
 import com.csu.unicorp.mapper.OrganizationMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.mapper.EnterpriseDetailMapper;
@@ -36,11 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 岗位服务实现类

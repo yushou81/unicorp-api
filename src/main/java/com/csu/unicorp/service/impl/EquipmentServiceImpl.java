@@ -19,6 +19,7 @@ import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.dto.BookingCreationDTO;
 import com.csu.unicorp.dto.BookingReviewDTO;
 import com.csu.unicorp.entity.EquipmentBooking;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.Resource;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.EquipmentBookingMapper;

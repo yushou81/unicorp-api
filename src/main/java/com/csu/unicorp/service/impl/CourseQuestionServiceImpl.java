@@ -1,16 +1,17 @@
 package com.csu.unicorp.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.csu.unicorp.common.exception.BusinessException;
+import com.csu.unicorp.config.security.CustomUserDetails;
 import com.csu.unicorp.dto.CourseQuestionDTO;
-import com.csu.unicorp.entity.CourseChapter;
-import com.csu.unicorp.entity.CourseQuestion;
+import com.csu.unicorp.entity.course.CourseChapter;
+import com.csu.unicorp.entity.course.CourseQuestion;
 import com.csu.unicorp.entity.DualTeacherCourse;
 import com.csu.unicorp.entity.User;
-import com.csu.unicorp.mapper.CourseChapterMapper;
-import com.csu.unicorp.mapper.CourseQuestionMapper;
-import com.csu.unicorp.mapper.DualTeacherCourseMapper;
+import com.csu.unicorp.mapper.course.CourseChapterMapper;
+import com.csu.unicorp.mapper.course.CourseQuestionMapper;
+import com.csu.unicorp.mapper.course.DualTeacherCourseMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.CourseQuestionService;
 import com.csu.unicorp.vo.CourseQuestionVO;
@@ -43,24 +44,24 @@ public class CourseQuestionServiceImpl implements CourseQuestionService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(questionDTO.getCourseId());
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new BusinessException("课程不存在");
         }
 
         // 如果指定了章节，验证章节是否存在
         if (questionDTO.getChapterId() != null) {
             CourseChapter chapter = chapterMapper.selectById(questionDTO.getChapterId());
             if (chapter == null || Boolean.TRUE.equals(chapter.getIsDeleted())) {
-                throw new RuntimeException("章节不存在");
+                throw new BusinessException("章节不存在");
             }
             
             // 验证章节是否属于该课程
             if (!chapter.getCourseId().equals(questionDTO.getCourseId())) {
-                throw new RuntimeException("章节不属于该课程");
+                throw new BusinessException("章节不属于该课程");
             }
         }
 
         // 获取当前用户ID
-        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
 
         // 创建问题
         CourseQuestion question = new CourseQuestion();
@@ -85,18 +86,19 @@ public class CourseQuestionServiceImpl implements CourseQuestionService {
         // 验证问题是否存在
         CourseQuestion question = questionMapper.selectById(questionId);
         if (question == null || Boolean.TRUE.equals(question.getIsDeleted())) {
-            throw new RuntimeException("问题不存在");
+            throw new BusinessException("问题不存在");
         }
 
         // 获取当前用户ID和角色
-        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+
         boolean isTeacher = userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_TEACHER"));
         boolean isAdmin = userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
         boolean isMentor = userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_MENTOR"));
 
         // 验证是否有权限回答
         if (!isTeacher && !isAdmin && !isMentor) {
-            throw new RuntimeException("无权回答问题");
+            throw new BusinessException("无权回答问题");
         }
 
         // 更新问题
@@ -116,7 +118,7 @@ public class CourseQuestionServiceImpl implements CourseQuestionService {
         // 验证问题是否存在
         CourseQuestion question = questionMapper.selectById(questionId);
         if (question == null || Boolean.TRUE.equals(question.getIsDeleted())) {
-            throw new RuntimeException("问题不存在");
+            throw new BusinessException("问题不存在");
         }
 
         return convertToVO(question);
@@ -127,7 +129,7 @@ public class CourseQuestionServiceImpl implements CourseQuestionService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(courseId);
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new BusinessException("课程不存在");
         }
 
         // 分页查询课程问题
@@ -143,7 +145,7 @@ public class CourseQuestionServiceImpl implements CourseQuestionService {
         // 验证章节是否存在
         CourseChapter chapter = chapterMapper.selectById(chapterId);
         if (chapter == null || Boolean.TRUE.equals(chapter.getIsDeleted())) {
-            throw new RuntimeException("章节不存在");
+            throw new BusinessException("章节不存在");
         }
 
         // 分页查询章节问题
@@ -159,13 +161,13 @@ public class CourseQuestionServiceImpl implements CourseQuestionService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(courseId);
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new BusinessException("课程不存在");
         }
 
         // 验证学生是否存在
         User student = userMapper.selectById(studentId);
         if (student == null) {
-            throw new RuntimeException("学生不存在");
+            throw new BusinessException("学生不存在");
         }
 
         // 分页查询学生问题
@@ -182,20 +184,20 @@ public class CourseQuestionServiceImpl implements CourseQuestionService {
         // 验证问题是否存在
         CourseQuestion question = questionMapper.selectById(questionId);
         if (question == null || Boolean.TRUE.equals(question.getIsDeleted())) {
-            throw new RuntimeException("问题不存在");
+            throw new BusinessException("问题不存在");
         }
 
         // 获取当前用户ID
-        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
 
         // 验证是否是问题提问者
         if (!question.getStudentId().equals(userId)) {
-            throw new RuntimeException("无权修改他人的问题");
+            throw new BusinessException("无权修改他人的问题");
         }
 
         // 验证问题是否已回答
         if ("answered".equals(question.getStatus())) {
-            throw new RuntimeException("已回答的问题不能修改");
+            throw new BusinessException("已回答的问题不能修改");
         }
 
         // 更新问题
@@ -214,7 +216,7 @@ public class CourseQuestionServiceImpl implements CourseQuestionService {
         // 验证问题是否存在
         CourseQuestion question = questionMapper.selectById(questionId);
         if (question == null || Boolean.TRUE.equals(question.getIsDeleted())) {
-            throw new RuntimeException("问题不存在");
+            throw new BusinessException("问题不存在");
         }
 
         // 获取当前用户ID和角色
@@ -224,12 +226,11 @@ public class CourseQuestionServiceImpl implements CourseQuestionService {
 
         // 验证是否有权限删除
         if (!question.getStudentId().equals(userId) && !isAdmin && !isTeacher) {
-            throw new RuntimeException("无权删除他人的问题");
+            throw new BusinessException("无权删除他人的问题");
         }
 
         // 逻辑删除问题
-        question.setIsDeleted(true);
-        questionMapper.updateById(question);
+        questionMapper.deleteById(question);
 
         return true;
     }
@@ -239,7 +240,7 @@ public class CourseQuestionServiceImpl implements CourseQuestionService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(courseId);
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new BusinessException("课程不存在");
         }
 
         // 获取问答统计数据
@@ -269,12 +270,12 @@ public class CourseQuestionServiceImpl implements CourseQuestionService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(courseId);
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new BusinessException("课程不存在");
         }
 
         // 验证教师是否是课程的教师
         if (!teacherId.equals(course.getTeacherId()) && !teacherId.equals(course.getMentorId())) {
-            throw new RuntimeException("教师不是该课程的授课教师或导师");
+            throw new BusinessException("教师不是该课程的授课教师或导师");
         }
 
         // 统计待回答问题数
@@ -301,6 +302,26 @@ public class CourseQuestionServiceImpl implements CourseQuestionService {
             User answerer = userMapper.selectById(question.getAnsweredBy());
             if (answerer != null) {
                 vo.setAnsweredByName(answerer.getNickname());
+                
+                // 设置回答者角色
+                String answererRole = userMapper.selectRoleByUserId(answerer.getId());
+                vo.setAnsweredByRole(answererRole);
+            }
+        }
+        
+        // 设置课程标题
+        if (question.getCourseId() != null) {
+            DualTeacherCourse course = courseMapper.selectById(question.getCourseId());
+            if (course != null) {
+                vo.setCourseTitle(course.getTitle());
+            }
+        }
+        
+        // 设置章节标题
+        if (question.getChapterId() != null) {
+            CourseChapter chapter = chapterMapper.selectById(question.getChapterId());
+            if (chapter != null) {
+                vo.setChapterTitle(chapter.getTitle());
             }
         }
         

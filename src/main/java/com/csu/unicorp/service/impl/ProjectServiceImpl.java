@@ -1,7 +1,15 @@
 package com.csu.unicorp.service.impl;
 
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.csu.unicorp.common.constants.RoleConstants;
+import com.csu.unicorp.common.exception.BusinessException;
+
 import com.csu.unicorp.dto.ProjectCreationDTO;
-import com.csu.unicorp.entity.Organization;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.Project;
 import com.csu.unicorp.entity.ProjectApplication;
 import com.csu.unicorp.entity.User;
@@ -13,7 +21,12 @@ import com.csu.unicorp.service.ProjectService;
 import com.csu.unicorp.vo.PageResultVO;
 import com.csu.unicorp.vo.ProjectVO;
 import org.springframework.beans.BeanUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;

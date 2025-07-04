@@ -5,6 +5,11 @@ import com.csu.unicorp.dto.ProjectApplicationDTO;
 import com.csu.unicorp.dto.ProjectApplicationReviewDTO;
 import com.csu.unicorp.entity.Project;
 import com.csu.unicorp.entity.ProjectApplication;
+
+
+import com.csu.unicorp.entity.User;
+import com.csu.unicorp.entity.organization.Organization;
+
 import com.csu.unicorp.mapper.ProjectApplicationMapper;
 import com.csu.unicorp.mapper.ProjectMapper;
 import com.csu.unicorp.service.ProjectApplicationService;
@@ -16,8 +21,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.mapper.OrganizationMapper;
+
 import com.csu.unicorp.entity.User;
-import com.csu.unicorp.entity.Organization;
+
+
+import com.csu.unicorp.service.ProjectApplicationService;
+import com.csu.unicorp.service.ProjectService;
+import com.csu.unicorp.vo.MyProjectApplicationDetailVO;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Timestamp;
 
 @Service

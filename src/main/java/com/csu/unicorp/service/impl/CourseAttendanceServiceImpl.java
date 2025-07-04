@@ -3,18 +3,21 @@ package com.csu.unicorp.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.csu.unicorp.common.exception.CourseException;
+import com.csu.unicorp.config.security.CustomUserDetails;
 import com.csu.unicorp.dto.CourseAttendanceDTO;
-import com.csu.unicorp.entity.CourseAttendance;
-import com.csu.unicorp.entity.CourseEnrollment;
+import com.csu.unicorp.entity.course.CourseAttendance;
+import com.csu.unicorp.entity.course.CourseEnrollment;
 import com.csu.unicorp.entity.DualTeacherCourse;
 import com.csu.unicorp.entity.User;
-import com.csu.unicorp.mapper.CourseAttendanceMapper;
-import com.csu.unicorp.mapper.CourseEnrollmentMapper;
-import com.csu.unicorp.mapper.DualTeacherCourseMapper;
+import com.csu.unicorp.mapper.course.CourseAttendanceMapper;
+import com.csu.unicorp.mapper.course.CourseEnrollmentMapper;
+import com.csu.unicorp.mapper.course.DualTeacherCourseMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.CourseAttendanceService;
 import com.csu.unicorp.vo.CourseAttendanceVO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,6 +34,7 @@ import java.util.stream.Collectors;
 /**
  * 课程出勤服务实现类
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CourseAttendanceServiceImpl implements CourseAttendanceService {
@@ -46,11 +50,17 @@ public class CourseAttendanceServiceImpl implements CourseAttendanceService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(attendanceDTO.getCourseId());
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new CourseException("课程不存在");
         }
 
         // 获取当前用户ID
-        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Integer userId;
+        if (userDetails instanceof CustomUserDetails) {
+            userId = ((CustomUserDetails) userDetails).getUserId();
+            log.info("记录考勤的教师ID: {}", userId);
+        } else {
+            throw new CourseException("无法获取用户ID信息");
+        }
         
         // 处理学生出勤记录
         for (CourseAttendanceDTO.StudentAttendanceRecord studentRecord : attendanceDTO.getStudentRecords()) {
@@ -59,7 +69,7 @@ public class CourseAttendanceServiceImpl implements CourseAttendanceService {
             // 验证学生是否存在
             User student = userMapper.selectById(studentId);
             if (student == null) {
-                throw new RuntimeException("学生不存在，ID: " + studentId);
+                throw new CourseException("学生不存在，ID: " + studentId);
             }
 
             // 验证学生是否已报名该课程
@@ -70,7 +80,7 @@ public class CourseAttendanceServiceImpl implements CourseAttendanceService {
                     .eq(CourseEnrollment::getIsDeleted, false);
             
             if (enrollmentMapper.selectCount(enrollmentWrapper) == 0) {
-                throw new RuntimeException("学生未报名该课程，ID: " + studentId);
+                throw new CourseException("学生未报名该课程，ID: " + studentId);
             }
 
             // 检查是否已有该学生当天的出勤记录
@@ -111,7 +121,7 @@ public class CourseAttendanceServiceImpl implements CourseAttendanceService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(courseId);
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new CourseException("课程不存在");
         }
 
         // 查询当天出勤记录
@@ -126,13 +136,24 @@ public class CourseAttendanceServiceImpl implements CourseAttendanceService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(courseId);
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new CourseException("课程不存在");
         }
 
         // 验证学生是否存在
         User student = userMapper.selectById(studentId);
         if (student == null) {
-            throw new RuntimeException("学生不存在");
+            throw new CourseException("学生不存在");
+        }
+
+        // 验证学生是否已报名该课程
+        LambdaQueryWrapper<CourseEnrollment> enrollmentWrapper = new LambdaQueryWrapper<>();
+        enrollmentWrapper.eq(CourseEnrollment::getCourseId, courseId)
+                .eq(CourseEnrollment::getStudentId, studentId)
+                .eq(CourseEnrollment::getStatus, "enrolled")
+                .eq(CourseEnrollment::getIsDeleted, false);
+        
+        if (enrollmentMapper.selectCount(enrollmentWrapper) == 0) {
+            throw new CourseException("学生未报名该课程");
         }
 
         // 查询学生出勤记录
@@ -147,7 +168,7 @@ public class CourseAttendanceServiceImpl implements CourseAttendanceService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(courseId);
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new CourseException("课程不存在");
         }
 
         // 分页查询出勤日期
@@ -161,12 +182,12 @@ public class CourseAttendanceServiceImpl implements CourseAttendanceService {
         // 验证出勤记录是否存在
         CourseAttendance attendance = attendanceMapper.selectById(attendanceId);
         if (attendance == null) {
-            throw new RuntimeException("出勤记录不存在");
+            throw new CourseException("出勤记录不存在");
         }
 
         // 验证用户权限
         if (!hasTeacherOrAdminRole(userDetails)) {
-            throw new RuntimeException("无权操作");
+            throw new CourseException("无权操作");
         }
 
         // 更新出勤记录
@@ -184,12 +205,12 @@ public class CourseAttendanceServiceImpl implements CourseAttendanceService {
         // 验证出勤记录是否存在
         CourseAttendance attendance = attendanceMapper.selectById(attendanceId);
         if (attendance == null) {
-            throw new RuntimeException("出勤记录不存在");
+            throw new CourseException("出勤记录不存在");
         }
 
         // 验证用户权限
         if (!hasTeacherOrAdminRole(userDetails)) {
-            throw new RuntimeException("无权操作");
+            throw new CourseException("无权操作");
         }
 
         // 删除出勤记录
@@ -203,7 +224,7 @@ public class CourseAttendanceServiceImpl implements CourseAttendanceService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(courseId);
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new CourseException("课程不存在");
         }
 
         // 获取课程出勤统计
@@ -223,13 +244,24 @@ public class CourseAttendanceServiceImpl implements CourseAttendanceService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(courseId);
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new CourseException("课程不存在");
         }
 
         // 验证学生是否存在
         User student = userMapper.selectById(studentId);
         if (student == null) {
-            throw new RuntimeException("学生不存在");
+            throw new CourseException("学生不存在");
+        }
+        
+        // 验证学生是否已报名该课程
+        LambdaQueryWrapper<CourseEnrollment> enrollmentWrapper = new LambdaQueryWrapper<>();
+        enrollmentWrapper.eq(CourseEnrollment::getCourseId, courseId)
+                .eq(CourseEnrollment::getStudentId, studentId)
+                .eq(CourseEnrollment::getStatus, "enrolled")
+                .eq(CourseEnrollment::getIsDeleted, false);
+        
+        if (enrollmentMapper.selectCount(enrollmentWrapper) == 0) {
+            throw new CourseException("学生未报名该课程");
         }
 
         // 获取学生出勤统计
@@ -249,7 +281,7 @@ public class CourseAttendanceServiceImpl implements CourseAttendanceService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(courseId);
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new CourseException("课程不存在");
         }
 
         // 获取出勤统计数据
@@ -301,6 +333,12 @@ public class CourseAttendanceServiceImpl implements CourseAttendanceService {
     private CourseAttendanceVO convertToVO(CourseAttendance attendance) {
         CourseAttendanceVO vo = new CourseAttendanceVO();
         BeanUtils.copyProperties(attendance, vo);
+        
+        // 设置课程标题
+        DualTeacherCourse course = courseMapper.selectById(attendance.getCourseId());
+        if (course != null) {
+            vo.setCourseTitle(course.getTitle());
+        }
         
         // 设置学生信息
         User student = userMapper.selectById(attendance.getStudentId());

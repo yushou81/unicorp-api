@@ -3,7 +3,7 @@ package com.csu.unicorp.service.impl;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.dto.ProfileUpdateDTO;
-import com.csu.unicorp.entity.Organization;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.StudentInfo;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.OrganizationMapper;
@@ -16,7 +16,6 @@ import com.csu.unicorp.vo.ResumeVO;
 import com.csu.unicorp.vo.UserProfileVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -127,8 +126,8 @@ public class ProfileServiceImpl implements ProfileService {
             }
             
             // 获取作品集列表
-            List<PortfolioItemVO> portfolioItems = portfolioService.getPortfolioItems(user.getId());
-            profileVO.setPortfolio(portfolioItems);
+//            List<PortfolioItemVO> portfolioItems = portfolioService.getPortfolioItems(user.getId());
+//            profileVO.setPortfolio(portfolioItems);
         }
         
         return profileVO;

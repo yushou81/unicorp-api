@@ -1,19 +1,20 @@
 package com.csu.unicorp.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.csu.unicorp.config.security.CustomUserDetails;
 import com.csu.unicorp.dto.CourseChapterDTO;
 import com.csu.unicorp.entity.ChapterResource;
-import com.csu.unicorp.entity.CourseChapter;
-import com.csu.unicorp.entity.CourseResource;
+import com.csu.unicorp.entity.course.CourseChapter;
+import com.csu.unicorp.entity.course.CourseResource;
 import com.csu.unicorp.entity.DualTeacherCourse;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
+import com.csu.unicorp.vo.CourseResourceVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import com.csu.unicorp.mapper.ChapterResourceMapper;
-import com.csu.unicorp.mapper.CourseChapterMapper;
-import com.csu.unicorp.mapper.CourseResourceMapper;
-import com.csu.unicorp.mapper.DualTeacherCourseMapper;
+import com.csu.unicorp.mapper.course.CourseChapterMapper;
+import com.csu.unicorp.mapper.course.CourseResourceMapper;
+import com.csu.unicorp.mapper.course.DualTeacherCourseMapper;
 import com.csu.unicorp.service.CourseChapterService;
 import com.csu.unicorp.vo.CourseChapterVO;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 /**
  * 课程章节服务实现类
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CourseChapterServiceImpl implements CourseChapterService {
@@ -291,8 +293,7 @@ public class CourseChapterServiceImpl implements CourseChapterService {
         }
 
         // 逻辑删除关联
-        chapterResource.setIsDeleted(true);
-        chapterResourceMapper.updateById(chapterResource);
+        chapterResourceMapper.deleteById(chapterResource);
 
         return true;
     }
@@ -316,15 +317,13 @@ public class CourseChapterServiceImpl implements CourseChapterService {
      */
     private void checkCoursePermission(DualTeacherCourse course, UserDetails userDetails) {
         // 如果是管理员，直接通过
-        if (userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+        if (userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_SYSADMIN"))) {
             return;
         }
-
+        log.info("checkCoursePermission: userDetails = {}", userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_TEACHER")));
         // 如果是教师，检查是否是课程的教师
         if (userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_TEACHER"))) {
-            String username = userDetails.getUsername();
-            Integer userId = Integer.parseInt(username);
-            
+            Integer userId = ((CustomUserDetails) userDetails).getUserId();
             if (course.getTeacherId() != null && course.getTeacherId().equals(userId)) {
                 return;
             }
@@ -351,6 +350,36 @@ public class CourseChapterServiceImpl implements CourseChapterService {
     private CourseChapterVO convertToVO(CourseChapter chapter) {
         CourseChapterVO vo = new CourseChapterVO();
         BeanUtils.copyProperties(chapter, vo);
+        
+        // 查询课程标题
+        DualTeacherCourse course = courseMapper.selectById(chapter.getCourseId());
+        if (course != null) {
+            vo.setCourseTitle(course.getTitle());
+        }
+        
+        // 查询完成学生数量和总学生数量
+        Integer completedCount = chapterMapper.countStudentsCompletedChapter(chapter.getId());
+        Integer totalStudentCount = chapterMapper.countStudentsInCourse(chapter.getCourseId());
+        
+        vo.setCompletedCount(completedCount != null ? completedCount : 0);
+        vo.setTotalStudentCount(totalStudentCount != null ? totalStudentCount : 0);
+        
+        // 查询关联的资源列表
+        List<Integer> resourceIds = chapterResourceMapper.selectResourceIdsByChapterId(chapter.getId());
+        if (resourceIds != null && !resourceIds.isEmpty()) {
+            List<CourseResource> resources = resourceMapper.selectBatchIds(resourceIds);
+            List<CourseResourceVO> resourceVOs = new ArrayList<>();
+            
+            for (CourseResource resource : resources) {
+                CourseResourceVO resourceVO = new CourseResourceVO();
+                BeanUtils.copyProperties(resource, resourceVO);
+                // 可以在这里添加其他需要的资源信息
+                resourceVOs.add(resourceVO);
+            }
+            
+            vo.setResources(resourceVOs);
+        }
+        
         return vo;
     }
 } 

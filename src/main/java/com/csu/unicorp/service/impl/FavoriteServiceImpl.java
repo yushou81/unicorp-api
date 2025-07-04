@@ -6,11 +6,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
-import com.csu.unicorp.entity.Job;
-import com.csu.unicorp.entity.JobFavorite;
-import com.csu.unicorp.entity.User;
-import com.csu.unicorp.mapper.JobFavoriteMapper;
-import com.csu.unicorp.mapper.JobMapper;
+import com.csu.unicorp.entity.job.Job;
+import com.csu.unicorp.entity.job.JobFavorite;
+import com.csu.unicorp.mapper.job.JobFavoriteMapper;
+import com.csu.unicorp.mapper.job.JobMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.FavoriteService;
 import com.csu.unicorp.vo.JobVO;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * 岗位收藏服务实现类

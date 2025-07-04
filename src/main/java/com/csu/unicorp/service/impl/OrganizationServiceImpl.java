@@ -2,16 +2,12 @@ package com.csu.unicorp.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.common.exception.ResourceNotFoundException;
 import com.csu.unicorp.common.utils.AccountGenerator;
 import com.csu.unicorp.dto.SchoolCreationDTO;
-import com.csu.unicorp.entity.Organization;
-import com.csu.unicorp.entity.SchoolDetail;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.OrganizationMapper;
 import com.csu.unicorp.mapper.UserMapper;
@@ -115,14 +111,8 @@ public class OrganizationServiceImpl implements OrganizationService {
         
         organizationMapper.insert(organization);
         
-        // 创建学校详情（如有需要）
-        // SchoolDetail schoolDetail = new SchoolDetail();
-        // schoolDetail.setOrganizationId(organization.getId());
-        // ... 设置其他属性
-        // schoolDetailMapper.insert(schoolDetail);
-        
         // 生成学校管理员账号
-        String adminAccount = "admin_" + accountGenerator.generateStudentAccount(organization).substring(0, 8);
+        String adminAccount = accountGenerator.generateStudentAccount(organization);
         
         // 创建学校管理员账号
         User admin = new User();
@@ -136,9 +126,13 @@ public class OrganizationServiceImpl implements OrganizationService {
         admin.setStatus("active"); // 管理员创建的账号直接激活
         
         userMapper.insert(admin);
-        
+
+        log.info("创建学校管理员：{}", admin);
+
         // 分配学校管理员角色
-        roleService.assignRoleToUser(admin.getId(), RoleConstants.DB_ROLE_STUDENT);
+        roleService.assignRoleToUser(admin.getId(), RoleConstants.DB_ROLE_SCHOOL_ADMIN);
+
+        log.info("分配学校管理员角色：{}", admin);
         OrganizationVO organizationVO = convertToVO(organization);
         organizationVO.setAdminEmail(schoolCreationDTO.getAdminEmail());
         return organizationVO;

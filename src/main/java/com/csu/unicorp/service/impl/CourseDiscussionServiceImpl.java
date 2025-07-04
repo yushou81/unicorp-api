@@ -1,17 +1,20 @@
 package com.csu.unicorp.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.csu.unicorp.common.exception.CourseException;
+import com.csu.unicorp.config.security.CustomUserDetails;
 import com.csu.unicorp.dto.CourseDiscussionDTO;
-import com.csu.unicorp.entity.CourseDiscussion;
+import com.csu.unicorp.entity.course.CourseDiscussion;
 import com.csu.unicorp.entity.DualTeacherCourse;
 import com.csu.unicorp.entity.User;
-import com.csu.unicorp.mapper.CourseDiscussionMapper;
-import com.csu.unicorp.mapper.DualTeacherCourseMapper;
+import com.csu.unicorp.mapper.course.CourseDiscussionMapper;
+import com.csu.unicorp.mapper.course.DualTeacherCourseMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.CourseDiscussionService;
 import com.csu.unicorp.vo.CourseDiscussionVO;
+import com.csu.unicorp.config.security.CustomUserDetails;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -40,11 +43,11 @@ public class CourseDiscussionServiceImpl implements CourseDiscussionService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(discussionDTO.getCourseId());
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new CourseException("课程不存在");
         }
 
         // 获取当前用户ID
-        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
 
         // 创建讨论
         CourseDiscussion discussion = new CourseDiscussion();
@@ -67,11 +70,11 @@ public class CourseDiscussionServiceImpl implements CourseDiscussionService {
         // 验证父讨论是否存在
         CourseDiscussion parentDiscussion = discussionMapper.selectById(replyDTO.getParentId());
         if (parentDiscussion == null || Boolean.TRUE.equals(parentDiscussion.getIsDeleted())) {
-            throw new RuntimeException("讨论不存在");
+            throw new CourseException("讨论不存在");
         }
 
         // 获取当前用户ID
-        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
 
         // 创建回复
         CourseDiscussion reply = new CourseDiscussion();
@@ -93,13 +96,31 @@ public class CourseDiscussionServiceImpl implements CourseDiscussionService {
         // 验证讨论是否存在
         CourseDiscussion discussion = discussionMapper.selectById(discussionId);
         if (discussion == null || Boolean.TRUE.equals(discussion.getIsDeleted())) {
-            throw new RuntimeException("讨论不存在");
+            throw new CourseException("讨论不存在");
         }
 
         // 获取发布者信息
         User user = userMapper.selectById(discussion.getUserId());
+        
+        // 转换为VO
+        CourseDiscussionVO vo = convertToVO(discussion, user);
+        
+        // 如果是顶级讨论，获取其回复列表
+        if (discussion.getParentId() == null) {
+            List<CourseDiscussion> replies = discussionMapper.selectRepliesByParentId(discussionId);
+            
+            // 转换回复列表为VO
+            List<CourseDiscussionVO> replyVOs = replies.stream()
+                .map(reply -> {
+                    User replyUser = userMapper.selectById(reply.getUserId());
+                    return convertToVO(reply, replyUser);
+                })
+                .collect(Collectors.toList());
+            
+            vo.setReplies(replyVOs);
+        }
 
-        return convertToVO(discussion, user);
+        return vo;
     }
 
     @Override
@@ -107,7 +128,7 @@ public class CourseDiscussionServiceImpl implements CourseDiscussionService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(courseId);
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new CourseException("课程不存在");
         }
 
         // 分页查询课程讨论（只查询顶级讨论，不包含回复）
@@ -117,7 +138,22 @@ public class CourseDiscussionServiceImpl implements CourseDiscussionService {
         // 转换为VO
         return discussionPage.convert(discussion -> {
             User user = userMapper.selectById(discussion.getUserId());
-            return convertToVO(discussion, user);
+            CourseDiscussionVO vo = convertToVO(discussion, user);
+            
+            // 获取回复列表
+            List<CourseDiscussion> replies = discussionMapper.selectRepliesByParentId(discussion.getId());
+            
+            // 转换回复列表为VO
+            List<CourseDiscussionVO> replyVOs = replies.stream()
+                .map(reply -> {
+                    User replyUser = userMapper.selectById(reply.getUserId());
+                    return convertToVO(reply, replyUser);
+                })
+                .collect(Collectors.toList());
+            
+            vo.setReplies(replyVOs);
+            
+            return vo;
         });
     }
 
@@ -127,15 +163,15 @@ public class CourseDiscussionServiceImpl implements CourseDiscussionService {
         // 验证讨论是否存在
         CourseDiscussion discussion = discussionMapper.selectById(discussionId);
         if (discussion == null || Boolean.TRUE.equals(discussion.getIsDeleted())) {
-            throw new RuntimeException("讨论不存在");
+            throw new CourseException("讨论不存在");
         }
 
         // 获取当前用户ID
-        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
 
         // 验证是否是讨论发布者
         if (!discussion.getUserId().equals(userId)) {
-            throw new RuntimeException("无权修改他人的讨论");
+            throw new CourseException("无权修改他人的讨论");
         }
 
         // 更新讨论内容
@@ -155,22 +191,21 @@ public class CourseDiscussionServiceImpl implements CourseDiscussionService {
         // 验证讨论是否存在
         CourseDiscussion discussion = discussionMapper.selectById(discussionId);
         if (discussion == null || Boolean.TRUE.equals(discussion.getIsDeleted())) {
-            throw new RuntimeException("讨论不存在");
+            throw new CourseException("讨论不存在");
         }
 
         // 获取当前用户ID和角色
-        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
         boolean isAdmin = userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
         boolean isTeacher = userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_TEACHER"));
 
         // 验证是否有权限删除
         if (!discussion.getUserId().equals(userId) && !isAdmin && !isTeacher) {
-            throw new RuntimeException("无权删除他人的讨论");
+            throw new CourseException("无权删除他人的讨论");
         }
 
         // 逻辑删除讨论
-        discussion.setIsDeleted(true);
-        discussionMapper.updateById(discussion);
+        discussionMapper.deleteById(discussion);
 
         // 如果是顶级讨论，同时删除所有回复
         if (discussion.getParentId() == null) {
@@ -185,7 +220,7 @@ public class CourseDiscussionServiceImpl implements CourseDiscussionService {
         // 验证讨论是否存在
         CourseDiscussion discussion = discussionMapper.selectById(discussionId);
         if (discussion == null || Boolean.TRUE.equals(discussion.getIsDeleted())) {
-            throw new RuntimeException("讨论不存在");
+            throw new CourseException("讨论不存在");
         }
 
         // 查询回复列表
@@ -203,7 +238,7 @@ public class CourseDiscussionServiceImpl implements CourseDiscussionService {
         // 验证课程是否存在
         DualTeacherCourse course = courseMapper.selectById(courseId);
         if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
-            throw new RuntimeException("课程不存在");
+            throw new CourseException("课程不存在");
         }
 
         // 统计讨论数量（包括回复）
@@ -224,6 +259,16 @@ public class CourseDiscussionServiceImpl implements CourseDiscussionService {
         if (user != null) {
             vo.setUserName(user.getNickname());
             vo.setUserAvatar(user.getAvatar());
+            
+            // 设置用户角色
+            String userRole = userMapper.selectRoleByUserId(user.getId());
+            vo.setUserRole(userRole);
+        }
+        
+        // 设置课程标题
+        DualTeacherCourse course = courseMapper.selectById(discussion.getCourseId());
+        if (course != null) {
+            vo.setCourseTitle(course.getTitle());
         }
         
         return vo;

@@ -103,6 +103,28 @@ public class SecurityConfig {
                     .requestMatchers("/v1/course-resources/course/{courseId}").permitAll()
                     .requestMatchers("/v1/course-resources/download/{resourceId}").permitAll()
                     .requestMatchers("/v1/equipments", "/v1/equipments/{id}").permitAll()
+                    // 成果统计公开接口
+                    .requestMatchers("/api/v1/achievement/statistics/overview", "/api/v1/achievement/statistics/overview/{userId}").permitAll()
+                    .requestMatchers("/v1/achievement/statistics/overview", "/v1/achievement/statistics/overview/{userId}").permitAll()
+                    
+                    // 社区公开接口
+                    .requestMatchers("/v1/community/categories/**").permitAll()
+                    .requestMatchers("/v1/community/topics", "/v1/community/topics/{topicId}").permitAll()
+                    .requestMatchers("/v1/community/topics/category/{categoryId}").permitAll()
+                    .requestMatchers("/v1/community/topics/hot", "/v1/community/topics/latest", "/v1/community/topics/essence").permitAll()
+                    .requestMatchers("/v1/community/topics/user/{userId}").permitAll()
+                    .requestMatchers("/v1/community/questions", "/v1/community/questions/{questionId}").permitAll()
+                    .requestMatchers("/v1/community/questions/hot", "/v1/community/questions/latest", "/v1/community/questions/unsolved").permitAll()
+                    .requestMatchers("/v1/community/questions/user/{userId}").permitAll()
+                    .requestMatchers("/v1/community/answers/question/{questionId}").permitAll()
+                    .requestMatchers("/v1/community/answers/{answerId}").permitAll()
+                    .requestMatchers("/v1/community/answers/user/{userId}").permitAll()
+                    .requestMatchers("/v1/community/comments/topic/{topicId}", "/v1/community/comments/answer/{answerId}").permitAll()
+                    .requestMatchers("/v1/community/comments/{commentId}/replies").permitAll()
+                    .requestMatchers("/v1/community/comments/user/{userId}").permitAll()
+                    .requestMatchers("/v1/community/tags", "/v1/community/tags/hot", "/v1/community/tags/search").permitAll()
+                    .requestMatchers("/v1/community/tags/{tagId}", "/v1/community/tags/topic/{topicId}", "/v1/community/tags/question/{questionId}").permitAll()
+                    
                     // 用户搜索接口需要认证
                     .requestMatchers("/v1/auth/search").authenticated()
                     // 聊天接口需要认证

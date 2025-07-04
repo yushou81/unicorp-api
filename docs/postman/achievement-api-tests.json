@@ -1,0 +1,1333 @@
+{
+  "info": {
+    "_postman_id": "a5e4b8c7-6d23-4f9a-8c1e-9f2a3b5c7d8e",
+    "name": "学生成果展示平台API",
+    "description": "用于测试学生成果展示平台的API接口",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "认证相关接口",
+      "item": [
+        {
+          "name": "切换为学生身份",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/user/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "user", "profile"]
+            },
+            "description": "使用学生身份令牌获取用户信息"
+          },
+          "response": []
+        },
+        {
+          "name": "切换为教师身份",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{teacher_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/user/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "user", "profile"]
+            },
+            "description": "使用教师身份令牌获取用户信息"
+          },
+          "response": []
+        },
+        {
+          "name": "切换为企业导师身份",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{enterprise_mentor_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/user/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "user", "profile"]
+            },
+            "description": "使用企业导师身份令牌获取用户信息"
+          },
+          "response": []
+        },
+        {
+          "name": "切换为系统管理员身份",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{sysadmin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/user/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "user", "profile"]
+            },
+            "description": "使用系统管理员身份令牌获取用户信息"
+          },
+          "response": []
+        },
+        {
+          "name": "切换为企业管理员身份",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{enterprise_admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/user/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "user", "profile"]
+            },
+            "description": "使用企业管理员身份令牌获取用户信息"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "统计相关接口",
+      "item": [
+        {
+          "name": "获取学生成果概览",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/achievement/statistics/overview",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "achievement", "statistics", "overview"]
+            },
+            "description": "获取当前学生的成果概览"
+          },
+          "response": []
+        },
+        {
+          "name": "获取指定学生成果概览",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{school_admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/achievement/statistics/overview/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "achievement", "statistics", "overview", "1"]
+            },
+            "description": "获取指定学生的成果概览"
+          },
+          "response": []
+        },
+        {
+          "name": "获取学生成果访问统计",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/achievement/statistics/views",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "achievement", "statistics", "views"]
+            },
+            "description": "获取当前学生的成果访问统计"
+          },
+          "response": []
+        },
+            {
+      "name": "获取组织成果统计",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{school_admin_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/v1/achievement/statistics/organization/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["v1", "achievement", "statistics", "organization", "1"]
+        },
+        "description": "获取指定组织的成果统计（需要教师或管理员权限）"
+      },
+      "response": []
+    }
+      ]
+    },
+    {
+      "name": "竞赛获奖相关接口",
+      "item": [
+        {
+          "name": "获取获奖列表",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/awards",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "awards"]
+            },
+            "description": "获取当前用户的获奖列表"
+          },
+          "response": []
+        },
+        {
+          "name": "分页获取获奖列表",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/awards/page?page=1&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "awards", "page"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "分页获取当前用户的获奖列表"
+          },
+          "response": []
+        },
+        {
+          "name": "获取公开获奖列表",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/awards/public?page=1&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "awards", "public"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "分页获取公开的获奖列表"
+          },
+          "response": []
+        },
+            {
+      "name": "获取待认证获奖列表",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{school_admin_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/v1/awards/unverified?organizationId=1&page=1&size=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["v1", "awards", "unverified"],
+          "query": [
+            {
+              "key": "organizationId",
+              "value": "1"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "分页获取待认证的获奖列表（需要教师或管理员权限）"
+      },
+      "response": []
+    },
+        {
+          "name": "获取获奖详情",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/awards/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "awards", "1"]
+            },
+            "description": "根据ID获取获奖详情"
+          },
+          "response": []
+        },
+        {
+          "name": "创建获奖",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"competitionName\": \"全国大学生软件创新大赛\",\n  \"awardName\": \"一等奖\",\n  \"awardDate\": \"2023-06-15\",\n  \"awardLevel\": \"国家级\",\n  \"description\": \"参与全国大学生软件创新大赛并获得一等奖\",\n  \"isPublic\": true,\n  \"organizationId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/awards",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "awards"]
+            },
+            "description": "创建新的获奖"
+          },
+          "response": []
+        },
+        {
+          "name": "更新获奖",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"competitionName\": \"全国大学生软件创新大赛\",\n  \"awardName\": \"特等奖\",\n  \"awardDate\": \"2023-06-15\",\n  \"awardLevel\": \"国家级\",\n  \"description\": \"参与全国大学生软件创新大赛并获得特等奖\",\n  \"isPublic\": true,\n  \"organizationId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/awards/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "awards", "1"]
+            },
+            "description": "更新指定ID的获奖"
+          },
+          "response": []
+        },
+        {
+          "name": "删除获奖",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/awards/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "awards", "1"]
+            },
+            "description": "删除指定ID的获奖"
+          },
+          "response": []
+        },
+        {
+          "name": "上传获奖证书",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/awards/1/certificate",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "awards", "1", "certificate"]
+            },
+            "description": "为指定获奖上传证书"
+          },
+          "response": []
+        },
+            {
+      "name": "认证获奖",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{school_admin_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isVerified\": true,\n  \"verifyComment\": \"证书材料齐全，认证通过\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/v1/awards/1/verify",
+          "host": ["{{baseUrl}}"],
+          "path": ["v1", "awards", "1", "verify"]
+        },
+        "description": "认证指定ID的获奖（需要教师或管理员权限）"
+      },
+      "response": []
+    }
+      ]
+    },
+    {
+      "name": "作品集相关接口",
+      "item": [
+        {
+          "name": "获取作品列表",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/portfolio/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "portfolio", "items"]
+            },
+            "description": "获取当前用户的作品列表"
+          },
+          "response": []
+        },
+        {
+          "name": "分页获取作品列表",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/portfolio/items/page?page=1&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "portfolio", "items", "page"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "分页获取当前用户的作品列表"
+          },
+          "response": []
+        },
+        {
+          "name": "获取公开作品列表",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/portfolio/public/items?page=1&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "portfolio", "public", "items"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "分页获取公开的作品列表"
+          },
+          "response": []
+        },
+        {
+          "name": "根据分类获取公开作品列表",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/portfolio/public/items/category/软件开发?page=1&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "portfolio", "public", "items", "category", "软件开发"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "根据分类分页获取公开的作品列表"
+          },
+          "response": []
+        },
+        {
+          "name": "获取作品详情",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/portfolio/items/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "portfolio", "items", "1"]
+            },
+            "description": "根据ID获取作品详情"
+          },
+          "response": []
+        },
+        {
+          "name": "创建作品",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"智能校园导航系统\",\n  \"description\": \"基于微信小程序的校园导航系统，提供路线规划、校园信息查询等功能\",\n  \"category\": \"软件开发\",\n  \"tags\": [\"微信小程序\", \"校园导航\", \"地图服务\"],\n  \"isPublic\": true,\n  \"coverUrl\": \"\",\n  \"demoUrl\": \"https://github.com/example/campus-nav\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/portfolio/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "portfolio", "items"]
+            },
+            "description": "创建新的作品"
+          },
+          "response": []
+        },
+        {
+          "name": "更新作品",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"智能校园导航系统2.0\",\n  \"description\": \"基于微信小程序的校园导航系统，提供路线规划、校园信息查询、活动推荐等功能\",\n  \"category\": \"软件开发\",\n  \"tags\": [\"微信小程序\", \"校园导航\", \"地图服务\", \"活动推荐\"],\n  \"isPublic\": true,\n  \"coverUrl\": \"\",\n  \"demoUrl\": \"https://github.com/example/campus-nav-v2\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/portfolio/items/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "portfolio", "items", "1"]
+            },
+            "description": "更新指定ID的作品"
+          },
+          "response": []
+        },
+        {
+          "name": "删除作品",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/portfolio/items/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "portfolio", "items", "1"]
+            },
+            "description": "删除指定ID的作品"
+          },
+          "response": []
+        },
+        {
+          "name": "上传作品资源",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"IMAGE\",\n  \"resourceUrl\": \"https://example.com/images/screenshot.png\",\n  \"description\": \"系统首页截图\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/portfolio/items/1/resources",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "portfolio", "items", "1", "resources"]
+            },
+            "description": "为指定作品上传资源"
+          },
+          "response": []
+        },
+        {
+          "name": "上传作品资源文件",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "resourceType",
+                  "value": "IMAGE",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "系统首页截图",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/portfolio/items/1/resources/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "portfolio", "items", "1", "resources", "upload"]
+            },
+            "description": "为指定作品上传资源文件"
+          },
+          "response": []
+        },
+        {
+          "name": "删除作品资源",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/portfolio/items/1/resources/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "portfolio", "items", "1", "resources", "1"]
+            },
+            "description": "删除指定作品的指定资源"
+          },
+          "response": []
+        },
+        {
+          "name": "点赞作品",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/portfolio/items/1/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "portfolio", "items", "1", "like"]
+            },
+            "description": "为指定作品点赞"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "科研成果相关接口",
+      "item": [
+        {
+          "name": "获取科研成果列表",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/research",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "research"]
+            },
+            "description": "获取当前用户的科研成果列表"
+          },
+          "response": []
+        },
+        {
+          "name": "分页获取科研成果列表",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/research/page?page=1&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "research", "page"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "分页获取当前用户的科研成果列表"
+          },
+          "response": []
+        },
+        {
+          "name": "获取公开科研成果列表",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/research/public?page=1&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "research", "public"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "分页获取公开的科研成果列表"
+          },
+          "response": []
+        },
+        {
+          "name": "根据类型获取公开科研成果列表",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/research/public/type/论文?page=1&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "research", "public", "type", "论文"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "根据类型分页获取公开的科研成果列表"
+          },
+          "response": []
+        },
+            {
+      "name": "获取待认证科研成果列表",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{school_admin_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/v1/research/unverified?organizationId=1&page=1&size=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["v1", "research", "unverified"],
+          "query": [
+            {
+              "key": "organizationId",
+              "value": "1"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "分页获取待认证的科研成果列表（需要教师或管理员权限）"
+      },
+      "response": []
+    },
+        {
+          "name": "获取科研成果详情",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/research/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "research", "1"]
+            },
+            "description": "根据ID获取科研成果详情"
+          },
+          "response": []
+        },
+        {
+          "name": "创建科研成果",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"基于深度学习的校园人流预测研究\",\n  \"type\": \"论文\",\n  \"authors\": [\"张三\", \"李四\", \"王五\"],\n  \"publicationDate\": \"2023-05-20\",\n  \"publicationVenue\": \"计算机科学与技术\",\n  \"abstract\": \"本文提出了一种基于深度学习的校园人流预测模型，通过分析历史数据和环境因素，实现对校园各区域人流量的精准预测。\",\n  \"keywords\": [\"深度学习\", \"人流预测\", \"校园管理\"],\n  \"isPublic\": true,\n  \"organizationId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/research",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "research"]
+            },
+            "description": "创建新的科研成果"
+          },
+          "response": []
+        },
+        {
+          "name": "更新科研成果",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"基于深度学习的校园人流精准预测研究\",\n  \"type\": \"论文\",\n  \"authors\": [\"张三\", \"李四\", \"王五\", \"赵六\"],\n  \"publicationDate\": \"2023-05-20\",\n  \"publicationVenue\": \"计算机科学与技术\",\n  \"abstract\": \"本文提出了一种基于深度学习的校园人流预测模型，通过分析历史数据和环境因素，实现对校园各区域人流量的精准预测。实验结果表明，该模型预测准确率达到95%以上。\",\n  \"keywords\": [\"深度学习\", \"人流预测\", \"校园管理\", \"预测模型\"],\n  \"isPublic\": true,\n  \"organizationId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/research/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "research", "1"]
+            },
+            "description": "更新指定ID的科研成果"
+          },
+          "response": []
+        },
+        {
+          "name": "删除科研成果",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/research/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "research", "1"]
+            },
+            "description": "删除指定ID的科研成果"
+          },
+          "response": []
+        },
+        {
+          "name": "上传科研成果文件",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/research/1/file",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "research", "1", "file"]
+            },
+            "description": "为指定科研成果上传文件"
+          },
+          "response": []
+        },
+        {
+          "name": "上传科研成果封面图片",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{student_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/research/1/cover",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "research", "1", "cover"]
+            },
+            "description": "为指定科研成果上传封面图片"
+          },
+          "response": []
+        },
+            {
+      "name": "认证科研成果",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{school_admin_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isVerified\": true,\n  \"verifyComment\": \"论文已发表，认证通过\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/v1/research/1/verify",
+          "host": ["{{baseUrl}}"],
+          "path": ["v1", "research", "1", "verify"]
+        },
+        "description": "认证指定ID的科研成果（需要教师或管理员权限）"
+      },
+      "response": []
+    }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{student_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "{{base_url}}",
+      "type": "string"
+    }
+  ]
+} 

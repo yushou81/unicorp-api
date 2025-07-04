@@ -1,18 +1,17 @@
 package com.csu.unicorp.service.impl;
 
 import com.csu.unicorp.dto.CourseAttendanceDTO;
-import com.csu.unicorp.entity.CourseAttendance;
-import com.csu.unicorp.entity.CourseEnrollment;
+import com.csu.unicorp.entity.course.CourseAttendance;
+import com.csu.unicorp.entity.course.CourseEnrollment;
 import com.csu.unicorp.entity.DualTeacherCourse;
 import com.csu.unicorp.entity.User;
-import com.csu.unicorp.mapper.CourseAttendanceMapper;
-import com.csu.unicorp.mapper.CourseEnrollmentMapper;
-import com.csu.unicorp.mapper.DualTeacherCourseMapper;
+import com.csu.unicorp.mapper.course.CourseAttendanceMapper;
+import com.csu.unicorp.mapper.course.CourseEnrollmentMapper;
+import com.csu.unicorp.mapper.course.DualTeacherCourseMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.vo.CourseAttendanceVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.GrantedAuthority;
