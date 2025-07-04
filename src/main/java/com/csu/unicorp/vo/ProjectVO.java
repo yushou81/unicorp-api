@@ -1,38 +1,29 @@
 package com.csu.unicorp.vo;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.List;
 
-
-
 /**
- * 项目视图对象
+ * 项目VO
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ProjectVO {
-    
-    private Integer id; // 项目ID
-    private String title; // 项目名称
-    private Integer planMemberCount; // 计划人数
-    private String description; // 项目描述
-    private String difficulty; // 项目难度
-    private List<String> supportLanguages; // 支持语言
-    private List<String> techFields; // 技术领域
-    private List<String> programmingLanguages; // 编程语言
-    private String projectProposalUrl; // 项目计划书文件URL
-    private String status; // 项目状态
-    private LocalDateTime createdAt; // 创建时间
-    private String organizationName; // 组织名称（新增）
-    private Integer memberCount; // 当前已加入人数
-    private Boolean applied; // 是否已申请
-    private String applicationStatus; // 新增字段
-    private Integer applicationId;//申请id
-} 
+    private Integer projectId;
+    private String title;
+    private String description;
+    private String initiatorType;
+    private Integer initiatorId;
+    private String field;
+    private BigDecimal budget;
+    private String contact;
+    private List<String> attachments;
+    private String status;
+    private String organizationName; // 新增
+    private String reason;
+    private Timestamp createTime; // 创建时间
+    private Timestamp updateTime; // 更新时间
+    private Boolean hasApplied; // 是否已申请
+private String applicationStatus; // 申请状态（可选）
+}
