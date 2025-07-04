@@ -12,7 +12,7 @@ import com.csu.unicorp.entity.job.Job;
 import com.csu.unicorp.entity.Resume;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.ApplicationMapper;
-import com.csu.unicorp.mapper.JobMapper;
+import com.csu.unicorp.mapper.job.JobMapper;
 import com.csu.unicorp.mapper.ResumeMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.mapper.UserVerificationMapper;

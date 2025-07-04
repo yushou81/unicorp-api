@@ -102,6 +102,11 @@ springdoc:
     - /v1/course-resources/**
     - /v1/course-ratings/**
     - /v1/auth/search/**
+    - /v1/achievement/**
+    - /v1/achievement/statistics/**
+    - /v1/achievement/statistics/overview/**
+    - /v1/achievement/statistics/views/**
+    - /v1/achievement/statistics/organization/**
 
   default-flat-param-object: true
   # API分组配置
