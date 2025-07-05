@@ -63,4 +63,15 @@ public interface ResourceService {
      * @return 是否有权限访问
      */
     boolean checkImageAccessPermission(String filename);
+    
+    /**
+     * 获取当前用户上传的资源列表（分页）
+     * 
+     * @param page 页码
+     * @param size 每页大小
+     * @param keyword 搜索关键词
+     * @param userDetails 当前登录用户
+     * @return 当前用户上传的资源列表（分页）
+     */
+    IPage<ResourceVO> getCurrentUserResources(int page, int size, String keyword, UserDetails userDetails);
 } 

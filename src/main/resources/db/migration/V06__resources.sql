@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `resources` (
     `visibility` ENUM('public', 'private', 'organization_only') NOT NULL DEFAULT 'public' COMMENT '可见性',
     `is_deleted` BOOLEAN NOT NULL DEFAULT FALSE COMMENT '是否逻辑删除',
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (`uploaded_by_user_id`) REFERENCES `users`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='共享资源表';
 
