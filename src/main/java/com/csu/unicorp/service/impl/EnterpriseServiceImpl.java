@@ -1,22 +1,25 @@
 package com.csu.unicorp.service.impl;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.csu.unicorp.common.exception.BusinessException;
 import com.csu.unicorp.entity.EnterpriseDetail;
-import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.User;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.mapper.EnterpriseDetailMapper;
 import com.csu.unicorp.mapper.OrganizationMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.EnterpriseService;
-import com.csu.unicorp.service.OrganizationService;
 import com.csu.unicorp.service.FileService;
+import com.csu.unicorp.service.OrganizationService;
 import com.csu.unicorp.vo.OrganizationVO;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
 
 /**
  * 企业服务实现类

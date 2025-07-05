@@ -17,8 +17,8 @@ CREATE TABLE equipment_bookings (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='设备预约表';
 
 -- 添加索引以提高查询性能
-CREATE INDEX idx_equipment_organization ON equipment_resources(organization_id);
-CREATE INDEX idx_equipment_manager ON equipment_resources(manager_id);
+-- CREATE INDEX idx_equipment_organization ON equipment_resources(organization_id);
+-- CREATE INDEX idx_equipment_manager ON equipment_resources(manager_id);
 CREATE INDEX idx_booking_equipment ON equipment_bookings(equipment_id);
 CREATE INDEX idx_booking_user ON equipment_bookings(user_id);
 CREATE INDEX idx_booking_status ON equipment_bookings(status);

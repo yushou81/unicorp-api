@@ -58,6 +58,16 @@ public class Organization {
     private String logoUrl;
     
     /**
+     * 纬度
+     */
+    private Double latitude;
+    
+    /**
+     * 经度
+     */
+    private Double longitude;
+    
+    /**
      * 审核状态：approved-已审核，pending-待审核
      */
     private String status;

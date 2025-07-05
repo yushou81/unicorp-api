@@ -48,6 +48,16 @@ public class EnterpriseRegistrationDTO {
     private String businessLicenseUrl;
     
     /**
+     * 纬度，可以为空
+     */
+    private Double latitude;
+    
+    /**
+     * 经度，可以为空
+     */
+    private Double longitude;
+    
+    /**
      * 企业管理员昵称
      */
     private String adminNickname;

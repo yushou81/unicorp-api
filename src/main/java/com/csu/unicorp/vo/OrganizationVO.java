@@ -1,6 +1,7 @@
 package com.csu.unicorp.vo;
 
 import com.csu.unicorp.entity.organization.Organization;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -54,6 +55,18 @@ public class OrganizationVO {
     private String address;
 
     /**
+     * 纬度
+     */
+    @Schema(description = "纬度")
+    private Double latitude;
+    
+    /**
+     * 经度
+     */
+    @Schema(description = "经度")
+    private Double longitude;
+    
+    /**
      * 管理员邮箱
      */
     @Schema(description = "管理员邮箱")
@@ -80,6 +93,8 @@ public class OrganizationVO {
         vo.setWebsite(organization.getWebsite());
         vo.setLogoUrl(organization.getLogoUrl());
         vo.setAddress(organization.getAddress());
+        vo.setLatitude(organization.getLatitude());
+        vo.setLongitude(organization.getLongitude());
         return vo;
     }
 } 
