@@ -193,7 +193,17 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResultVO<Void> handleAuthenticationException(BadCredentialsException e) {
         log.error("认证异常: {}", e.getMessage());
-        return ResultVO.error("账号或密码错误");
+        return ResultVO.error(401, e.getMessage());
+    }
+    
+    /**
+     * 处理账户锁定异常
+     */
+    @ExceptionHandler(org.springframework.security.authentication.LockedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResultVO<Void> handleLockedException(org.springframework.security.authentication.LockedException e) {
+        log.error("账户锁定异常: {}", e.getMessage());
+        return ResultVO.error(401, e.getMessage());
     }
     
     /**

@@ -155,4 +155,11 @@ public interface CacheService {
      * @return 键集合
      */
     Set<String> keys(String pattern);
+    
+    /**
+     * 获取缓存过期时间
+     * @param key 缓存键
+     * @return 过期时间（秒），如果键不存在或没有设置过期时间则返回-1
+     */
+    Long getExpire(String key);
 } 

@@ -6,6 +6,30 @@ package com.csu.unicorp.common.constants;
 public class CacheConstants {
 
     /**
+     * 认证缓存相关常量
+     */
+    // 会话信息缓存键前缀
+    public static final String AUTH_SESSION_PREFIX = "auth:session:";
+    // 刷新令牌缓存键前缀
+    public static final String AUTH_REFRESH_TOKEN_PREFIX = "auth:refresh:";
+    // 令牌黑名单缓存键前缀
+    public static final String AUTH_BLACKLIST_PREFIX = "auth:blacklist:";
+    // 登录尝试次数缓存键前缀
+    public static final String AUTH_ATTEMPTS_PREFIX = "auth:attempts:";
+    // 账户锁定状态缓存键前缀
+    public static final String AUTH_LOCKED_PREFIX = "auth:locked:";
+    
+    /**
+     * 认证缓存过期时间常量（单位：秒/分钟）
+     */
+    // 登录尝试记录过期时间：60分钟
+    public static final long AUTH_ATTEMPTS_EXPIRE_TIME = 60;
+    // 账户锁定默认时间：30分钟
+    public static final long AUTH_DEFAULT_LOCK_TIME = 30;
+    // 最大登录尝试次数
+    public static final int AUTH_MAX_ATTEMPTS = 5;
+
+    /**
      * 话题缓存相关常量
      */
     // 话题详情缓存键前缀

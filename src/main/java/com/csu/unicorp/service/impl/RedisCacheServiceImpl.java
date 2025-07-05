@@ -87,8 +87,23 @@ public class RedisCacheServiceImpl implements CacheService {
             }
             
             try {
+                // 如果需要的类型就是String，并且值也是String，直接返回
+                if (clazz == String.class && value instanceof String) {
+                    return (T) value;
+                }
+                
+                // 如果值是String类型，尝试JSON解析
                 if (value instanceof String) {
-                    return objectMapper.readValue((String) value, clazz);
+                    try {
+                        return objectMapper.readValue((String) value, clazz);
+                    } catch (Exception e) {
+                        // 如果JSON解析失败，但目标类型是String，直接返回原始字符串
+                        if (clazz == String.class) {
+                            return (T) value;
+                        }
+                        // 否则重新抛出异常
+                        throw e;
+                    }
                 } else {
                     return objectMapper.convertValue(value, clazz);
                 }
@@ -111,6 +126,11 @@ public class RedisCacheServiceImpl implements CacheService {
             }
             
             try {
+                // 如果需要的类型就是String，并且值也是String，直接返回
+                if (clazz == String.class && value instanceof String) {
+                    return (T) value;
+                }
+                
                 return objectMapper.convertValue(value, clazz);
             } catch (Exception e) {
                 log.error("本地缓存转换异常: {}", e.getMessage());
@@ -442,6 +462,39 @@ public class RedisCacheServiceImpl implements CacheService {
             return localCache.keySet().stream()
                     .filter(key -> matchesPattern(key, pattern))
                     .collect(Collectors.toSet());
+        });
+    }
+    
+    @Override
+    public Long getExpire(String key) {
+        return executeWithFallback(() -> {
+            return redisTemplate.getExpire(key, TimeUnit.SECONDS);
+        }, () -> {
+            // 检查本地缓存是否存在该键
+            if (!localCache.containsKey(key)) {
+                return -2L; // 键不存在
+            }
+            
+            // 检查是否设置了过期时间
+            if (!localCacheExpiry.containsKey(key)) {
+                return -1L; // 键存在但没有设置过期时间
+            }
+            
+            // 计算剩余过期时间（秒）
+            long expireTimeMillis = localCacheExpiry.get(key);
+            long currentTimeMillis = System.currentTimeMillis();
+            long ttlMillis = expireTimeMillis - currentTimeMillis;
+            
+            // 如果已过期，返回0
+            if (ttlMillis <= 0) {
+                // 清理过期缓存
+                localCache.remove(key);
+                localCacheExpiry.remove(key);
+                return 0L;
+            }
+            
+            // 转换为秒并返回
+            return ttlMillis / 1000;
         });
     }
     

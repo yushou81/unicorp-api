@@ -2,6 +2,7 @@ package com.csu.unicorp.controller;
 
 import com.csu.unicorp.dto.EnterpriseRegistrationDTO;
 import com.csu.unicorp.dto.LoginCredentialsDTO;
+import com.csu.unicorp.dto.RefreshTokenDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
 import com.csu.unicorp.dto.UserProfileUpdateDTO;
 import com.csu.unicorp.dto.PasswordUpdateDTO;
@@ -53,6 +54,48 @@ public class AuthController {
     public ResultVO<TokenVO> login(@Valid @RequestBody LoginCredentialsDTO loginDto) {
         TokenVO tokenResponse = userService.login(loginDto);
         return ResultVO.success("登录成功", tokenResponse);
+    }
+    
+    /**
+     * 用户登出
+     */
+    @Operation(summary = "用户登出接口", description = "用户登出系统，使当前令牌失效")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "登出成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "401", description = "未授权")
+    })
+    @PostMapping("/logout")
+    public ResultVO<Void> logout(
+            @RequestHeader("Authorization") String authHeader,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        // 提取JWT令牌（去除"Bearer "前缀）
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            userService.logout(token, userDetails);
+            return ResultVO.success("登出成功");
+        }
+        
+        return ResultVO.error("无效的令牌");
+    }
+    
+    /**
+     * 刷新令牌
+     */
+    @Operation(summary = "刷新令牌接口", description = "使用刷新令牌获取新的访问令牌")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "令牌刷新成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "400", description = "无效的刷新令牌"),
+        @ApiResponse(responseCode = "401", description = "未授权")
+    })
+    @PostMapping("/refresh")
+    public ResultVO<TokenVO> refreshToken(@Valid @RequestBody RefreshTokenDTO refreshTokenDTO) {
+        TokenVO tokenResponse = userService.refreshToken(refreshTokenDTO);
+        return ResultVO.success("令牌刷新成功", tokenResponse);
     }
     
     /**

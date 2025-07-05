@@ -79,8 +79,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                     // 公共接口
-                    .requestMatchers("/v1/auth/login", "/v1/auth/register/**","/v1/files/**").permitAll()
-                        .requestMatchers("/v1/files/resumes/**").permitAll()
+                    .requestMatchers("/v1/auth/login", "/v1/auth/register/**", "/v1/auth/refresh").permitAll()
+                    .requestMatchers("/v1/files/**").permitAll()
+                    .requestMatchers("/v1/files/resumes/**").permitAll()
                     .requestMatchers("/v1/organizations/schools").permitAll()
                     .requestMatchers("/v1/jobs", "/v1/jobs/**","/v1/job-categories").permitAll()
                     .requestMatchers("/v1/projects", "/v1/projects/{id}").permitAll()

@@ -6,6 +6,7 @@ import com.csu.unicorp.dto.LoginCredentialsDTO;
 import com.csu.unicorp.dto.OrgMemberCreationDTO;
 import com.csu.unicorp.dto.OrgMemberUpdateDTO;
 import com.csu.unicorp.dto.PasswordUpdateDTO;
+import com.csu.unicorp.dto.RefreshTokenDTO;
 import com.csu.unicorp.dto.StudentRegistrationDTO;
 import com.csu.unicorp.dto.UserProfileUpdateDTO;
 import com.csu.unicorp.dto.UserUpdateDTO;
@@ -29,6 +30,20 @@ public interface UserService {
      * @return JWT令牌
      */
     TokenVO login(LoginCredentialsDTO loginDto);
+    
+    /**
+     * 用户登出
+     * @param token JWT令牌
+     * @param userDetails 用户详情
+     */
+    void logout(String token, UserDetails userDetails);
+    
+    /**
+     * 刷新令牌
+     * @param refreshTokenDTO 刷新令牌DTO
+     * @return 新的令牌信息
+     */
+    TokenVO refreshToken(RefreshTokenDTO refreshTokenDTO);
     
     /**
      * 学生注册
