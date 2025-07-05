@@ -74,6 +74,7 @@ public class ResourceController {
         return ResultVO.success("获取资源列表成功", resources);
     }
     
+    
     /**
      * 获取资源详情
      */
@@ -207,7 +208,7 @@ public class ResourceController {
             
             // 创建资源
             ResourceVO resource = resourceService.createResource(resourceDTO, userDetails);
-            log.info("资源创建成功，ID: {}", resource.getResourceId());
+            log.info("资源创建成功，ID: {}", resource.getId());
             
             return ResponseEntity.ok(ResultVO.success("资源创建成功", resource));
         } catch (Exception e) {
@@ -247,37 +248,29 @@ public class ResourceController {
             // 1. 创建资源DTO
             ResourceCreationDTO resourceDTO = new ResourceCreationDTO();
             resourceDTO.setTitle(title);
-            resourceDTO.setResourceType(resourceType);
+            resourceDTO.setResourceType(resourceType != null ? resourceType : existingResource.getResourceType());
             resourceDTO.setDescription(description);
             resourceDTO.setVisibility(visibility);
             
-            // 2. 如果提供了新文件，则上传并更新fileUrl
+            // 2. 如果提供了新文件，则上传文件
             if (file != null && !file.isEmpty()) {
                 log.info("正在上传更新的资源文件: {}, 大小: {} bytes", file.getOriginalFilename(), file.getSize());
                 String fileUrl = fileService.uploadFile(file, "resource");
-                log.info("文件上传成功，URL: {}", fileUrl);
+                log.info("文件更新上传成功，URL: {}", fileUrl);
                 resourceDTO.setFileUrl(fileUrl);
-            } else {
-                // 如果没有提供新文件，则保留原来的fileUrl
-                resourceDTO.setFileUrl(existingResource.getFileUrl());
-                log.info("未提供新文件，保留原有文件URL: {}", existingResource.getFileUrl());
             }
             
-            // 3. 如果提供了新图片，则上传并更新imageUrl
+            // 3. 如果提供了新图片，则上传图片
             if (image != null && !image.isEmpty()) {
                 log.info("正在上传更新的资源图片: {}, 大小: {} bytes", image.getOriginalFilename(), image.getSize());
                 String imageUrl = fileService.uploadFile(image, "resource_images");
-                log.info("图片上传成功，URL: {}", imageUrl);
+                log.info("图片更新上传成功，URL: {}", imageUrl);
                 resourceDTO.setImageUrl(imageUrl);
-            } else {
-                // 如果没有提供新图片，则保留原来的imageUrl
-                resourceDTO.setImageUrl(existingResource.getImageUrl());
-                log.info("未提供新图片，保留原有图片URL: {}", existingResource.getImageUrl());
             }
             
             // 4. 更新资源
             ResourceVO resource = resourceService.updateResource(id, resourceDTO, userDetails);
-            log.info("资源更新成功，ID: {}"+ resource.getResourceId());
+            log.info("资源更新成功，ID: {}", resource.getId());
             
             return ResponseEntity.ok(ResultVO.success("资源更新成功", resource));
         } catch (Exception e) {
@@ -459,7 +452,29 @@ public class ResourceController {
     public ResultVO<List<ResourceTimeSlotVO>> getResourceTimeSlots(
             @PathVariable Integer id,
             @AuthenticationPrincipal UserDetails userDetails) {
+        
         List<ResourceTimeSlotVO> timeSlots = equipmentService.getResourceTimeSlots(id, userDetails);
         return ResultVO.success("获取资源占用时间段成功", timeSlots);
+    }
+    
+    /**
+     * 获取当前用户上传的资源列表
+     */
+    @Operation(summary = "获取我的上传资源", description = "获取当前登录用户上传的所有资源，支持分页和搜索")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "成功获取资源列表", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "401", description = "未登录")
+    })
+    @GetMapping("/my-uploads")
+    public ResultVO<IPage<ResourceVO>> getMyUploadedResources(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        IPage<ResourceVO> resources = resourceService.getCurrentUserResources(page, size, keyword, userDetails);
+        return ResultVO.success("获取我上传的资源列表成功", resources);
     }
 } 

@@ -6,12 +6,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * 资源视图对象，用于返回给前端
  */
 @Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,7 +26,7 @@ public class ResourceVO {
      * 资源ID
      */
     @Schema(description = "资源ID")
-    private String resourceId;
+    private Integer id;
     
     /**
      * 资源标题

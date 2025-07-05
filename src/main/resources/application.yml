@@ -158,6 +158,7 @@ springdoc:
     - group: '地图服务'
       paths-to-match: 
         - /v1/map/**
+        - /api/v1/map/**
       packages-to-scan: com.csu.unicorp.controller
     - group: '聊天功能'
       paths-to-match:
