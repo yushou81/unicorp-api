@@ -1,4 +1,4 @@
-package com.csu.unicorp.service.impl;
+package com.csu.unicorp.service.impl.job;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.csu.unicorp.common.exception.BusinessException;

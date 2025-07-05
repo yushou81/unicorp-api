@@ -1,4 +1,4 @@
-package com.csu.unicorp.service.impl;
+package com.csu.unicorp.service.impl.achievement;
 
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.UserMapper;

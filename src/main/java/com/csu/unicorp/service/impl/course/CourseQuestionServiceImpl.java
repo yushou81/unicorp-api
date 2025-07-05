@@ -1,4 +1,4 @@
-package com.csu.unicorp.service.impl;
+package com.csu.unicorp.service.impl.course;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;

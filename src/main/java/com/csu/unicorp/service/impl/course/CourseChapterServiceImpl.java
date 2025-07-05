@@ -1,4 +1,4 @@
-package com.csu.unicorp.service.impl;
+package com.csu.unicorp.service.impl.course;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.csu.unicorp.config.security.CustomUserDetails;

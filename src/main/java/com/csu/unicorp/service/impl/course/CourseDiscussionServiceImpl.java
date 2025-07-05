@@ -1,4 +1,4 @@
-package com.csu.unicorp.service.impl;
+package com.csu.unicorp.service.impl.course;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -13,7 +13,6 @@ import com.csu.unicorp.mapper.course.DualTeacherCourseMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.CourseDiscussionService;
 import com.csu.unicorp.vo.CourseDiscussionVO;
-import com.csu.unicorp.config.security.CustomUserDetails;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;

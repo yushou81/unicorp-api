@@ -1,9 +1,10 @@
-package com.csu.unicorp.service.impl;
+package com.csu.unicorp.service.impl.course;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.common.exception.LearningProgressException;
+import com.csu.unicorp.config.security.CustomUserDetails;
 import com.csu.unicorp.dto.LearningProgressDTO;
 import com.csu.unicorp.entity.course.CourseChapter;
 import com.csu.unicorp.entity.course.CourseEnrollment;
@@ -54,7 +55,7 @@ public class LearningProgressServiceImpl implements LearningProgressService {
         }
 
         // 获取当前用户ID
-        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
 
         // 查询是否已有进度记录
         LambdaQueryWrapper<LearningProgress> wrapper = new LambdaQueryWrapper<>();
@@ -322,7 +323,8 @@ public class LearningProgressServiceImpl implements LearningProgressService {
      */
     private boolean hasTeacherOrAdminRole(UserDetails userDetails) {
         return userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_TEACHER")) ||
-               userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+               userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_SCH_ADMIN")) ||
+                userDetails.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_STUDENT")) ;
     }
     
     /**

@@ -44,17 +44,21 @@ public class CommunityCategoryServiceImpl extends ServiceImpl<CommunityCategoryM
      */
     @Override
     public List<CategoryVO> getCategoryTree() {
+        log.info("获取板块树形结构");
         // 尝试从缓存获取
         String cacheKey = CacheConstants.CATEGORY_TREE_CACHE_KEY;
         List<CategoryVO> cachedTree = cacheService.getList(cacheKey, CategoryVO.class);
-        if (cachedTree != null) {
-            log.debug("从缓存获取板块树形结构");
+        log.info("cachedTree: {}", cachedTree);
+        log.info("cachedTree.size(): {}", cachedTree == null ? 0 : cachedTree.size());
+        if (cachedTree != null && !cachedTree.isEmpty()) {
+            log.info("从缓存获取板块树形结构");
             return cachedTree;
         }
         
+        log.info("从数据库获取板块树形结构");
         // 获取所有板块
         List<CommunityCategory> allCategories = this.list();
-        
+
         // 转换为VO
         List<CategoryVO> categoryVOList = allCategories.stream()
                 .map(this::convertToVO)

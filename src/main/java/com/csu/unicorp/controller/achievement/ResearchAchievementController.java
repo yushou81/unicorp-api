@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,6 +35,7 @@ import java.util.List;
 @RequestMapping("/v1/research")
 @RequiredArgsConstructor
 @Tag(name = "科研成果管理", description = "科研成果管理相关接口")
+@Slf4j
 public class ResearchAchievementController {
     
     private final ResearchAchievementService researchAchievementService;
@@ -157,7 +159,7 @@ public class ResearchAchievementController {
             @RequestPart(value = "coverImage", required = false) MultipartFile coverImage) {
         
         Integer userId = ((CustomUserDetails) userDetails).getUserId();
-        
+
         // 创建DTO对象
         ResearchAchievementCreationDTO dto = new ResearchAchievementCreationDTO();
         dto.setTitle(title);
@@ -205,7 +207,6 @@ public class ResearchAchievementController {
             @RequestPart(value = "coverImage", required = false) MultipartFile coverImage) {
         
         Integer userId = ((CustomUserDetails) userDetails).getUserId();
-        
         // 创建DTO对象
         ResearchAchievementCreationDTO dto = new ResearchAchievementCreationDTO();
         dto.setTitle(title);
