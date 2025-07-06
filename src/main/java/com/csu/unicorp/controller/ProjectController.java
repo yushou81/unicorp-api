@@ -163,21 +163,24 @@ public ResultVO<ProjectVO> updateProjectStatus(
 
 
 
-
-
-    // 3.1 上传合同/资料
+    // 3.1 上传合同/资料：没用
     @PostMapping("/{projectId}/documents")
     public ResultVO<ProjectDocumentVO> addDocument(@PathVariable Integer projectId, @RequestBody ProjectDocumentDTO dto) {
         ProjectDocumentVO vo = documentService.addDocument(projectId, dto);
         return ResultVO.success("操作成功", vo);
     }
 
-    // 3.2 获取项目资料列表
+    // 3.2 获取项目资料列表：没用
     @GetMapping("/{projectId}/documents")
     public ResultVO<List<ProjectDocumentVO>> getDocuments(@PathVariable Integer projectId) {
         List<ProjectDocumentVO> list = documentService.getDocuments(projectId);
         return ResultVO.success("操作成功", list);
     }
+
+
+
+
+
 
     // 4.1 经费申请
     @PostMapping("/{projectId}/funds/apply")
@@ -199,6 +202,19 @@ public ResultVO<ProjectVO> updateProjectStatus(
         List<ProjectFundRecordVO> list = fundService.getFundRecords(projectId);
         return ResultVO.success("操作成功", list);
     }
+
+    @GetMapping("/{projectId}/funds")
+    public ResultVO<List<ProjectFundVO>> getFundList(@PathVariable Integer projectId) {
+        List<ProjectFundVO> list = fundService.getFundList(projectId);
+        return ResultVO.success("操作成功", list);
+    }
+
+
+
+
+
+
+
 
     // 5.1 获取项目操作日志
     @GetMapping("/{projectId}/logs")

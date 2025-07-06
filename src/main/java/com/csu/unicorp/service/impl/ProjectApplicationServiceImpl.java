@@ -105,27 +105,30 @@ public List<ProjectApplicationVO> getProjectApplications(Integer projectId) {
 public List<ProjectApplicationVO> getMyProjectApplications(Integer applicantId) {
     List<ProjectApplication> list = applicationMapper.selectList(
         new QueryWrapper<ProjectApplication>().eq("applicant_id", applicantId));
-        return list.stream().map(app -> {
-            ProjectApplicationVO vo = new ProjectApplicationVO();
-            BeanUtils.copyProperties(app, vo);
-            // 组织名、时间等补充
-            User user = userMapper.selectById(app.getApplicantId());
-            if (user != null && user.getOrganizationId() != null) {
-                Organization org = organizationMapper.selectById(user.getOrganizationId());
+    return list.stream().map(app -> {
+        ProjectApplicationVO vo = new ProjectApplicationVO();
+        BeanUtils.copyProperties(app, vo);
+
+        // 查项目信息
+        Project project = projectMapper.selectById(app.getProjectId());
+        if (project != null) {
+            vo.setProjectName(project.getTitle());
+            vo.setProjectDescription(project.getDescription());
+
+            // 查项目发起人（不是当前用户！）
+            User initiator = userMapper.selectById(project.getInitiatorId());
+            if (initiator != null && initiator.getOrganizationId() != null) {
+                Organization org = organizationMapper.selectById(initiator.getOrganizationId());
                 if (org != null) {
                     vo.setOrganizationName(org.getOrganizationName());
                 }
             }
-            vo.setCreateTime(app.getCreateTime());
-            vo.setApproveTime(app.getApprovedTime());
-            // 查项目信息
-            Project project = projectMapper.selectById(app.getProjectId());
-            if (project != null) {
-                vo.setProjectName(project.getTitle());
-                vo.setProjectDescription(project.getDescription());
-            }
-            return vo;
-        }).collect(Collectors.toList());
+        }
+
+        vo.setCreateTime(app.getCreateTime());
+        vo.setApproveTime(app.getApprovedTime());
+        return vo;
+    }).collect(Collectors.toList());
 }
 
 }

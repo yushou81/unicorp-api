@@ -13,4 +13,6 @@ public interface ProjectFundService {
     ProjectFundVO applyFund(Integer projectId, ProjectFundApplyDTO dto);
     ProjectFundVO reviewFund(Integer projectId, Integer fundId, ProjectFundReviewDTO dto);
     List<ProjectFundRecordVO> getFundRecords(Integer projectId);
+
+    List<ProjectFundVO> getFundList(Integer projectId);
 }
