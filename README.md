@@ -75,6 +75,9 @@ unicorp-api/
 │   └── 第8次迭代/
 │       ├── 用户管理接口测试计划.md  # 用户管理接口测试计划
 │       └── 企业管理员接口测试计划.md # 企业管理员接口测试计划
+│   ├── github_login_integration_plan.md # GitHub登录集成计划
+│   ├── github_login_implementation.md # GitHub登录实现文档
+│   └── github_login_user_guide.md # GitHub登录前端使用指南
 ├── src/                         # 源代码
 │   ├── main/
 │   │   ├── java/com/csu/unicorp/
@@ -226,6 +229,12 @@ unicorp-api/
 - 用户特征提取（从简历、作品集、成就等数据中提取用户特征）
 - 岗位特征提取（从岗位描述、要求等信息中提取岗位特征）
 - 推荐算法实现（基于内容的推荐和协同过滤推荐）
+
+### 第十二次迭代 - GitHub OAuth2登录集成
+- 支持使用GitHub账号登录系统
+- 自动创建关联用户账号
+- 实现无缝的OAuth2认证流程
+- 优化数据库结构支持第三方登录（密码字段允许为NULL）
 
 已实现API:
 1. 用户登录 - POST `/v1/auth/login`

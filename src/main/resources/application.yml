@@ -64,8 +64,10 @@ spring:
       org.springframework.web.socket: DEBUG  # WebSocket相关日志设为DEBUG
       org.springframework.messaging: DEBUG  # Spring消息相关日志设为DEBUG
       com.csu.unicorp.config.security: TRACE  # 安全配置相关日志设为TRACE
-      org.springframework.security: DEBUG  # 安全相关日志设为DEBUG
+      org.springframework.security: TRACE  # 安全相关日志设为TRACE
+      org.springframework.security.oauth2: TRACE  # OAuth2相关日志设为TRACE
       org.springframework.web: DEBUG  # Web相关日志设为DEBUG
+      org.springframework.web.client.RestTemplate: DEBUG  # RestTemplate日志设为DEBUG
       org.hibernate.SQL: DEBUG  # 显示SQL语句
       org.hibernate.type.descriptor.sql: TRACE  # 显示SQL参数绑定值
   security:
@@ -82,6 +84,7 @@ spring:
             token-uri: https://github.com/login/oauth/access_token
             user-info-uri: https://api.github.com/user
             user-name-attribute: login
+            redirect-uri: http://localhost:8081/api/login/oauth2/code/github
 # JWT配置
 jwt:
   secret: Oe8H9XZ3x2NpDQfY9vTr5qK6sLm7oP3aUv1wMxB2zC3yD4fE5gF6hG7jH8kJ
