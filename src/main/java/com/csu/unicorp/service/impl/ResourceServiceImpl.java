@@ -249,6 +249,22 @@ public class ResourceServiceImpl implements ResourceService {
     }
     
     /**
+     * 获取当前用户上传的资源列表（分页）
+     */
+    @Override
+    public IPage<ResourceVO> getCurrentUserResources(int page, int size, String keyword, UserDetails userDetails) {
+        // 获取当前用户
+        User user = userService.getByAccount(userDetails.getUsername());
+        if (user == null) {
+            throw new AccessDeniedException("用户不存在");
+        }
+        
+        // 分页查询该用户上传的资源
+        Page<ResourceVO> pagination = new Page<>(page, size);
+        return resourceMapper.selectUserUploadedResources(pagination, user.getId(), keyword);
+    }
+    
+    /**
      * 检查用户是否有资源管理权限（教师或企业导师）
      */
     private boolean hasResourceManagementPermission(UserDetails userDetails) {

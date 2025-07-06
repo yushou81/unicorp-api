@@ -87,6 +87,9 @@ public class SecurityConfig {
                     .requestMatchers("/v1/organizations/schools").permitAll()
                     .requestMatchers("/v1/jobs", "/v1/jobs/**","/v1/job-categories").permitAll()
                     .requestMatchers("/v1/projects", "/v1/projects/{id}").permitAll()
+                    // 地图API - 允许所有用户访问
+                    .requestMatchers("/v1/map/**").permitAll()
+                    .requestMatchers("/api/v1/map/**").permitAll()
                     // WebSocket端点 - 允许所有访问，认证在WebSocketAuthInterceptor中处理
                     .requestMatchers("/ws/**").permitAll()
                     // 资源共享中心公开接口

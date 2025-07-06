@@ -1,5 +1,18 @@
 package com.csu.unicorp.service.impl;
 
+import java.time.LocalDateTime;
+import java.util.Objects;
+
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.common.constants.CacheConstants;
@@ -17,9 +30,9 @@ import com.csu.unicorp.dto.StudentRegistrationDTO;
 import com.csu.unicorp.dto.UserProfileUpdateDTO;
 import com.csu.unicorp.dto.UserUpdateDTO;
 import com.csu.unicorp.entity.EnterpriseDetail;
-import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.entity.UserVerification;
+import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.mapper.UserVerificationMapper;
 import com.csu.unicorp.service.CacheService;
@@ -32,8 +45,10 @@ import com.csu.unicorp.service.TokenBlacklistService;
 import com.csu.unicorp.service.UserService;
 import com.csu.unicorp.vo.TokenVO;
 import com.csu.unicorp.vo.UserVO;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
@@ -51,6 +66,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+
 
 /**
  * 用户服务实现类
@@ -396,6 +412,8 @@ public class UserServiceImpl implements UserService {
         organization.setWebsite(registrationDto.getWebsite());
         organization.setType("Enterprise");
         organization.setStatus("pending"); // 企业注册初始状态为待审核
+        organization.setLatitude(registrationDto.getLatitude());
+        organization.setLongitude(registrationDto.getLongitude());
         
         // 创建企业详情
         EnterpriseDetail enterpriseDetail = new EnterpriseDetail();

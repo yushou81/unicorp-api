@@ -54,6 +54,8 @@ spring:
     out-of-order: false # 是否允许无序执行
     validate-on-migrate: false # 临时禁用迁移验证，解决校验和问题
     table: flyway_schema_history # Flyway元数据表名
+    repair-on-migrate: true # 启用修复功能，修复失败的迁移
+    validate-migration-naming: true # 验证迁移文件命名是否符合规范
     # 如果需要清理数据库（开发环境可用，生产环境禁用）
     clean-disabled: true # 禁用clean操作，防止意外删除数据
   logging:
@@ -196,6 +198,7 @@ springdoc:
     - group: '地图服务'
       paths-to-match: 
         - /v1/map/**
+        - /api/v1/map/**
       packages-to-scan: com.csu.unicorp.controller
     - group: '聊天功能'
       paths-to-match:
