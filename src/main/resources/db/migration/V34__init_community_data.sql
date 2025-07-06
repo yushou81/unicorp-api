@@ -17,7 +17,7 @@ INSERT INTO community_category (name, description, parent_id, sort_order, permis
 ('职业规划', '职业发展规划建议', 3, 2, 0);
 
 -- 初始化标签
-INSERT INTO community_tag (name, description) VALUES 
+INSERT IGNORE INTO community_tag (name, description) VALUES 
 ('Java', 'Java编程语言相关讨论'),
 ('Python', 'Python编程语言相关讨论'),
 ('前端', '前端开发技术相关讨论'),
@@ -30,7 +30,7 @@ INSERT INTO community_tag (name, description) VALUES
 ('考研', '考研经验与信息分享');
 
 -- 初始化敏感词（示例）
-INSERT INTO community_sensitive_word (word, level, replacement) VALUES 
+INSERT IGNORE INTO community_sensitive_word (word, level, replacement) VALUES 
 ('敏感词1', 3, '***'),
 ('敏感词2', 2, '***'),
 ('敏感词3', 1, '***'); 
