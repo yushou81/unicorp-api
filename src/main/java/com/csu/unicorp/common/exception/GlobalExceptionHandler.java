@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -15,12 +16,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.csu.unicorp.service.SystemLogService;
 import com.csu.unicorp.vo.ResultVO;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -29,7 +32,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final SystemLogService systemLogService;
 
     /**
      * 处理JWT相关异常
@@ -74,8 +80,9 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BusinessException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResultVO<Void> handleBusinessException(BusinessException e) {
-        log.error("业务异常: {}", e.getMessage());
+    public ResultVO<?> handleBusinessException(BusinessException e) {
+        // 记录业务异常
+        systemLogService.warning("Business", e.getMessage());
         return ResultVO.error(e.getMessage());
     }
     
@@ -107,6 +114,17 @@ public class GlobalExceptionHandler {
     public ResultVO<Void> handleResourceNotFoundException(ResourceNotFoundException e) {
         log.error("资源不存在异常: {}", e.getMessage());
         return ResultVO.error(404, e.getMessage());
+    }
+
+    /**
+     * 处理Redis连接异常
+     */
+    @ExceptionHandler(RedisConnectionFailureException.class)
+    @ResponseStatus(HttpStatus.OK)
+    public ResultVO<Void> handleRedisConnectionFailureException(RedisConnectionFailureException e) {
+        log.warn("Redis连接异常，将使用本地缓存降级: {}", e.getMessage());
+        // 返回200状态码，让客户端正常处理
+        return ResultVO.success("使用本地缓存降级处理");
     }
 
     /**
@@ -181,7 +199,17 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResultVO<Void> handleAuthenticationException(BadCredentialsException e) {
         log.error("认证异常: {}", e.getMessage());
-        return ResultVO.error("账号或密码错误");
+        return ResultVO.error(401, e.getMessage());
+    }
+    
+    /**
+     * 处理账户锁定异常
+     */
+    @ExceptionHandler(org.springframework.security.authentication.LockedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResultVO<Void> handleLockedException(org.springframework.security.authentication.LockedException e) {
+        log.error("账户锁定异常: {}", e.getMessage());
+        return ResultVO.error(401, e.getMessage());
     }
     
     /**
@@ -209,12 +237,13 @@ public class GlobalExceptionHandler {
     }
     
     /**
-     * 处理其他所有未明确处理的异常
+     * 处理系统异常
      */
     @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR) // 500
-    public ResultVO<Void> handleException(Exception e) {
-        log.error("系统异常", e);
-        return ResultVO.serverError("系统异常，请联系管理员");
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResultVO<?> handleException(Exception e) {
+        // 记录系统异常
+        systemLogService.error("System", "系统异常", e);
+        return ResultVO.error("系统异常，请联系管理员");
     }
 } 

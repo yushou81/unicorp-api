@@ -31,9 +31,34 @@ public class AuditLog {
     private Integer userId;
     
     /**
+     * 用户账号
+     */
+    private String userAccount;
+    
+    /**
+     * 用户名称
+     */
+    private String userName;
+    
+    /**
      * 操作类型
      */
     private String action;
+    
+    /**
+     * 所属模块
+     */
+    private String module;
+    
+    /**
+     * IP地址
+     */
+    private String ip;
+    
+    /**
+     * 操作结果
+     */
+    private String result;
     
     /**
      * 操作时间

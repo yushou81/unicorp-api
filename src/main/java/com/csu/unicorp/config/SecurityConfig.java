@@ -25,6 +25,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.config.security.JwtAuthenticationFilter;
+import com.csu.unicorp.config.security.OAuth2LoginSuccessHandler;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -44,6 +45,7 @@ public class SecurityConfig {
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
     
     /**
      * CORS配置 - 允许所有来源访问
@@ -79,11 +81,15 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                     // 公共接口
-                    .requestMatchers("/v1/auth/login", "/v1/auth/register/**","/v1/files/**").permitAll()
-                        .requestMatchers("/v1/files/resumes/**").permitAll()
+                    .requestMatchers("/v1/auth/login", "/v1/auth/register/**", "/v1/auth/refresh").permitAll()
+                    .requestMatchers("/v1/files/**").permitAll()
+                    .requestMatchers("/v1/files/resumes/**").permitAll()
                     .requestMatchers("/v1/organizations/schools").permitAll()
                     .requestMatchers("/v1/jobs", "/v1/jobs/**","/v1/job-categories").permitAll()
                     .requestMatchers("/v1/projects", "/v1/projects/{id}").permitAll()
+                    // 地图API - 允许所有用户访问
+                    .requestMatchers("/v1/map/**").permitAll()
+                    .requestMatchers("/api/v1/map/**").permitAll()
                     // WebSocket端点 - 允许所有访问，认证在WebSocketAuthInterceptor中处理
                     .requestMatchers("/ws/**").permitAll()
                     // 资源共享中心公开接口
@@ -124,6 +130,10 @@ public class SecurityConfig {
                     .requestMatchers("/v1/community/comments/user/{userId}").permitAll()
                     .requestMatchers("/v1/community/tags", "/v1/community/tags/hot", "/v1/community/tags/search").permitAll()
                     .requestMatchers("/v1/community/tags/{tagId}", "/v1/community/tags/topic/{topicId}", "/v1/community/tags/question/{questionId}").permitAll()
+                    // OAuth2登录相关路径
+                    .requestMatchers("/login/oauth2/code/**", "/oauth2/**").permitAll()
+                    // 推荐系统公开接口
+                    .requestMatchers("/v1/recommendations/behaviors").permitAll()
                     
                     // 用户搜索接口需要认证
                     .requestMatchers("/v1/auth/search").authenticated()
@@ -143,12 +153,22 @@ public class SecurityConfig {
                     .requestMatchers("/v1/school-admin/**").hasRole(RoleConstants.ROLE_SCHOOL_ADMIN)
                     // 企业管理员接口需要EN_ADMIN权限
                     .requestMatchers("/v1/enterprise-admin/**").hasRole(RoleConstants.ROLE_ENTERPRISE_ADMIN)
+                    // 系统管理员接口
+                    .requestMatchers("/v1/admin/users/**").hasRole("SYSADMIN")
+                    .requestMatchers("/v1/admin/organizations/**").hasRole("SYSADMIN")
+                    .requestMatchers("/v1/admin/audit/**").hasRole("SYSADMIN")
                     // 其他所有请求需要认证
                     .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // 配置OAuth2登录
+                .oauth2Login(oauth2 -> oauth2
+                    .loginPage("/login")
+                    .successHandler(oAuth2LoginSuccessHandler)
+                    .defaultSuccessUrl("http://localhost:8082/login-success", true)
+                )
                 .build();
     }
     
@@ -191,11 +211,11 @@ public class SecurityConfig {
                                 .scheme("bearer")
                                 .bearerFormat("JWT")))
                 .info(new Info()
-                        .title("校企合作平台 API")
-                        .description("校企合作平台 RESTful API 文档")
+                        .title("UniCorp API")
+                        .description("校企合作平台API文档")
                         .version("1.0.0")
                         .contact(new Contact()
-                                .name("CSU Team")
-                                .email("support@unicorp.com")));
+                                .name("UniCorp Team")
+                                .email("unicorp@example.com")));
     }
 }

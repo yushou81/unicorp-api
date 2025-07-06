@@ -64,4 +64,16 @@ public interface CompetitionAwardMapper extends BaseMapper<CompetitionAward> {
      */
     @Select("SELECT * FROM competition_awards WHERE verifier_id = #{verifierId} AND is_verified = true AND is_deleted = 0")
     Page<CompetitionAward> selectVerifiedPageByVerifierId(Page<CompetitionAward> page, @Param("verifierId") Integer verifierId);
+    
+    /**
+     * 根据组织ID查询获奖列表
+     * 
+     * @param page 分页参数
+     * @param organizationId 组织ID
+     * @return 获奖分页列表
+     */
+    @Select("SELECT ca.* FROM competition_awards ca " +
+            "JOIN users u ON ca.user_id = u.id " +
+            "WHERE u.organization_id = #{organizationId} AND ca.is_deleted = 0")
+    Page<CompetitionAward> selectByOrganizationId(Page<CompetitionAward> page, @Param("organizationId") Integer organizationId);
 } 

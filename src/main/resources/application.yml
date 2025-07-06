@@ -11,6 +11,7 @@ spring:
   # 允许Bean覆盖
   main:
     allow-bean-definition-overriding: true
+    allow-circular-references: true
   application:
     name: unicorp-api # 应用名称
   # 数据库连接池配置
@@ -18,6 +19,27 @@ spring:
     url: jdbc:mysql://localhost:3306/unicorp?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root # 数据库用户名
     password: 123456 # 数据库密码
+  # Redis配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 10000
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1
+          max-idle: 8
+          min-idle: 0
+  # 缓存配置
+  cache:
+    type: redis
+    redis:
+      time-to-live: 1800000  # 缓存过期时间，30分钟
+      cache-null-values: false  # 是否缓存空值
+      use-key-prefix: true  # 是否使用键前缀
+      key-prefix: "unicorp:"  # 键前缀
   # 文件上传配置
   servlet:
     multipart:
@@ -32,6 +54,8 @@ spring:
     out-of-order: false # 是否允许无序执行
     validate-on-migrate: false # 临时禁用迁移验证，解决校验和问题
     table: flyway_schema_history # Flyway元数据表名
+    repair-on-migrate: true # 启用修复功能，修复失败的迁移
+    validate-migration-naming: true # 验证迁移文件命名是否符合规范
     # 如果需要清理数据库（开发环境可用，生产环境禁用）
     clean-disabled: true # 禁用clean操作，防止意外删除数据
   logging:
@@ -46,7 +70,20 @@ spring:
       org.springframework.web: DEBUG  # Web相关日志设为DEBUG
       org.hibernate.SQL: DEBUG  # 显示SQL语句
       org.hibernate.type.descriptor.sql: TRACE  # 显示SQL参数绑定值
-
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: Ov23liJgcPyAbNEKj8uo
+            client-secret: de07c0a751a6372400258bf04779cf5102a0f940
+            scope: user:email
+        provider:
+          github:
+            authorization-uri: https://github.com/login/oauth/authorize
+            token-uri: https://github.com/login/oauth/access_token
+            user-info-uri: https://api.github.com/user
+            user-name-attribute: login
 # JWT配置
 jwt:
   secret: Oe8H9XZ3x2NpDQfY9vTr5qK6sLm7oP3aUv1wMxB2zC3yD4fE5gF6hG7jH8kJ
@@ -161,6 +198,7 @@ springdoc:
     - group: '地图服务'
       paths-to-match: 
         - /v1/map/**
+        - /api/v1/map/**
       packages-to-scan: com.csu.unicorp.controller
     - group: '聊天功能'
       paths-to-match:

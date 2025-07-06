@@ -74,4 +74,29 @@ public interface ResearchAchievementMapper extends BaseMapper<ResearchAchievemen
      */
     @Select("SELECT * FROM research_achievements WHERE verifier_id = #{verifierId} AND is_verified = true AND is_deleted = 0")
     Page<ResearchAchievement> selectVerifiedPageByVerifierId(Page<ResearchAchievement> page, @Param("verifierId") Integer verifierId);
+    
+    /**
+     * 根据组织ID分页查询科研成果列表
+     * 
+     * @param page 分页参数
+     * @param organizationId 组织ID
+     * @return 科研成果分页列表
+     */
+    @Select("SELECT ra.* FROM research_achievements ra " +
+            "JOIN users u ON ra.user_id = u.id " +
+            "WHERE u.organization_id = #{organizationId} AND ra.is_deleted = 0")
+    Page<ResearchAchievement> selectByOrganizationId(Page<ResearchAchievement> page, @Param("organizationId") Integer organizationId);
+    
+    /**
+     * 根据组织ID和类型分页查询科研成果列表
+     * 
+     * @param page 分页参数
+     * @param organizationId 组织ID
+     * @param type 成果类型
+     * @return 科研成果分页列表
+     */
+    @Select("SELECT ra.* FROM research_achievements ra " +
+            "JOIN users u ON ra.user_id = u.id " +
+            "WHERE u.organization_id = #{organizationId} AND ra.type = #{type} AND ra.is_deleted = 0")
+    Page<ResearchAchievement> selectByOrganizationIdAndType(Page<ResearchAchievement> page, @Param("organizationId") Integer organizationId, @Param("type") String type);
 } 

@@ -64,7 +64,7 @@ public class CourseQuestionController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'MENTOR')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN', 'EN_TEACHER')")
     public ResultVO<CourseQuestionVO> answerQuestion(
             @PathVariable @Parameter(description = "问题ID") Integer id,
             @RequestParam @Parameter(description = "回答内容") String answer,

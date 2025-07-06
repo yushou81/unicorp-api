@@ -1,0 +1,44 @@
+package com.csu.unicorp.dto.recommendation;
+
+import lombok.Data;
+
+import jakarta.validation.constraints.NotNull;
+import java.util.List;
+
+/**
+ * 用户特征更新DTO类
+ * 用于接收用户特征更新请求
+ */
+@Data
+public class UserFeatureUpdateDTO {
+    
+    /**
+     * 技能标签列表
+     */
+    private List<String> skills;
+    
+    /**
+     * 兴趣领域列表
+     */
+    private List<String> interests;
+    
+    /**
+     * 专业领域
+     */
+    private String major;
+    
+    /**
+     * 学历等级
+     */
+    private String educationLevel;
+    
+    /**
+     * 偏好工作地点
+     */
+    private String preferredLocation;
+    
+    /**
+     * 偏好工作类型
+     */
+    private String preferredJobType;
+} 

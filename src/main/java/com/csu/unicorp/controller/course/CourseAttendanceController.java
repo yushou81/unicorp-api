@@ -122,7 +122,7 @@ public class CourseAttendanceController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN')")
     public ResultVO<CourseAttendanceVO> updateAttendance(
             @PathVariable @Parameter(description = "出勤记录ID") Integer id,
             @RequestParam @Parameter(description = "出勤状态") String status,

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -12,25 +13,30 @@ import org.springframework.transaction.annotation.Transactional;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.csu.unicorp.common.constants.CacheConstants;
 import com.csu.unicorp.entity.community.CommunityContentTag;
 import com.csu.unicorp.entity.community.CommunityTag;
 import com.csu.unicorp.mapper.community.CommunityContentTagMapper;
 import com.csu.unicorp.mapper.community.CommunityTagMapper;
+import com.csu.unicorp.service.CacheService;
 import com.csu.unicorp.service.CommunityTagService;
 import com.csu.unicorp.vo.community.TagVO;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 社区标签Service实现类
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CommunityTagServiceImpl extends ServiceImpl<CommunityTagMapper, CommunityTag>
         implements CommunityTagService {
     
     private final CommunityTagMapper tagMapper;
     private final CommunityContentTagMapper contentTagMapper;
+    private final CacheService cacheService;
     
     @Override
     @Transactional
@@ -43,6 +49,10 @@ public class CommunityTagServiceImpl extends ServiceImpl<CommunityTagMapper, Com
         tag.setUpdatedAt(LocalDateTime.now());
         
         save(tag);
+        
+        // 清除热门标签缓存
+        cacheService.delete(CacheConstants.HOT_TAGS_CACHE_KEY);
+        
         return tag.getId();
     }
     
@@ -58,33 +68,89 @@ public class CommunityTagServiceImpl extends ServiceImpl<CommunityTagMapper, Com
         tag.setDescription(description);
         tag.setUpdatedAt(LocalDateTime.now());
         
-        return updateById(tag);
+        boolean result = updateById(tag);
+        
+        if (result) {
+            // 清除相关缓存
+            cacheService.delete(CacheConstants.TAG_DETAIL_CACHE_KEY_PREFIX + tagId);
+            cacheService.delete(CacheConstants.HOT_TAGS_CACHE_KEY);
+        }
+        
+        return result;
     }
     
     @Override
     @Transactional
     public boolean deleteTag(Long tagId) {
-        return removeById(tagId);
+        boolean result = removeById(tagId);
+        
+        if (result) {
+            // 清除相关缓存
+            cacheService.delete(CacheConstants.TAG_DETAIL_CACHE_KEY_PREFIX + tagId);
+            cacheService.delete(CacheConstants.HOT_TAGS_CACHE_KEY);
+        }
+        
+        return result;
     }
     
     @Override
     public TagVO getTagDetail(Long tagId) {
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.TAG_DETAIL_CACHE_KEY_PREFIX + tagId;
+        TagVO cachedTag = cacheService.get(cacheKey, TagVO.class);
+        if (cachedTag != null) {
+            log.debug("从缓存获取标签详情: {}", tagId);
+            return cachedTag;
+        }
+        
         CommunityTag tag = getById(tagId);
-        return tag != null ? convertToTagVO(tag) : null;
+        if (tag == null) {
+            return null;
+        }
+        
+        TagVO tagVO = convertToTagVO(tag);
+        
+        // 缓存标签详情
+        cacheService.set(cacheKey, tagVO, CacheConstants.TAG_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return tagVO;
     }
     
     @Override
     public List<TagVO> getHotTags(int limit) {
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.HOT_TAGS_CACHE_KEY + ":" + limit;
+        List<TagVO> cachedTags = cacheService.getList(cacheKey, TagVO.class);
+        if (cachedTags != null && !cachedTags.isEmpty()) {
+            log.debug("从缓存获取热门标签列表");
+            return cachedTags;
+        }
+        
         LambdaQueryWrapper<CommunityTag> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.orderByDesc(CommunityTag::getUsageCount)
                    .last("LIMIT " + limit);
         
         List<CommunityTag> tags = list(queryWrapper);
-        return tags.stream().map(this::convertToTagVO).collect(Collectors.toList());
+        List<TagVO> result = tags.stream().map(this::convertToTagVO).collect(Collectors.toList());
+        
+        // 缓存热门标签
+        cacheService.setList(cacheKey, result, CacheConstants.HOT_TAGS_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return result;
     }
     
     @Override
     public Page<TagVO> getAllTags(int page, int size) {
+        // 对于分页数据，只缓存第一页
+        if (page == 1) {
+            String cacheKey = CacheConstants.ALL_TAGS_CACHE_KEY + ":" + size;
+            Page<TagVO> cachedPage = cacheService.get(cacheKey, Page.class);
+            if (cachedPage != null) {
+                log.debug("从缓存获取标签分页列表");
+                return cachedPage;
+            }
+        }
+        
         Page<CommunityTag> tagPage = new Page<>(page, size);
         Page<CommunityTag> resultPage = page(tagPage, new LambdaQueryWrapper<CommunityTag>()
                 .orderByDesc(CommunityTag::getUsageCount));
@@ -94,11 +160,25 @@ public class CommunityTagServiceImpl extends ServiceImpl<CommunityTagMapper, Com
                 .map(this::convertToTagVO)
                 .collect(Collectors.toList()));
         
+        // 缓存第一页数据
+        if (page == 1) {
+            String cacheKey = CacheConstants.ALL_TAGS_CACHE_KEY + ":" + size;
+            cacheService.set(cacheKey, voPage, CacheConstants.TAG_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        }
+        
         return voPage;
     }
     
     @Override
     public List<TagVO> getTagsByContent(String contentType, Long contentId) {
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.CONTENT_TAGS_CACHE_KEY_PREFIX + contentType + ":" + contentId;
+        List<TagVO> cachedTags = cacheService.getList(cacheKey, TagVO.class);
+        if (cachedTags != null) {
+            log.debug("从缓存获取内容标签: {}:{}", contentType, contentId);
+            return cachedTags;
+        }
+        
         // 获取内容关联的标签ID列表
         LambdaQueryWrapper<CommunityContentTag> contentTagQuery = new LambdaQueryWrapper<>();
         contentTagQuery.eq(CommunityContentTag::getContentType, contentType)
@@ -118,7 +198,12 @@ public class CommunityTagServiceImpl extends ServiceImpl<CommunityTagMapper, Com
         tagQuery.in(CommunityTag::getId, tagIds);
         
         List<CommunityTag> tags = list(tagQuery);
-        return tags.stream().map(this::convertToTagVO).collect(Collectors.toList());
+        List<TagVO> result = tags.stream().map(this::convertToTagVO).collect(Collectors.toList());
+        
+        // 缓存结果
+        cacheService.setList(cacheKey, result, CacheConstants.TAG_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return result;
     }
     
     @Override
@@ -147,6 +232,11 @@ public class CommunityTagServiceImpl extends ServiceImpl<CommunityTagMapper, Com
             for (CommunityContentTag contentTag : contentTags) {
                 contentTagMapper.insert(contentTag);
             }
+            
+            // 清除内容标签缓存
+            cacheService.delete(CacheConstants.CONTENT_TAGS_CACHE_KEY_PREFIX + contentType + ":" + contentId);
+            // 清除热门标签缓存
+            cacheService.delete(CacheConstants.HOT_TAGS_CACHE_KEY);
         }
         
         return true;
@@ -164,6 +254,11 @@ public class CommunityTagServiceImpl extends ServiceImpl<CommunityTagMapper, Com
         if (result > 0) {
             // 减少标签使用计数
             decrementTagUsageCount(tagId);
+            
+            // 清除内容标签缓存
+            cacheService.delete(CacheConstants.CONTENT_TAGS_CACHE_KEY_PREFIX + contentType + ":" + contentId);
+            // 清除热门标签缓存
+            cacheService.delete(CacheConstants.HOT_TAGS_CACHE_KEY);
         }
         
         return result > 0;
@@ -178,6 +273,9 @@ public class CommunityTagServiceImpl extends ServiceImpl<CommunityTagMapper, Com
                    .eq(CommunityContentTag::getContentId, contentId);
         
         contentTagMapper.delete(queryWrapper);
+        
+        // 清除内容标签缓存
+        cacheService.delete(CacheConstants.CONTENT_TAGS_CACHE_KEY_PREFIX + contentType + ":" + contentId);
         
         // 重新添加关联
         return addTagsToContent(contentType, contentId, tagIds);
@@ -194,6 +292,7 @@ public class CommunityTagServiceImpl extends ServiceImpl<CommunityTagMapper, Com
             return Collections.emptyList();
         }
         
+        // 搜索结果不缓存，因为关键词变化较多
         LambdaQueryWrapper<CommunityTag> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(CommunityTag::getName, keyword)
                    .orderByDesc(CommunityTag::getUsageCount)
@@ -205,14 +304,27 @@ public class CommunityTagServiceImpl extends ServiceImpl<CommunityTagMapper, Com
     
     @Override
     public List<Long> getContentIdsByTag(String contentType, Long tagId) {
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.TAG_CONTENT_IDS_CACHE_KEY_PREFIX + contentType + ":" + tagId;
+        List<Long> cachedIds = cacheService.getList(cacheKey, Long.class);
+        if (cachedIds != null) {
+            log.debug("从缓存获取标签内容ID列表: {}:{}", contentType, tagId);
+            return cachedIds;
+        }
+        
         LambdaQueryWrapper<CommunityContentTag> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(CommunityContentTag::getContentType, contentType)
                    .eq(CommunityContentTag::getTagId, tagId);
         
         List<CommunityContentTag> contentTags = contentTagMapper.selectList(queryWrapper);
-        return contentTags.stream()
+        List<Long> result = contentTags.stream()
                 .map(CommunityContentTag::getContentId)
                 .collect(Collectors.toList());
+        
+        // 缓存结果
+        cacheService.setList(cacheKey, result, CacheConstants.TAG_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return result;
     }
     
     @Override
@@ -233,6 +345,13 @@ public class CommunityTagServiceImpl extends ServiceImpl<CommunityTagMapper, Com
     
     @Override
     public boolean existsById(Long tagId) {
+        // 先检查缓存
+        String cacheKey = CacheConstants.TAG_DETAIL_CACHE_KEY_PREFIX + tagId;
+        TagVO cachedTag = cacheService.get(cacheKey, TagVO.class);
+        if (cachedTag != null) {
+            return true;
+        }
+        
         return getById(tagId) != null;
     }
     
@@ -287,6 +406,10 @@ public class CommunityTagServiceImpl extends ServiceImpl<CommunityTagMapper, Com
         if (tag != null) {
             tag.setUsageCount(tag.getUsageCount() + 1);
             updateById(tag);
+            
+            // 清除标签缓存
+            cacheService.delete(CacheConstants.TAG_DETAIL_CACHE_KEY_PREFIX + tagId);
+            cacheService.delete(CacheConstants.HOT_TAGS_CACHE_KEY);
         }
     }
     
@@ -299,6 +422,10 @@ public class CommunityTagServiceImpl extends ServiceImpl<CommunityTagMapper, Com
         if (tag != null && tag.getUsageCount() > 0) {
             tag.setUsageCount(tag.getUsageCount() - 1);
             updateById(tag);
+            
+            // 清除标签缓存
+            cacheService.delete(CacheConstants.TAG_DETAIL_CACHE_KEY_PREFIX + tagId);
+            cacheService.delete(CacheConstants.HOT_TAGS_CACHE_KEY);
         }
     }
 } 

@@ -1,34 +1,8 @@
 package com.csu.unicorp.service.impl;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.csu.unicorp.common.constants.RoleConstants;
-import com.csu.unicorp.common.exception.BusinessException;
-import com.csu.unicorp.common.utils.AccountGenerator;
-import com.csu.unicorp.common.utils.JwtUtil;
-import com.csu.unicorp.dto.EnterpriseRegistrationDTO;
-import com.csu.unicorp.dto.LoginCredentialsDTO;
-import com.csu.unicorp.dto.OrgMemberCreationDTO;
-import com.csu.unicorp.dto.OrgMemberUpdateDTO;
-import com.csu.unicorp.dto.PasswordUpdateDTO;
-import com.csu.unicorp.dto.StudentRegistrationDTO;
-import com.csu.unicorp.dto.UserProfileUpdateDTO;
-import com.csu.unicorp.dto.UserUpdateDTO;
-import com.csu.unicorp.entity.EnterpriseDetail;
-import com.csu.unicorp.entity.organization.Organization;
-import com.csu.unicorp.entity.User;
-import com.csu.unicorp.entity.UserVerification;
-import com.csu.unicorp.mapper.UserMapper;
-import com.csu.unicorp.mapper.UserVerificationMapper;
-import com.csu.unicorp.service.EnterpriseService;
-import com.csu.unicorp.service.FileService;
-import com.csu.unicorp.service.OrganizationService;
-import com.csu.unicorp.service.RoleService;
-import com.csu.unicorp.service.UserService;
-import com.csu.unicorp.vo.TokenVO;
-import com.csu.unicorp.vo.UserVO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDateTime;
+import java.util.Objects;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -39,8 +13,60 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.csu.unicorp.common.constants.CacheConstants;
+import com.csu.unicorp.common.constants.RoleConstants;
+import com.csu.unicorp.common.exception.BusinessException;
+import com.csu.unicorp.common.utils.AccountGenerator;
+import com.csu.unicorp.common.utils.JwtUtil;
+import com.csu.unicorp.dto.EnterpriseRegistrationDTO;
+import com.csu.unicorp.dto.LoginCredentialsDTO;
+import com.csu.unicorp.dto.OrgMemberCreationDTO;
+import com.csu.unicorp.dto.OrgMemberUpdateDTO;
+import com.csu.unicorp.dto.PasswordUpdateDTO;
+import com.csu.unicorp.dto.RefreshTokenDTO;
+import com.csu.unicorp.dto.StudentRegistrationDTO;
+import com.csu.unicorp.dto.UserProfileUpdateDTO;
+import com.csu.unicorp.dto.UserUpdateDTO;
+import com.csu.unicorp.entity.EnterpriseDetail;
+import com.csu.unicorp.entity.User;
+import com.csu.unicorp.entity.UserVerification;
+import com.csu.unicorp.entity.organization.Organization;
+import com.csu.unicorp.mapper.UserMapper;
+import com.csu.unicorp.mapper.UserVerificationMapper;
+import com.csu.unicorp.service.CacheService;
+import com.csu.unicorp.service.EnterpriseService;
+import com.csu.unicorp.service.FileService;
+import com.csu.unicorp.service.LoginAttemptService;
+import com.csu.unicorp.service.OrganizationService;
+import com.csu.unicorp.service.RoleService;
+import com.csu.unicorp.service.TokenBlacklistService;
+import com.csu.unicorp.service.UserService;
+import com.csu.unicorp.vo.TokenVO;
+import com.csu.unicorp.vo.UserVO;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+
 
 /**
  * 用户服务实现类
@@ -60,6 +86,10 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final AccountGenerator accountGenerator;
     private final FileService fileService;
+    private final TokenBlacklistService tokenBlacklistService;
+    private final LoginAttemptService loginAttemptService;
+    private final CacheService cacheService;
+    private final UserDetailsService userDetailsService;
     
     @Override
     public TokenVO login(LoginCredentialsDTO loginDto) {
@@ -84,33 +114,204 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             throw new BadCredentialsException("用户不存在");
         }
-        log.info("user: {}", user);
-        // 使用找到的用户账号和输入的密码进行认证
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(user.getAccount(), loginDto.getPassword())
-        );
         
-        // 如果认证通过，获取用户详情并生成JWT令牌
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
-        String token = jwtUtil.generateToken(userDetails);
-        
-        // 获取用户角色（只有一个角色）
-        String role = getUserRole(user.getId());
-        
-        // 构建并返回TokenVO，包含token、nickname和role
-        TokenVO tokenVO = TokenVO.builder()
-                .token(token)
-                .nickname(user.getNickname())
-                .role(role)
-                .build();
-                
-        // 设置头像URL
-        if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
-            tokenVO.setAvatar(fileService.getFullFileUrl(user.getAvatar()));
+        // 检查用户是否被锁定
+        if (loginAttemptService.isLocked(user.getAccount())) {
+            long lockTimeRemaining = loginAttemptService.getLockTimeRemaining(user.getAccount());
+            throw new LockedException("账户已被锁定，请在" + lockTimeRemaining + "分钟后重试");
         }
         
-        return tokenVO;
+        log.info("user: {}", user);
+        
+        try {
+            // 使用找到的用户账号和输入的密码进行认证
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(user.getAccount(), loginDto.getPassword())
+            );
+            
+            // 如果认证通过，获取用户详情并生成JWT令牌
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+    
+            // 生成访问令牌
+            String token = jwtUtil.generateToken(userDetails);
+            
+            // 生成刷新令牌
+            String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+            
+            // 获取用户角色（只有一个角色）
+            String role = getUserRole(user.getId());
+            
+            // 构建并返回TokenVO，包含token、nickname和role
+            TokenVO tokenVO = TokenVO.builder()
+                    .token(token)
+                    .refreshToken(refreshToken)
+                    .nickname(user.getNickname())
+                    .role(role)
+                    .build();
+                    
+            // 设置头像URL
+            if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+                tokenVO.setAvatar(fileService.getFullFileUrl(user.getAvatar()));
+            }
+            
+            // 重置登录尝试次数
+            loginAttemptService.resetAttempts(user.getAccount());
+            
+            // 存储会话信息
+            storeSessionInfo(user.getId(), token, refreshToken);
+            
+            return tokenVO;
+        } catch (BadCredentialsException e) {
+            // 记录登录失败
+            int remainingAttempts = loginAttemptService.recordFailedAttempt(user.getAccount());
+            throw new BadCredentialsException("密码错误，剩余尝试次数：" + remainingAttempts + 
+                (remainingAttempts <= 1 ? "，失败次数过多将锁定账户" + CacheConstants.AUTH_DEFAULT_LOCK_TIME + "分钟" : ""));
+        } catch (LockedException e) {
+            // 直接抛出锁定异常
+            throw e;
+        }
+    }
+    
+    @Override
+    public void logout(String token, UserDetails userDetails) {
+        if (token == null || token.isEmpty()) {
+            throw new BusinessException("令牌不能为空");
+        }
+        
+        // 从令牌中提取用户名
+        String username = jwtUtil.extractUsername(token);
+        
+        // 验证令牌是否属于当前用户
+        if (!username.equals(userDetails.getUsername())) {
+            throw new BusinessException("无效的令牌");
+        }
+        
+        // 获取用户信息
+        User user = userMapper.selectByAccount(username);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 计算令牌剩余有效期
+        long expirationTimeInSeconds = jwtUtil.getExpirationTime(token);
+        if (expirationTimeInSeconds > 0) {
+            // 将令牌添加到黑名单
+            tokenBlacklistService.addToBlacklist(token, "用户登出", expirationTimeInSeconds);
+        }
+        
+        // 清除会话信息
+        clearSessionInfo(user.getId());
+        
+        log.info("用户 {} 已登出", username);
+    }
+    
+    @Override
+    public TokenVO refreshToken(RefreshTokenDTO refreshTokenDTO) {
+        String refreshToken = refreshTokenDTO.getRefreshToken();
+        
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            throw new BusinessException("刷新令牌不能为空");
+        }
+        
+        try {
+            // 验证刷新令牌是否有效
+            if (!jwtUtil.isRefreshToken(refreshToken)) {
+                throw new BusinessException("无效的刷新令牌");
+            }
+            
+            // 从刷新令牌中提取用户名
+            String username = jwtUtil.extractUsername(refreshToken);
+            
+            // 获取用户信息
+            User user = userMapper.selectByAccount(username);
+            if (user == null) {
+                throw new BusinessException("用户不存在");
+            }
+            
+            // 验证刷新令牌是否在缓存中
+            String tokenId = jwtUtil.extractTokenId(refreshToken);
+            String cacheKey = CacheConstants.AUTH_REFRESH_TOKEN_PREFIX + user.getId();
+            
+            // 获取缓存中的令牌ID（仅使用新格式）
+            Map<String, String> tokenIdMap = cacheService.get(cacheKey, Map.class);
+            String cachedTokenId = tokenIdMap != null ? tokenIdMap.get("id") : null;
+            
+            if (cachedTokenId == null || !cachedTokenId.equals(tokenId)) {
+                throw new BusinessException("刷新令牌已失效，请重新登录");
+            }
+            
+            // 加载用户详情
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            
+            // 生成新的访问令牌
+            String newToken = jwtUtil.generateToken(userDetails);
+            
+            // 生成新的刷新令牌
+            String newRefreshToken = jwtUtil.generateRefreshToken(userDetails);
+            
+            // 获取用户角色
+            String role = getUserRole(user.getId());
+            
+            // 构建并返回TokenVO
+            TokenVO tokenVO = TokenVO.builder()
+                    .token(newToken)
+                    .refreshToken(newRefreshToken)
+                    .nickname(user.getNickname())
+                    .role(role)
+                    .build();
+                    
+            // 设置头像URL
+            if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+                tokenVO.setAvatar(fileService.getFullFileUrl(user.getAvatar()));
+            }
+            
+            // 更新会话信息
+            storeSessionInfo(user.getId(), newToken, newRefreshToken);
+            
+            return tokenVO;
+        } catch (Exception e) {
+            throw new BusinessException("刷新令牌失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 存储会话信息
+     * 
+     * @param userId 用户ID
+     * @param token 访问令牌
+     * @param refreshToken 刷新令牌
+     */
+    private void storeSessionInfo(Integer userId, String token, String refreshToken) {
+        // 存储会话信息
+        String sessionKey = CacheConstants.AUTH_SESSION_PREFIX + userId;
+        Map<String, Object> sessionInfo = new HashMap<>();
+        sessionInfo.put("token", token);
+        sessionInfo.put("refreshToken", refreshToken);
+        sessionInfo.put("lastLoginTime", System.currentTimeMillis());
+        
+        // 设置会话信息，过期时间与访问令牌相同
+        cacheService.setHash(sessionKey, sessionInfo, jwtUtil.getExpirationTime(token), TimeUnit.SECONDS);
+        
+        // 存储刷新令牌ID，用于验证
+        String refreshTokenKey = CacheConstants.AUTH_REFRESH_TOKEN_PREFIX + userId;
+        String tokenId = jwtUtil.extractTokenId(refreshToken);
+        // 使用JSON格式存储令牌ID，确保格式一致性
+        Map<String, String> tokenIdMap = new HashMap<>();
+        tokenIdMap.put("id", tokenId);
+        cacheService.set(refreshTokenKey, tokenIdMap, jwtUtil.getExpirationTime(refreshToken), TimeUnit.SECONDS);
+    }
+    
+    /**
+     * 清除会话信息
+     * 
+     * @param userId 用户ID
+     */
+    private void clearSessionInfo(Integer userId) {
+        String sessionKey = CacheConstants.AUTH_SESSION_PREFIX + userId;
+        String refreshTokenKey = CacheConstants.AUTH_REFRESH_TOKEN_PREFIX + userId;
+        
+        cacheService.delete(sessionKey);
+        cacheService.delete(refreshTokenKey);
     }
     
     @Override
@@ -211,6 +412,8 @@ public class UserServiceImpl implements UserService {
         organization.setWebsite(registrationDto.getWebsite());
         organization.setType("Enterprise");
         organization.setStatus("pending"); // 企业注册初始状态为待审核
+        organization.setLatitude(registrationDto.getLatitude());
+        organization.setLongitude(registrationDto.getLongitude());
         
         // 创建企业详情
         EnterpriseDetail enterpriseDetail = new EnterpriseDetail();
@@ -873,5 +1076,16 @@ public class UserServiceImpl implements UserService {
         
         // 转换为VO并返回
         return convertToVO(user);
+    }
+    
+    @Override
+    public User getByGithubId(String githubId) {
+        return userMapper.selectByGithubId(githubId);
+    }
+    
+    @Override
+    public User saveUser(User user) {
+        userMapper.insert(user);
+        return user;
     }
 }

@@ -12,6 +12,7 @@ import com.csu.unicorp.mapper.course.CourseEnrollmentMapper;
 import com.csu.unicorp.mapper.course.DualTeacherCourseMapper;
 import com.csu.unicorp.service.OrganizationService;
 import com.csu.unicorp.service.UserService;
+import com.csu.unicorp.service.impl.course.DualTeacherCourseServiceImpl;
 import com.csu.unicorp.vo.DualTeacherCourseVO;
 import com.csu.unicorp.vo.UserVO;
 import org.junit.jupiter.api.BeforeEach;

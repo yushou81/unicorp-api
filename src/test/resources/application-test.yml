@@ -1,22 +1,33 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/unicorp_test?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/unicorp_test?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
-    password: 123456
+    password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
-  flyway:
-    enabled: false
+  redis:
+    host: localhost
+    port: 6379
+    database: 1  # 使用不同的数据库，避免影响生产环境
+    timeout: 10000
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 8
+        min-idle: 0
+  
+# MyBatis-Plus配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
 
-# 禁用安全配置，方便测试
-security:
-  basic:
-    enabled: false
-
-# 测试环境日志级别
+# 日志配置
 logging:
   level:
-    root: INFO
-    com.csu.unicorp: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.springframework.test: DEBUG
-    org.flywaydb: DEBUG 
+    com.csu.unicorp: debug
+    org.springframework.data.redis: debug 

@@ -1,11 +1,12 @@
 package com.csu.unicorp.service;
 
+import java.util.List;
+
+import org.springframework.web.multipart.MultipartFile;
+
 import com.csu.unicorp.dto.SchoolCreationDTO;
 import com.csu.unicorp.entity.organization.Organization;
 import com.csu.unicorp.vo.OrganizationVO;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 /**
  * 组织服务接口

@@ -7,6 +7,7 @@ import com.csu.unicorp.vo.achievement.CompetitionAwardVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 竞赛获奖Service接口
@@ -107,4 +108,31 @@ public interface CompetitionAwardService {
      * @return 认证后的获奖
      */
     CompetitionAwardVO verifyCompetitionAward(Integer id, Integer verifierId, AchievementVerifyDTO verifyDTO);
+    
+    /**
+     * 获取学校学生竞赛获奖列表
+     * 
+     * @param userId 当前教师或管理员ID
+     * @param page 页码
+     * @param size 每页大小
+     * @return 学生竞赛获奖分页列表
+     */
+    Page<CompetitionAwardVO> getSchoolStudentAwards(Integer userId, int page, int size);
+    
+    /**
+     * 获取学校竞赛获奖统计数据
+     * 
+     * @param userId 当前教师或管理员ID
+     * @return 学校竞赛获奖统计数据
+     */
+    Map<String, Object> getSchoolAwardStatistics(Integer userId);
+    
+    /**
+     * 获取学校指定学生的竞赛获奖列表
+     * 
+     * @param userId 当前教师或管理员ID
+     * @param studentId 学生ID
+     * @return 学生竞赛获奖列表
+     */
+    List<CompetitionAwardVO> getSchoolStudentAwardsByStudent(Integer userId, Integer studentId);
 } 

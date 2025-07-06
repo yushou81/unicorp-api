@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 科研成果Controller
@@ -34,6 +36,7 @@ import java.util.List;
 @RequestMapping("/v1/research")
 @RequiredArgsConstructor
 @Tag(name = "科研成果管理", description = "科研成果管理相关接口")
+@Slf4j
 public class ResearchAchievementController {
     
     private final ResearchAchievementService researchAchievementService;
@@ -157,7 +160,7 @@ public class ResearchAchievementController {
             @RequestPart(value = "coverImage", required = false) MultipartFile coverImage) {
         
         Integer userId = ((CustomUserDetails) userDetails).getUserId();
-        
+
         // 创建DTO对象
         ResearchAchievementCreationDTO dto = new ResearchAchievementCreationDTO();
         dto.setTitle(title);
@@ -205,7 +208,6 @@ public class ResearchAchievementController {
             @RequestPart(value = "coverImage", required = false) MultipartFile coverImage) {
         
         Integer userId = ((CustomUserDetails) userDetails).getUserId();
-        
         // 创建DTO对象
         ResearchAchievementCreationDTO dto = new ResearchAchievementCreationDTO();
         dto.setTitle(title);
@@ -268,5 +270,83 @@ public class ResearchAchievementController {
         Integer verifierId = ((CustomUserDetails) userDetails).getUserId();
         ResearchAchievementVO achievement = researchAchievementService.verifyResearchAchievement(id, verifierId, verifyDTO);
         return ResultVO.success(achievement);
+    }
+    
+    @GetMapping("/school")
+    @Operation(summary = "获取学校学生科研成果列表", description = "获取当前教师或管理员所属学校的学生科研成果列表")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PreAuthorize("hasRole('TEACHER') or hasRole('SCH_ADMIN')")
+    public ResultVO<Page<ResearchAchievementVO>> getSchoolStudentResearchAchievements(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+        Page<ResearchAchievementVO> achievements = researchAchievementService.getSchoolStudentResearchAchievements(userId, page - 1, size);
+        return ResultVO.success(achievements);
+    }
+    
+    @GetMapping("/school/type/{type}")
+    @Operation(summary = "根据类型获取学校学生科研成果列表", description = "根据类型获取当前教师或管理员所属学校的学生科研成果列表")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PreAuthorize("hasRole('TEACHER') or hasRole('SCH_ADMIN')")
+    public ResultVO<Page<ResearchAchievementVO>> getSchoolStudentResearchAchievementsByType(
+            @PathVariable String type,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+        Page<ResearchAchievementVO> achievements = researchAchievementService.getSchoolStudentResearchAchievementsByType(userId, type, page - 1, size);
+        return ResultVO.success(achievements);
+    }
+    
+    @GetMapping("/school/by-student")
+    @Operation(summary = "获取学校指定学生的科研成果列表", description = "获取学校指定学生的科研成果列表")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PreAuthorize("hasRole('TEACHER') or hasRole('SCH_ADMIN')")
+    public ResultVO<List<ResearchAchievementVO>> getSchoolStudentResearchAchievementsByStudent(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam Integer studentId) {
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+        List<ResearchAchievementVO> achievements = researchAchievementService.getSchoolStudentResearchAchievementsByStudent(userId, studentId);
+        return ResultVO.success(achievements);
+    }
+    
+    @GetMapping("/school/statistics")
+    @Operation(summary = "获取学校科研成果统计数据", description = "获取当前教师或管理员所属学校的科研成果统计数据")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PreAuthorize("hasRole('TEACHER') or hasRole('SCH_ADMIN')")
+    public ResultVO<Map<String, Object>> getSchoolResearchStatistics(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+        Map<String, Object> statistics = researchAchievementService.getSchoolResearchStatistics(userId);
+        return ResultVO.success(statistics);
     }
 } 

@@ -1,11 +1,13 @@
 package com.csu.unicorp.common.utils;
 
-import com.csu.unicorp.entity.organization.Organization;
-import com.csu.unicorp.mapper.UserMapper;
-import lombok.extern.slf4j.Slf4j;
+import java.util.concurrent.ThreadLocalRandom;
+
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.ThreadLocalRandom;
+import com.csu.unicorp.entity.organization.Organization;
+import com.csu.unicorp.mapper.UserMapper;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 账号生成器
