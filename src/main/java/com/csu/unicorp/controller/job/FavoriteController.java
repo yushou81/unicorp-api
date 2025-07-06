@@ -1,4 +1,4 @@
-package com.csu.unicorp.controller;
+package com.csu.unicorp.controller.job;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

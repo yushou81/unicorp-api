@@ -132,7 +132,7 @@ public class DualTeacherCourseController {
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @GetMapping("/teacher")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasRole('TEACHER', 'SCH_ADMIN')")
     public ResultVO<IPage<DualTeacherCourseVO>> getTeacherCourses(
             @Parameter(description = "页码，从1开始") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "每页大小") @RequestParam(defaultValue = "10") int size,

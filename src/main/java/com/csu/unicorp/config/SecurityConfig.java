@@ -126,6 +126,9 @@ public class SecurityConfig {
                     .requestMatchers("/v1/community/tags", "/v1/community/tags/hot", "/v1/community/tags/search").permitAll()
                     .requestMatchers("/v1/community/tags/{tagId}", "/v1/community/tags/topic/{topicId}", "/v1/community/tags/question/{questionId}").permitAll()
                     
+                    // 推荐系统公开接口
+                    .requestMatchers("/v1/recommendations/behaviors").permitAll()
+                    
                     // 用户搜索接口需要认证
                     .requestMatchers("/v1/auth/search").authenticated()
                     // 聊天接口需要认证
