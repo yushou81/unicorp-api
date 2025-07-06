@@ -19,6 +19,17 @@ services:
       - mysql-data:/var/lib/mysql
     restart: unless-stopped
 
+  # Redis 服务
+  redis:
+    image: redis:7.0-alpine
+    container_name: unicorp-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
   # Docker API暴露服务 - 仅用于测试环境
   socat:
     image: alpine/socat
@@ -32,3 +43,4 @@ services:
 
 volumes:
   mysql-data: 
+  redis-data: 

@@ -1,0 +1,327 @@
+{
+	"info": {
+		"_postman_id": "f1a2b3c4-d5e6-f7g8-h9i0-j1k2l3m4n5o6",
+		"name": "校企合作平台 - 认证模块测试",
+		"description": "用于测试校企合作平台认证模块的Postman集合",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "用户登录",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"状态码为 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"响应包含token\", function () {",
+							"    pm.expect(jsonData.data).to.have.property('token');",
+							"    pm.expect(jsonData.data).to.have.property('refreshToken');",
+							"});",
+							"",
+							"if (jsonData.data && jsonData.data.token) {",
+							"    pm.environment.set(\"access_token\", jsonData.data.token);",
+							"}",
+							"",
+							"if (jsonData.data && jsonData.data.refreshToken) {",
+							"    pm.environment.set(\"refresh_token\", jsonData.data.refreshToken);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"loginType\": \"account\",\n    \"principal\": \"admin\",\n    \"password\": \"admin123\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/auth/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"auth",
+						"login"
+					]
+				},
+				"description": "使用账号和密码登录系统"
+			},
+			"response": []
+		},
+		{
+			"name": "获取当前用户信息",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"状态码为 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"响应包含用户信息\", function () {",
+							"    pm.expect(jsonData.data).to.have.property('id');",
+							"    pm.expect(jsonData.data).to.have.property('account');",
+							"    pm.expect(jsonData.data).to.have.property('nickname');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/auth/me",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"auth",
+						"me"
+					]
+				},
+				"description": "获取当前登录用户的详细信息"
+			},
+			"response": []
+		},
+		{
+			"name": "刷新令牌",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"状态码为 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"响应包含新的token\", function () {",
+							"    pm.expect(jsonData.data).to.have.property('token');",
+							"    pm.expect(jsonData.data).to.have.property('refreshToken');",
+							"});",
+							"",
+							"if (jsonData.data && jsonData.data.token) {",
+							"    pm.environment.set(\"access_token\", jsonData.data.token);",
+							"}",
+							"",
+							"if (jsonData.data && jsonData.data.refreshToken) {",
+							"    pm.environment.set(\"refresh_token\", jsonData.data.refreshToken);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"refreshToken\": \"{{refresh_token}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/auth/refresh",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"auth",
+						"refresh"
+					]
+				},
+				"description": "使用刷新令牌获取新的访问令牌"
+			},
+			"response": []
+		},
+		{
+			"name": "用户登出",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"状态码为 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"登出成功\", function () {",
+							"    pm.expect(jsonData.message).to.include(\"登出成功\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/auth/logout",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"auth",
+						"logout"
+					]
+				},
+				"description": "用户登出系统，使当前令牌失效"
+			},
+			"response": []
+		},
+		{
+			"name": "使用已登出的令牌访问",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"状态码为 401\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/auth/me",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"auth",
+						"me"
+					]
+				},
+				"description": "使用已登出的令牌尝试访问受保护的资源"
+			},
+			"response": []
+		},
+		{
+			"name": "多次错误密码登录",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"状态码为 401\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"响应包含剩余尝试次数\", function () {",
+							"    pm.expect(jsonData.message).to.include(\"剩余尝试次数\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"loginType\": \"account\",\n    \"principal\": \"admin\",\n    \"password\": \"wrong_password\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/auth/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"auth",
+						"login"
+					]
+				},
+				"description": "使用错误密码尝试登录，测试登录尝试次数限制"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+} 

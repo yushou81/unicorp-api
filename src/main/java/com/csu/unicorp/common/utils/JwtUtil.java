@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -26,6 +27,9 @@ public class JwtUtil {
 
     @Value("${jwt.expiration:86400000}")
     private long expiration; // 默认24小时
+    
+    @Value("${jwt.refresh-expiration:604800000}")
+    private long refreshExpiration; // 默认7天
 
     /**
      * 从token中获取用户名
@@ -96,6 +100,56 @@ public class JwtUtil {
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+    }
+    
+    /**
+     * 生成刷新令牌
+     */
+    public String generateRefreshToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "refresh");
+        claims.put("tokenId", UUID.randomUUID().toString());
+        return createRefreshToken(claims, userDetails.getUsername());
+    }
+    
+    /**
+     * 创建刷新令牌
+     */
+    private String createRefreshToken(Map<String, Object> claims, String subject) {
+        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(subject)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+    
+    /**
+     * 从刷新令牌中获取令牌ID
+     */
+    public String extractTokenId(String token) {
+        return (String) extractAllClaims(token).get("tokenId");
+    }
+    
+    /**
+     * 检查是否为刷新令牌
+     */
+    public boolean isRefreshToken(String token) {
+        try {
+            return "refresh".equals(extractAllClaims(token).get("type"));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    /**
+     * 获取令牌过期时间（秒）
+     */
+    public long getExpirationTime(String token) {
+        Date expiration = extractExpiration(token);
+        return (expiration.getTime() - System.currentTimeMillis()) / 1000;
     }
 
     /**

@@ -1,0 +1,918 @@
+{
+  "info": {
+    "_postman_id": "a5e4f7c8-9d1b-4e2a-b3f6-d8c7e6f5a4b3",
+    "name": "UniCorp - 智能推荐系统API测试",
+    "description": "校企合作平台智能推荐系统API测试集合",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. 认证",
+      "description": "用户登录和获取令牌",
+      "item": [
+        {
+          "name": "学生用户登录",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.code === 200) {",
+                  "    pm.environment.set(\"student_token\", jsonData.data.token);",
+                  "    pm.environment.set(\"student_refresh_token\", jsonData.data.refreshToken);",
+                  "    pm.environment.set(\"student_id\", jsonData.data.userId);",
+                  "}",
+                  "",
+                  "pm.test(\"登录成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "    pm.expect(jsonData.data).to.have.property(\"token\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"account\": \"{{student_username}}\",\n    \"password\": \"{{student_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "学生用户登录获取令牌"
+          },
+          "response": []
+        },
+        {
+          "name": "企业用户登录",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.code === 200) {",
+                  "    pm.environment.set(\"enterprise_token\", jsonData.data.token);",
+                  "    pm.environment.set(\"enterprise_refresh_token\", jsonData.data.refreshToken);",
+                  "    pm.environment.set(\"enterprise_id\", jsonData.data.userId);",
+                  "    pm.environment.set(\"organization_id\", jsonData.data.organizationId);",
+                  "}",
+                  "",
+                  "pm.test(\"登录成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "    pm.expect(jsonData.data).to.have.property(\"token\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"account\": \"{{enterprise_username}}\",\n    \"password\": \"{{enterprise_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "企业用户登录获取令牌"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. 用户特征管理",
+      "description": "用户特征的获取和更新",
+      "item": [
+        {
+          "name": "获取个人特征",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"获取个人特征成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/recommendations/features/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "recommendations",
+                "features",
+                "me"
+              ]
+            },
+            "description": "获取当前登录学生的个人特征信息"
+          },
+          "response": []
+        },
+        {
+          "name": "更新个人特征",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"更新个人特征成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"skills\": [\"Java\", \"Spring Boot\", \"MySQL\", \"React\", \"Vue.js\"],\n    \"interests\": [\"后端开发\", \"Web开发\", \"人工智能\"],\n    \"major\": \"计算机科学与技术\",\n    \"educationLevel\": \"bachelor\",\n    \"preferredLocation\": \"长沙\",\n    \"preferredJobType\": \"full_time\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/recommendations/features/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "recommendations",
+                "features",
+                "me"
+              ]
+            },
+            "description": "更新当前登录学生的个人特征信息"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. 行为记录",
+      "description": "记录用户行为数据",
+      "item": [
+        {
+          "name": "记录浏览岗位行为",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"记录行为成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"behaviorType\": \"view\",\n    \"targetType\": \"job\",\n    \"targetId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/recommendations/behaviors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "recommendations",
+                "behaviors"
+              ]
+            },
+            "description": "记录用户浏览岗位的行为"
+          },
+          "response": []
+        },
+        {
+          "name": "记录搜索行为",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"记录行为成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"behaviorType\": \"search\",\n    \"targetType\": \"job\",\n    \"targetId\": 0,\n    \"searchKeyword\": \"Java开发\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/recommendations/behaviors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "recommendations",
+                "behaviors"
+              ]
+            },
+            "description": "记录用户搜索行为"
+          },
+          "response": []
+        },
+        {
+          "name": "记录申请岗位行为",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"记录行为成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"behaviorType\": \"apply\",\n    \"targetType\": \"job\",\n    \"targetId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/recommendations/behaviors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "recommendations",
+                "behaviors"
+              ]
+            },
+            "description": "记录用户申请岗位的行为"
+          },
+          "response": []
+        },
+        {
+          "name": "记录收藏岗位行为",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"记录行为成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"behaviorType\": \"favorite\",\n    \"targetType\": \"job\",\n    \"targetId\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/recommendations/behaviors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "recommendations",
+                "behaviors"
+              ]
+            },
+            "description": "记录用户收藏岗位的行为"
+          },
+          "response": []
+        },
+        {
+          "name": "获取行为统计",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"获取行为统计成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/recommendations/statistics/behaviors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "recommendations",
+                "statistics",
+                "behaviors"
+              ]
+            },
+            "description": "获取当前登录学生的行为统计数据"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. 岗位推荐",
+      "description": "学生岗位推荐相关接口",
+      "item": [
+        {
+          "name": "生成岗位推荐",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"生成岗位推荐成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/recommendations/jobs/generate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "recommendations",
+                "jobs",
+                "generate"
+              ]
+            },
+            "description": "为当前登录学生生成岗位推荐"
+          },
+          "response": []
+        },
+        {
+          "name": "获取岗位推荐列表",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"获取岗位推荐列表成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "});",
+                  "",
+                  "if (jsonData.code === 200 && jsonData.data && jsonData.data.records && jsonData.data.records.length > 0) {",
+                  "    pm.environment.set(\"job_recommendation_id\", jsonData.data.records[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/recommendations/jobs?page=0&size=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "recommendations",
+                "jobs"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "获取为当前登录学生推荐的岗位列表"
+          },
+          "response": []
+        },
+        {
+          "name": "更新岗位推荐状态为已查看",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"更新推荐状态成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"viewed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/recommendations/jobs/{{job_recommendation_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "recommendations",
+                "jobs",
+                "{{job_recommendation_id}}"
+              ]
+            },
+            "description": "将岗位推荐状态更新为已查看"
+          },
+          "response": []
+        },
+        {
+          "name": "更新岗位推荐状态为已申请",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"更新推荐状态成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{student_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"applied\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/recommendations/jobs/{{job_recommendation_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "recommendations",
+                "jobs",
+                "{{job_recommendation_id}}"
+              ]
+            },
+            "description": "将岗位推荐状态更新为已申请"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. 人才推荐",
+      "description": "企业人才推荐相关接口",
+      "item": [
+        {
+          "name": "生成人才推荐",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"生成人才推荐成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{enterprise_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/recommendations/talents/generate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "recommendations",
+                "talents",
+                "generate"
+              ]
+            },
+            "description": "为当前登录企业生成人才推荐"
+          },
+          "response": []
+        },
+        {
+          "name": "获取人才推荐列表",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"获取人才推荐列表成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "});",
+                  "",
+                  "if (jsonData.code === 200 && jsonData.data && jsonData.data.records && jsonData.data.records.length > 0) {",
+                  "    pm.environment.set(\"talent_recommendation_id\", jsonData.data.records[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{enterprise_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/recommendations/talents?page=0&size=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "recommendations",
+                "talents"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "获取为当前登录企业推荐的人才列表"
+          },
+          "response": []
+        },
+        {
+          "name": "更新人才推荐状态为已查看",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"更新推荐状态成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{enterprise_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"viewed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/recommendations/talents/{{talent_recommendation_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "recommendations",
+                "talents",
+                "{{talent_recommendation_id}}"
+              ]
+            },
+            "description": "将人才推荐状态更新为已查看"
+          },
+          "response": []
+        },
+        {
+          "name": "更新人才推荐状态为已联系",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"更新推荐状态成功\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(jsonData.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{enterprise_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"contacted\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/recommendations/talents/{{talent_recommendation_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "recommendations",
+                "talents",
+                "{{talent_recommendation_id}}"
+              ]
+            },
+            "description": "将人才推荐状态更新为已联系"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ]
+} 

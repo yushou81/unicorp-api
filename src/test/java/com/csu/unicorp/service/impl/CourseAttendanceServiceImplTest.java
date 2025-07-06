@@ -9,6 +9,7 @@ import com.csu.unicorp.mapper.course.CourseAttendanceMapper;
 import com.csu.unicorp.mapper.course.CourseEnrollmentMapper;
 import com.csu.unicorp.mapper.course.DualTeacherCourseMapper;
 import com.csu.unicorp.mapper.UserMapper;
+import com.csu.unicorp.service.impl.course.CourseAttendanceServiceImpl;
 import com.csu.unicorp.vo.CourseAttendanceVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
