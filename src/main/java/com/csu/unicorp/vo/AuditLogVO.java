@@ -1,28 +1,23 @@
-package com.csu.unicorp.entity;
+package com.csu.unicorp.vo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 /**
- * 系统日志实体类，对应audit_logs表
+ * 审计日志视图对象
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("audit_logs")
-public class AuditLog {
+public class AuditLogVO {
     /**
-     * 日志ID，自增主键
+     * 日志ID
      */
-    @TableId(type = IdType.AUTO)
     private Long id;
     
     /**
@@ -46,14 +41,19 @@ public class AuditLog {
     private String action;
     
     /**
+     * 操作类型描述
+     */
+    private String actionDesc;
+    
+    /**
      * 所属模块
      */
     private String module;
     
     /**
-     * IP地址
+     * 操作详情
      */
-    private String ip;
+    private String details;
     
     /**
      * 操作结果
@@ -61,12 +61,12 @@ public class AuditLog {
     private String result;
     
     /**
+     * IP地址
+     */
+    private String ip;
+    
+    /**
      * 操作时间
      */
     private LocalDateTime timestamp;
-    
-    /**
-     * 操作详情
-     */
-    private String details;
 } 

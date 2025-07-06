@@ -71,4 +71,29 @@ public interface PortfolioItemMapper extends BaseMapper<PortfolioItem> {
      */
     @Update("UPDATE portfolio_items SET like_count = like_count + 1 WHERE id = #{id}")
     int increaseLikeCount(@Param("id") Integer id);
+    
+    /**
+     * 根据组织ID分页查询作品列表
+     * 
+     * @param page 分页参数
+     * @param organizationId 组织ID
+     * @return 作品分页列表
+     */
+    @Select("SELECT pi.* FROM portfolio_items pi " +
+            "JOIN users u ON pi.user_id = u.id " +
+            "WHERE u.organization_id = #{organizationId} AND pi.is_deleted = 0")
+    Page<PortfolioItem> selectByOrganizationId(Page<PortfolioItem> page, @Param("organizationId") Integer organizationId);
+    
+    /**
+     * 根据组织ID和分类分页查询作品列表
+     * 
+     * @param page 分页参数
+     * @param organizationId 组织ID
+     * @param category 作品分类
+     * @return 作品分页列表
+     */
+    @Select("SELECT pi.* FROM portfolio_items pi " +
+            "JOIN users u ON pi.user_id = u.id " +
+            "WHERE u.organization_id = #{organizationId} AND pi.category = #{category} AND pi.is_deleted = 0")
+    Page<PortfolioItem> selectByOrganizationIdAndCategory(Page<PortfolioItem> page, @Param("organizationId") Integer organizationId, @Param("category") String category);
 } 

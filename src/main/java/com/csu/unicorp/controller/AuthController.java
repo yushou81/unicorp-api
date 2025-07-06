@@ -1,5 +1,7 @@
 package com.csu.unicorp.controller;
 
+import com.csu.unicorp.common.annotation.Log;
+import com.csu.unicorp.common.constants.LogActionType;
 import com.csu.unicorp.dto.EnterpriseRegistrationDTO;
 import com.csu.unicorp.dto.LoginCredentialsDTO;
 import com.csu.unicorp.dto.RefreshTokenDTO;
@@ -51,6 +53,7 @@ public class AuthController {
         @ApiResponse(responseCode = "401", description = "认证失败")
     })
     @PostMapping("/login")
+    @Log(value = LogActionType.LOGIN, module = "用户认证")
     public ResultVO<TokenVO> login(@Valid @RequestBody LoginCredentialsDTO loginDto) {
         TokenVO tokenResponse = userService.login(loginDto);
         return ResultVO.success("登录成功", tokenResponse);
@@ -67,6 +70,7 @@ public class AuthController {
         @ApiResponse(responseCode = "401", description = "未授权")
     })
     @PostMapping("/logout")
+    @Log(value = LogActionType.LOGOUT, module = "用户认证")
     public ResultVO<Void> logout(
             @RequestHeader("Authorization") String authHeader,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -109,6 +113,7 @@ public class AuthController {
         @ApiResponse(responseCode = "400", description = "无效的输入，或账号/邮箱已存在")
     })
     @PostMapping("/register/student")
+    @Log(value = LogActionType.REGISTER, module = "用户管理")
     public ResultVO<UserVO> registerStudent(@Valid @RequestBody StudentRegistrationDTO registrationDto) {
         UserVO user = userService.registerStudent(registrationDto);
         return ResultVO.success("注册成功", user);
@@ -125,6 +130,7 @@ public class AuthController {
         @ApiResponse(responseCode = "400", description = "无效的输入，或邮箱/手机号/企业名称已存在")
     })
     @PostMapping("/register/enterprise")
+    @Log(value = LogActionType.REGISTER, module = "用户管理")
     public ResultVO<UserVO> registerEnterprise(@Valid @RequestBody EnterpriseRegistrationDTO registrationDto) {
         UserVO user = userService.registerEnterprise(registrationDto);
         return ResultVO.success("企业注册申请已提交，等待审核", user);
@@ -164,6 +170,7 @@ public class AuthController {
         @ApiResponse(responseCode = "401", description = "未授权")
     })
     @PutMapping("/profile")
+    @Log(value = LogActionType.UPDATE_PROFILE, module = "用户管理")
     public ResultVO<UserVO> updateUserProfile(
             @Valid @RequestBody UserProfileUpdateDTO profileUpdateDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -183,6 +190,7 @@ public class AuthController {
         @ApiResponse(responseCode = "401", description = "未授权")
     })
     @PutMapping("/password")
+    @Log(value = LogActionType.CHANGE_PASSWORD, module = "用户管理")
     public ResultVO<Void> updatePassword(
             @Valid @RequestBody PasswordUpdateDTO passwordUpdateDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -207,6 +215,20 @@ public class AuthController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UserVO updatedUser = userService.updateAvatar(file, userDetails);
         return ResultVO.success("头像上传成功", updatedUser);
+    }
+    
+    /**
+     * 获取GitHub登录URL
+     */
+    @Operation(summary = "获取GitHub登录URL", description = "获取GitHub OAuth2登录的URL")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "成功获取GitHub登录URL", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @GetMapping("/github/login-url")
+    public ResultVO<String> getGitHubLoginUrl() {
+        return ResultVO.success("获取GitHub登录URL成功", "/oauth2/authorization/github");
     }
     
     /**

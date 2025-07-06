@@ -67,6 +67,11 @@ public class User {
     private Integer organizationId;
     
     /**
+     * GitHub用户ID
+     */
+    private String githubId;
+    
+    /**
      * 逻辑删除标志
      */
     @TableLogic
@@ -81,5 +86,4 @@ public class User {
      * 更新时间
      */
     private LocalDateTime updatedAt;
-    
 }

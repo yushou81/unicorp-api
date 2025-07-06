@@ -1,6 +1,8 @@
 package com.csu.unicorp.controller.course;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.csu.unicorp.common.annotation.Log;
+import com.csu.unicorp.common.constants.LogActionType;
 import com.csu.unicorp.dto.CourseEnrollmentDTO;
 import com.csu.unicorp.dto.DualTeacherCourseDTO;
 import com.csu.unicorp.service.DualTeacherCourseService;
@@ -132,7 +134,7 @@ public class DualTeacherCourseController {
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @GetMapping("/teacher")
-    @PreAuthorize("hasRole('TEACHER', 'SCH_ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN')")
     public ResultVO<IPage<DualTeacherCourseVO>> getTeacherCourses(
             @Parameter(description = "页码，从1开始") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "每页大小") @RequestParam(defaultValue = "10") int size,
@@ -316,5 +318,27 @@ public class DualTeacherCourseController {
             @AuthenticationPrincipal UserDetails userDetails) {
         List<UserVO> students = courseService.getCourseStudents(id, userDetails);
         return ResultVO.success("获取课程学生列表成功", students);
+    }
+    
+    /**
+     * 检查学生是否报名课程
+     */
+    @Operation(summary = "检查学生是否报名课程", description = "检查当前登录学生是否已报名指定课程")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "检查成功", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "404", description = "课程不存在", 
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @GetMapping("/enrollment/check")
+    @PreAuthorize("hasRole('STUDENT')")
+    @Log(value = LogActionType.SYSTEM_INFO, module = "双师课堂")
+    public ResultVO<Boolean> checkStudentEnrollment(
+            @RequestParam Integer courseId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        boolean isEnrolled = courseService.isStudentEnrolled(courseId, userDetails);
+        return ResultVO.success("检查完成", isEnrolled);
     }
 } 

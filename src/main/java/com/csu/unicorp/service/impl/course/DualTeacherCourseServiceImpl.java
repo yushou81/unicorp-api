@@ -620,4 +620,36 @@ public class DualTeacherCourseServiceImpl implements DualTeacherCourseService {
         if (courseDTO.getLocation() != null) course.setLocation(courseDTO.getLocation());
         if (courseDTO.getCourseType() != null) course.setCourseType(courseDTO.getCourseType());
     }
+
+    /**
+     * 检查学生是否已报名课程
+     */
+    @Override
+    public boolean isStudentEnrolled(Integer courseId, UserDetails userDetails) {
+        // 获取当前用户信息
+        User currentUser = userService.getByAccount(userDetails.getUsername());
+        if (currentUser == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        // 检查课程是否存在
+        DualTeacherCourse course = courseMapper.selectById(courseId);
+        if (course == null || Boolean.TRUE.equals(course.getIsDeleted())) {
+            throw new BusinessException("课程不存在");
+        }
+        
+        // 检查用户是否是学生
+        String role = userService.getUserRole(currentUser.getId());
+        if (!RoleConstants.DB_ROLE_STUDENT.equals(role)) {
+            throw new BusinessException("只有学生可以查询报名状态");
+        }
+        
+        // 查询报名记录
+        LambdaQueryWrapper<CourseEnrollment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CourseEnrollment::getCourseId, courseId)
+               .eq(CourseEnrollment::getStudentId, currentUser.getId())
+               .ne(CourseEnrollment::getStatus, "cancelled");
+        
+        return enrollmentMapper.selectCount(wrapper) > 0;
+    }
 } 

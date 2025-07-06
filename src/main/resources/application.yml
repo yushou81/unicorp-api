@@ -11,6 +11,7 @@ spring:
   # 允许Bean覆盖
   main:
     allow-bean-definition-overriding: true
+    allow-circular-references: true
   application:
     name: unicorp-api # 应用名称
   # 数据库连接池配置
@@ -67,7 +68,20 @@ spring:
       org.springframework.web: DEBUG  # Web相关日志设为DEBUG
       org.hibernate.SQL: DEBUG  # 显示SQL语句
       org.hibernate.type.descriptor.sql: TRACE  # 显示SQL参数绑定值
-
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: Ov23liJgcPyAbNEKj8uo
+            client-secret: de07c0a751a6372400258bf04779cf5102a0f940
+            scope: user:email
+        provider:
+          github:
+            authorization-uri: https://github.com/login/oauth/authorize
+            token-uri: https://github.com/login/oauth/access_token
+            user-info-uri: https://api.github.com/user
+            user-name-attribute: login
 # JWT配置
 jwt:
   secret: Oe8H9XZ3x2NpDQfY9vTr5qK6sLm7oP3aUv1wMxB2zC3yD4fE5gF6hG7jH8kJ

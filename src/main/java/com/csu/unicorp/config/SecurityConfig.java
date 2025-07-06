@@ -25,6 +25,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.config.security.JwtAuthenticationFilter;
+import com.csu.unicorp.config.security.OAuth2LoginSuccessHandler;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -44,6 +45,7 @@ public class SecurityConfig {
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
     
     /**
      * CORS配置 - 允许所有来源访问
@@ -125,7 +127,8 @@ public class SecurityConfig {
                     .requestMatchers("/v1/community/comments/user/{userId}").permitAll()
                     .requestMatchers("/v1/community/tags", "/v1/community/tags/hot", "/v1/community/tags/search").permitAll()
                     .requestMatchers("/v1/community/tags/{tagId}", "/v1/community/tags/topic/{topicId}", "/v1/community/tags/question/{questionId}").permitAll()
-                    
+                    // OAuth2登录相关路径
+                    .requestMatchers("/login/oauth2/code/**", "/oauth2/**").permitAll()
                     // 推荐系统公开接口
                     .requestMatchers("/v1/recommendations/behaviors").permitAll()
                     
@@ -147,12 +150,22 @@ public class SecurityConfig {
                     .requestMatchers("/v1/school-admin/**").hasRole(RoleConstants.ROLE_SCHOOL_ADMIN)
                     // 企业管理员接口需要EN_ADMIN权限
                     .requestMatchers("/v1/enterprise-admin/**").hasRole(RoleConstants.ROLE_ENTERPRISE_ADMIN)
+                    // 系统管理员接口
+                    .requestMatchers("/v1/admin/users/**").hasRole("SYSADMIN")
+                    .requestMatchers("/v1/admin/organizations/**").hasRole("SYSADMIN")
+                    .requestMatchers("/v1/admin/audit/**").hasRole("SYSADMIN")
                     // 其他所有请求需要认证
                     .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // 配置OAuth2登录
+                .oauth2Login(oauth2 -> oauth2
+                    .loginPage("/login")
+                    .successHandler(oAuth2LoginSuccessHandler)
+                    .defaultSuccessUrl("http://localhost:8082/login-success", true)
+                )
                 .build();
     }
     
@@ -195,11 +208,11 @@ public class SecurityConfig {
                                 .scheme("bearer")
                                 .bearerFormat("JWT")))
                 .info(new Info()
-                        .title("校企合作平台 API")
-                        .description("校企合作平台 RESTful API 文档")
+                        .title("UniCorp API")
+                        .description("校企合作平台API文档")
                         .version("1.0.0")
                         .contact(new Contact()
-                                .name("CSU Team")
-                                .email("support@unicorp.com")));
+                                .name("UniCorp Team")
+                                .email("unicorp@example.com")));
     }
 }

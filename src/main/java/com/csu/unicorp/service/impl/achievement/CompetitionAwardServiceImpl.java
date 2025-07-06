@@ -20,7 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -235,6 +238,118 @@ public class CompetitionAwardServiceImpl implements CompetitionAwardService {
         
         return convertToVO(award);
     }
+
+    @Override
+    public Page<CompetitionAwardVO> getSchoolStudentAwards(Integer userId, int page, int size) {
+        // 获取当前教师或管理员所属的组织ID
+        User currentUser = userMapper.selectById(userId);
+        if (currentUser == null || currentUser.getOrganizationId() == null) {
+            throw new BusinessException("用户不存在或未关联组织");
+        }
+        
+        Integer organizationId = currentUser.getOrganizationId();
+        
+        // 查询该组织下的所有学生获奖记录
+        Page<CompetitionAward> pageParam = new Page<>(page, size);
+        Page<CompetitionAward> awardPage = competitionAwardMapper.selectByOrganizationId(pageParam, organizationId);
+        
+        // 转换为VO
+        Page<CompetitionAwardVO> voPage = new Page<>(awardPage.getCurrent(), awardPage.getSize(), awardPage.getTotal());
+        List<CompetitionAwardVO> voList = awardPage.getRecords().stream()
+                .map(this::convertToVO)
+                .collect(Collectors.toList());
+        voPage.setRecords(voList);
+        
+        return voPage;
+    }
+    
+    @Override
+    public Map<String, Object> getSchoolAwardStatistics(Integer userId) {
+        // 获取当前教师或管理员所属的组织ID
+        User currentUser = userMapper.selectById(userId);
+        if (currentUser == null || currentUser.getOrganizationId() == null) {
+            throw new BusinessException("用户不存在或未关联组织");
+        }
+        
+        Integer organizationId = currentUser.getOrganizationId();
+        String organizationName = userMapper.selectOrganizationNameById(organizationId);
+        
+        // 获取该组织下的所有学生
+        List<User> students = userMapper.selectList(null).stream()
+                .filter(user -> organizationId.equals(user.getOrganizationId()))
+                .filter(user -> userMapper.hasRole(user.getId(), "STUDENT"))
+                .toList();
+        
+        // 获取该组织下的所有获奖记录
+        List<CompetitionAward> allAwards = new ArrayList<>();
+        for (User student : students) {
+            allAwards.addAll(competitionAwardMapper.selectByUserId(student.getId()));
+        }
+        
+        // 统计数据
+        Map<String, Object> statistics = new HashMap<>();
+        statistics.put("organizationId", organizationId);
+        statistics.put("organizationName", organizationName);
+        statistics.put("totalAwards", allAwards.size());
+        
+        // 统计已认证获奖数量
+        long verifiedAwardsCount = allAwards.stream()
+                .filter(CompetitionAward::getIsVerified)
+                .count();
+        statistics.put("verifiedAwardsCount", verifiedAwardsCount);
+        
+        // 统计获奖等级分布
+        Map<String, Long> awardLevelDistribution = allAwards.stream()
+                .collect(Collectors.groupingBy(
+                        CompetitionAward::getAwardLevel,
+                        Collectors.counting()
+                ));
+        statistics.put("awardLevelDistribution", awardLevelDistribution);
+        
+        // 统计有获奖的学生数量
+        long studentsWithAwards = students.stream()
+                .filter(student -> !competitionAwardMapper.selectByUserId(student.getId()).isEmpty())
+                .count();
+        statistics.put("studentsWithAwards", studentsWithAwards);
+        
+        // 计算平均每个学生的获奖数量
+        double avgAwardsPerStudent = students.isEmpty() ? 0 : (double) allAwards.size() / students.size();
+        statistics.put("avgAwardsPerStudent", Math.round(avgAwardsPerStudent * 10) / 10.0);
+        
+        // 计算获奖覆盖率（有获奖的学生占总学生的比例）
+        double awardCoverage = students.isEmpty() ? 0 : (double) studentsWithAwards / students.size() * 100;
+        statistics.put("awardCoverage", Math.round(awardCoverage));
+        
+        return statistics;
+    }
+    
+    @Override
+    public List<CompetitionAwardVO> getSchoolStudentAwardsByStudent(Integer userId, Integer studentId) {
+        // 获取当前教师或管理员所属的组织ID
+        User currentUser = userMapper.selectById(userId);
+        if (currentUser == null || currentUser.getOrganizationId() == null) {
+            throw new BusinessException("用户不存在或未关联组织");
+        }
+        
+        Integer organizationId = currentUser.getOrganizationId();
+        
+        // 验证学生是否属于该组织
+        User student = userMapper.selectById(studentId);
+        if (student == null) {
+            throw new BusinessException("学生不存在");
+        }
+        
+        if (!organizationId.equals(student.getOrganizationId())) {
+            throw new BusinessException("无权访问该学生的获奖记录");
+        }
+        
+        // 获取学生的获奖记录
+        List<CompetitionAward> awards = competitionAwardMapper.selectByUserId(studentId);
+        
+        return awards.stream()
+                .map(this::convertToVO)
+                .collect(Collectors.toList());
+    }
     
     /**
      * 将实体转换为VO
@@ -250,21 +365,18 @@ public class CompetitionAwardServiceImpl implements CompetitionAwardService {
         CompetitionAwardVO vo = new CompetitionAwardVO();
         BeanUtils.copyProperties(award, vo);
         
-        // 设置学生姓名和组织名称
+        // 设置学生姓名
         User user = userMapper.selectById(award.getUserId());
         if (user != null) {
-            // 获取用户的实名信息
-            UserVerification userVerification = userVerificationMapper.selectById(award.getUserId());
-            vo.setUserName(userVerification != null ? userVerification.getRealName() : user.getNickname());
-            System.out.println(user.getId());
+            vo.setUserName(user.getNickname());
             
-            // 获取组织名称
+            // 设置组织名称
             if (user.getOrganizationId() != null) {
-                String organizationName = userMapper.selectOrganizationNameById(user.getOrganizationId());
-                vo.setOrganizationName(organizationName);
+                vo.setOrganizationName(userMapper.selectOrganizationNameById(user.getOrganizationId()));
             }
         }
-        // 处理证书URL，转换为完整URL
+        
+        // 处理证书URL
         if (award.getCertificateUrl() != null && !award.getCertificateUrl().isEmpty()) {
             vo.setCertificateUrl(fileService.getFullFileUrl(award.getCertificateUrl()));
         }

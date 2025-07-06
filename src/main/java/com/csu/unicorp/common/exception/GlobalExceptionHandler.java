@@ -16,12 +16,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.csu.unicorp.service.SystemLogService;
 import com.csu.unicorp.vo.ResultVO;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -30,7 +32,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final SystemLogService systemLogService;
 
     /**
      * 处理JWT相关异常
@@ -75,8 +80,9 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BusinessException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResultVO<Void> handleBusinessException(BusinessException e) {
-        log.error("业务异常: {}", e.getMessage());
+    public ResultVO<?> handleBusinessException(BusinessException e) {
+        // 记录业务异常
+        systemLogService.warning("Business", e.getMessage());
         return ResultVO.error(e.getMessage());
     }
     
@@ -231,12 +237,13 @@ public class GlobalExceptionHandler {
     }
     
     /**
-     * 处理其他所有未明确处理的异常
+     * 处理系统异常
      */
     @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR) // 500
-    public ResultVO<Void> handleException(Exception e) {
-        log.error("系统异常", e);
-        return ResultVO.serverError("系统异常，请联系管理员");
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResultVO<?> handleException(Exception e) {
+        // 记录系统异常
+        systemLogService.error("System", "系统异常", e);
+        return ResultVO.error("系统异常，请联系管理员");
     }
 } 

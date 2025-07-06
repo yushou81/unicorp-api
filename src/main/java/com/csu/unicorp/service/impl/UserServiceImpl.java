@@ -1059,4 +1059,15 @@ public class UserServiceImpl implements UserService {
         // 转换为VO并返回
         return convertToVO(user);
     }
+    
+    @Override
+    public User getByGithubId(String githubId) {
+        return userMapper.selectByGithubId(githubId);
+    }
+    
+    @Override
+    public User saveUser(User user) {
+        userMapper.insert(user);
+        return user;
+    }
 }

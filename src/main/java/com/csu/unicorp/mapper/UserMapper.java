@@ -47,6 +47,16 @@ public interface UserMapper extends BaseMapper<User> {
     @Select("SELECT * FROM users WHERE phone = #{phone} AND is_deleted = 0")
     User selectByPhone(@Param("phone") String phone);
 
+
+    /**
+     * 根据GitHub用户ID查询用户
+     * 
+     * @param githubId GitHub用户ID
+     * @return 用户实体
+     */
+    @Select("SELECT * FROM users WHERE github_id = #{githubId} AND is_deleted = 0")
+    User selectByGithubId(@Param("githubId") String githubId);
+
     /**
      * 根据用户ID查询角色列表
      * 

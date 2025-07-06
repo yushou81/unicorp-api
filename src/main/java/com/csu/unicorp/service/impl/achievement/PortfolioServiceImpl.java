@@ -24,7 +24,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -229,31 +233,6 @@ public class PortfolioServiceImpl implements PortfolioService {
     
     @Override
     @Transactional
-    public PortfolioResourceVO uploadResource(Integer portfolioItemId, Integer userId, PortfolioResourceUploadDTO resourceUploadDTO) {
-        // 验证作品是否存在
-        PortfolioItem portfolioItem = portfolioItemMapper.selectById(portfolioItemId);
-        if (portfolioItem == null || portfolioItem.getIsDeleted()) {
-            throw new BusinessException("作品不存在");
-        }
-        
-        // 验证是否是作品所有者
-        if (!portfolioItem.getUserId().equals(userId)) {
-            throw new BusinessException("无权为该作品上传资源");
-        }
-        
-        // 创建资源
-        PortfolioResource portfolioResource = new PortfolioResource();
-        BeanUtils.copyProperties(resourceUploadDTO, portfolioResource);
-        portfolioResource.setPortfolioItemId(portfolioItemId);
-        portfolioResource.setCreatedAt(LocalDateTime.now());
-        
-        portfolioResourceMapper.insert(portfolioResource);
-        
-        return convertResourceToVO(portfolioResource);
-    }
-    
-    @Override
-    @Transactional
     public PortfolioResourceVO uploadResourceFile(Integer portfolioItemId, Integer userId, MultipartFile file, String resourceType, String description) {
         // 验证作品是否存在
         PortfolioItem portfolioItem = portfolioItemMapper.selectById(portfolioItemId);
@@ -431,5 +410,140 @@ public class PortfolioServiceImpl implements PortfolioService {
         portfolioItemVOPage.setRecords(portfolioItemVOs);
         
         return portfolioItemVOPage;
+    }
+    
+    @Override
+    public Page<PortfolioItemVO> getSchoolStudentPortfolioItems(Integer userId, int page, int size) {
+        // 获取当前教师或管理员所属的组织ID
+        User currentUser = userMapper.selectById(userId);
+        if (currentUser == null || currentUser.getOrganizationId() == null) {
+            throw new BusinessException("用户不存在或未关联组织");
+        }
+        
+        Integer organizationId = currentUser.getOrganizationId();
+        
+        // 查询该组织下的所有学生作品
+        Page<PortfolioItem> pageParam = new Page<>(page, size);
+        Page<PortfolioItem> portfolioItemPage = portfolioItemMapper.selectByOrganizationId(pageParam, organizationId);
+        
+        return convertPageToVO(portfolioItemPage);
+    }
+    
+    @Override
+    public Page<PortfolioItemVO> getSchoolStudentPortfolioItemsByCategory(Integer userId, String category, int page, int size) {
+        // 获取当前教师或管理员所属的组织ID
+        User currentUser = userMapper.selectById(userId);
+        if (currentUser == null || currentUser.getOrganizationId() == null) {
+            throw new BusinessException("用户不存在或未关联组织");
+        }
+        
+        Integer organizationId = currentUser.getOrganizationId();
+        
+        // 查询该组织下的指定分类的学生作品
+        Page<PortfolioItem> pageParam = new Page<>(page, size);
+        Page<PortfolioItem> portfolioItemPage = portfolioItemMapper.selectByOrganizationIdAndCategory(pageParam, organizationId, category);
+        
+        return convertPageToVO(portfolioItemPage);
+    }
+    
+    @Override
+    public List<PortfolioItemVO> getSchoolStudentPortfolioItemsByStudent(Integer userId, Integer studentId) {
+        // 获取当前教师或管理员所属的组织ID
+        User currentUser = userMapper.selectById(userId);
+        if (currentUser == null || currentUser.getOrganizationId() == null) {
+            throw new BusinessException("用户不存在或未关联组织");
+        }
+        
+        Integer organizationId = currentUser.getOrganizationId();
+        
+        // 验证学生是否属于该组织
+        User student = userMapper.selectById(studentId);
+        if (student == null) {
+            throw new BusinessException("学生不存在");
+        }
+        
+        if (!organizationId.equals(student.getOrganizationId())) {
+            throw new BusinessException("无权访问该学生的作品");
+        }
+        
+        // 获取学生的作品列表
+        List<PortfolioItem> portfolioItems = portfolioItemMapper.selectByUserId(studentId);
+        
+        return portfolioItems.stream()
+                .map(this::convertToVO)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public Map<String, Object> getSchoolPortfolioStatistics(Integer userId) {
+        // 获取当前教师或管理员所属的组织ID
+        User currentUser = userMapper.selectById(userId);
+        if (currentUser == null || currentUser.getOrganizationId() == null) {
+            throw new BusinessException("用户不存在或未关联组织");
+        }
+        
+        Integer organizationId = currentUser.getOrganizationId();
+        String organizationName = userMapper.selectOrganizationNameById(organizationId);
+        
+        // 获取该组织下的所有学生
+        List<User> students = userMapper.selectList(null).stream()
+                .filter(user -> organizationId.equals(user.getOrganizationId()))
+                .filter(user -> userMapper.hasRole(user.getId(), "STUDENT"))
+                .toList();
+        
+        // 获取该组织下的所有作品
+        List<PortfolioItem> allPortfolioItems = new ArrayList<>();
+        for (User student : students) {
+            allPortfolioItems.addAll(portfolioItemMapper.selectByUserId(student.getId()));
+        }
+        
+        // 统计数据
+        Map<String, Object> statistics = new HashMap<>();
+        statistics.put("organizationId", organizationId);
+        statistics.put("organizationName", organizationName);
+        statistics.put("totalPortfolioItems", allPortfolioItems.size());
+        
+        // 统计公开作品数量
+        long publicPortfolioItems = allPortfolioItems.stream()
+                .filter(PortfolioItem::getIsPublic)
+                .count();
+        statistics.put("publicPortfolioItems", publicPortfolioItems);
+        
+        // 统计总访问量
+        int totalViewCount = allPortfolioItems.stream()
+                .mapToInt(PortfolioItem::getViewCount)
+                .sum();
+        statistics.put("totalViewCount", totalViewCount);
+        
+        // 统计总点赞数
+        int totalLikeCount = allPortfolioItems.stream()
+                .mapToInt(PortfolioItem::getLikeCount)
+                .sum();
+        statistics.put("totalLikeCount", totalLikeCount);
+        
+        // 统计分类分布
+        Map<String, Long> categoryDistribution = allPortfolioItems.stream()
+                .filter(item -> item.getCategory() != null && !item.getCategory().isEmpty())
+                .collect(Collectors.groupingBy(
+                        PortfolioItem::getCategory,
+                        Collectors.counting()
+                ));
+        statistics.put("categoryDistribution", categoryDistribution);
+        
+        // 统计有作品的学生数量
+        long studentsWithPortfolios = students.stream()
+                .filter(student -> !portfolioItemMapper.selectByUserId(student.getId()).isEmpty())
+                .count();
+        statistics.put("studentsWithPortfolios", studentsWithPortfolios);
+        
+        // 计算平均每个学生的作品数量
+        double avgPortfoliosPerStudent = students.isEmpty() ? 0 : (double) allPortfolioItems.size() / students.size();
+        statistics.put("avgPortfoliosPerStudent", Math.round(avgPortfoliosPerStudent * 10) / 10.0);
+        
+        // 计算作品覆盖率（有作品的学生占总学生的比例）
+        double portfolioCoverage = students.isEmpty() ? 0 : (double) studentsWithPortfolios / students.size() * 100;
+        statistics.put("portfolioCoverage", Math.round(portfolioCoverage));
+        
+        return statistics;
     }
 } 

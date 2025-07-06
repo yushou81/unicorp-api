@@ -251,4 +251,19 @@ public interface UserService {
      * @return 用户信息
      */
     UserVO searchUserByPhoneOrEmail(String keyword);
+    /**
+     * 根据GitHub用户ID查询用户
+     * 
+     * @param githubId GitHub用户ID
+     * @return 用户实体
+     */
+    User getByGithubId(String githubId);
+    
+    /**
+     * 保存用户
+     * 
+     * @param user 用户实体
+     * @return 保存后的用户实体
+     */
+    User saveUser(User user);
 } 
