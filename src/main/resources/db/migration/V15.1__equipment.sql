@@ -16,7 +16,5 @@ CREATE TABLE equipment_resources (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='实验设备资源表'; 
 
 
--- 添加索引以提高查询性能
-CREATE INDEX idx_equipment_organization ON equipment_resources(organization_id);
-CREATE INDEX idx_equipment_manager ON equipment_resources(manager_id);
+
 
