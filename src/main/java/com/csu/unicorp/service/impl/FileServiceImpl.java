@@ -39,8 +39,8 @@ public class FileServiceImpl implements FileService {
     @Value("${app.upload.max-size:10485760}")
     private long maxFileSize; // 默认10MB
     
-    @Value("${app.base-url:http://localhost:8081}")
-    private String baseUrl;
+//    @Value("${app.base-url:http://localhost:8081}")
+    private String baseUrl = "http://localhost:8081";
 
     @Override
     public String uploadFile(MultipartFile file, String type) {
