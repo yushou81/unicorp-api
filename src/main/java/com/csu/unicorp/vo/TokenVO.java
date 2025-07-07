@@ -23,6 +23,12 @@ public class TokenVO {
     private String token;
     
     /**
+     * 刷新令牌
+     */
+    @Schema(description = "刷新令牌")
+    private String refreshToken;
+    
+    /**
      * 用户昵称
      */
     @Schema(description = "用户昵称")

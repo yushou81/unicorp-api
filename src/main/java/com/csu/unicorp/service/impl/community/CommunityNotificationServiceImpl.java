@@ -6,8 +6,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.csu.unicorp.common.constants.CacheConstants;
 import com.csu.unicorp.entity.community.CommunityNotification;
 import com.csu.unicorp.mapper.community.CommunityNotificationMapper;
+import com.csu.unicorp.service.CacheService;
 import com.csu.unicorp.service.CommunityNotificationService;
 import com.csu.unicorp.vo.community.NotificationVO;
 
@@ -17,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 社区通知服务实现类
@@ -28,9 +31,20 @@ public class CommunityNotificationServiceImpl extends ServiceImpl<CommunityNotif
         implements CommunityNotificationService {
 
     private final CommunityNotificationMapper notificationMapper;
+    private final CacheService cacheService;
 
     @Override
     public Page<NotificationVO> getUserNotifications(Long userId, Integer page, Integer size, String type, Boolean isRead) {
+        // 对于分页数据，只缓存第一页且无过滤条件的情况
+        if (page == 1 && type == null && isRead == null) {
+            String cacheKey = CacheConstants.USER_NOTIFICATIONS_CACHE_KEY_PREFIX + userId + ":" + size;
+            Page<NotificationVO> cachedPage = cacheService.get(cacheKey, Page.class);
+            if (cachedPage != null) {
+                log.debug("从缓存获取用户通知列表: {}", userId);
+                return cachedPage;
+            }
+        }
+        
         Page<CommunityNotification> pageParam = new Page<>(page, size);
         
         // 构建查询条件
@@ -49,22 +63,59 @@ public class CommunityNotificationServiceImpl extends ServiceImpl<CommunityNotif
                 .map(this::convertToVO)
                 .toList());
         
+        // 缓存第一页且无过滤条件的结果
+        if (page == 1 && type == null && isRead == null) {
+            String cacheKey = CacheConstants.USER_NOTIFICATIONS_CACHE_KEY_PREFIX + userId + ":" + size;
+            cacheService.set(cacheKey, voPage, CacheConstants.NOTIFICATION_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        }
+        
         return voPage;
     }
 
     @Override
     public NotificationVO getNotificationDetail(Long notificationId, Long userId) {
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.COMMENT_DETAIL_CACHE_KEY_PREFIX + notificationId;
+        NotificationVO cachedNotification = cacheService.get(cacheKey, NotificationVO.class);
+        if (cachedNotification != null && cachedNotification.getUserId().equals(userId)) {
+            log.debug("从缓存获取通知详情: {}", notificationId);
+            return cachedNotification;
+        }
+        
         CommunityNotification notification = getOne(new LambdaQueryWrapper<CommunityNotification>()
                 .eq(CommunityNotification::getId, notificationId)
                 .eq(CommunityNotification::getUserId, userId));
         
-        return notification != null ? convertToVO(notification) : null;
+        if (notification == null) {
+            return null;
+        }
+        
+        NotificationVO notificationVO = convertToVO(notification);
+        
+        // 缓存通知详情
+        cacheService.set(cacheKey, notificationVO, CacheConstants.NOTIFICATION_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return notificationVO;
     }
 
     @Override
     @Transactional
     public boolean markAsRead(Long notificationId) {
-        return notificationMapper.markAsRead(notificationId) > 0;
+        boolean result = notificationMapper.markAsRead(notificationId) > 0;
+        
+        if (result) {
+            // 清除相关缓存
+            cacheService.delete(CacheConstants.COMMENT_DETAIL_CACHE_KEY_PREFIX + notificationId);
+            
+            // 获取通知对象，清除用户未读通知数缓存
+            CommunityNotification notification = getById(notificationId);
+            if (notification != null) {
+                cacheService.delete(CacheConstants.UNREAD_NOTIFICATION_COUNT_CACHE_KEY_PREFIX + notification.getUserId());
+                cacheService.delete(CacheConstants.USER_NOTIFICATIONS_CACHE_KEY_PREFIX + notification.getUserId() + ":*");
+            }
+        }
+        
+        return result;
     }
 
     @Override
@@ -85,14 +136,27 @@ public class CommunityNotificationServiceImpl extends ServiceImpl<CommunityNotif
     @Transactional
     public void markAllAsRead(Long userId) {
         notificationMapper.markAllAsRead(userId);
+        
+        // 清除相关缓存
+        cacheService.delete(CacheConstants.UNREAD_NOTIFICATION_COUNT_CACHE_KEY_PREFIX + userId);
+        cacheService.delete(CacheConstants.USER_NOTIFICATIONS_CACHE_KEY_PREFIX + userId + ":*");
     }
 
     @Override
     @Transactional
     public boolean deleteNotification(Long notificationId, Long userId) {
-        return remove(new LambdaQueryWrapper<CommunityNotification>()
+        boolean result = remove(new LambdaQueryWrapper<CommunityNotification>()
                 .eq(CommunityNotification::getId, notificationId)
                 .eq(CommunityNotification::getUserId, userId));
+        
+        if (result) {
+            // 清除相关缓存
+            cacheService.delete(CacheConstants.COMMENT_DETAIL_CACHE_KEY_PREFIX + notificationId);
+            cacheService.delete(CacheConstants.USER_NOTIFICATIONS_CACHE_KEY_PREFIX + userId + ":*");
+            cacheService.delete(CacheConstants.UNREAD_NOTIFICATION_COUNT_CACHE_KEY_PREFIX + userId);
+        }
+        
+        return result;
     }
 
     @Override
@@ -100,11 +164,28 @@ public class CommunityNotificationServiceImpl extends ServiceImpl<CommunityNotif
     public void deleteAllNotifications(Long userId) {
         remove(new LambdaQueryWrapper<CommunityNotification>()
                 .eq(CommunityNotification::getUserId, userId));
+        
+        // 清除相关缓存
+        cacheService.delete(CacheConstants.USER_NOTIFICATIONS_CACHE_KEY_PREFIX + userId + ":*");
+        cacheService.delete(CacheConstants.UNREAD_NOTIFICATION_COUNT_CACHE_KEY_PREFIX + userId);
     }
 
     @Override
     public Integer getUnreadCount(Long userId) {
-        return notificationMapper.countUnreadNotifications(userId);
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.UNREAD_NOTIFICATION_COUNT_CACHE_KEY_PREFIX + userId;
+        Integer cachedCount = cacheService.get(cacheKey, Integer.class);
+        if (cachedCount != null) {
+            log.debug("从缓存获取未读通知数: {}", userId);
+            return cachedCount;
+        }
+        
+        Integer count = notificationMapper.countUnreadNotifications(userId);
+        
+        // 缓存未读通知数
+        cacheService.set(cacheKey, count, CacheConstants.NOTIFICATION_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return count;
     }
     
     /**
@@ -127,6 +208,11 @@ public class CommunityNotificationServiceImpl extends ServiceImpl<CommunityNotif
         notification.setCreatedAt(LocalDateTime.now());
         
         save(notification);
+        
+        // 清除相关缓存
+        cacheService.delete(CacheConstants.UNREAD_NOTIFICATION_COUNT_CACHE_KEY_PREFIX + userId);
+        cacheService.delete(CacheConstants.USER_NOTIFICATIONS_CACHE_KEY_PREFIX + userId + ":*");
+        
         return notification.getId();
     }
     
@@ -159,6 +245,12 @@ public class CommunityNotificationServiceImpl extends ServiceImpl<CommunityNotif
         }
         
         saveBatch(notifications);
+        
+        // 清除相关缓存
+        for (Long userId : userIds) {
+            cacheService.delete(CacheConstants.UNREAD_NOTIFICATION_COUNT_CACHE_KEY_PREFIX + userId);
+            cacheService.delete(CacheConstants.USER_NOTIFICATIONS_CACHE_KEY_PREFIX + userId + ":*");
+        }
     }
     
     /**

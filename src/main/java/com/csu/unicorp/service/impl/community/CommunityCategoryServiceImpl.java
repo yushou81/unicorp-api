@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -13,24 +14,29 @@ import org.springframework.transaction.annotation.Transactional;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.csu.unicorp.common.constants.CacheConstants;
 import com.csu.unicorp.common.constants.CommunityConstants;
 import com.csu.unicorp.dto.community.CategoryDTO;
 import com.csu.unicorp.entity.community.CommunityCategory;
 import com.csu.unicorp.mapper.community.CommunityCategoryMapper;
+import com.csu.unicorp.service.CacheService;
 import com.csu.unicorp.service.CommunityCategoryService;
 import com.csu.unicorp.vo.community.CategoryVO;
 import com.csu.unicorp.vo.community.DeleteResult;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 社区板块Service实现类
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CommunityCategoryServiceImpl extends ServiceImpl<CommunityCategoryMapper, CommunityCategory> implements CommunityCategoryService {
     
     private final CommunityCategoryMapper categoryMapper;
+    private final CacheService cacheService;
     
     /**
      * 获取板块树形结构
@@ -38,16 +44,33 @@ public class CommunityCategoryServiceImpl extends ServiceImpl<CommunityCategoryM
      */
     @Override
     public List<CategoryVO> getCategoryTree() {
+        log.info("获取板块树形结构");
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.CATEGORY_TREE_CACHE_KEY;
+        List<CategoryVO> cachedTree = cacheService.getList(cacheKey, CategoryVO.class);
+        log.info("cachedTree: {}", cachedTree);
+        log.info("cachedTree.size(): {}", cachedTree == null ? 0 : cachedTree.size());
+        if (cachedTree != null && !cachedTree.isEmpty()) {
+            log.info("从缓存获取板块树形结构");
+            return cachedTree;
+        }
+        
+        log.info("从数据库获取板块树形结构");
         // 获取所有板块
         List<CommunityCategory> allCategories = this.list();
-        
+
         // 转换为VO
         List<CategoryVO> categoryVOList = allCategories.stream()
                 .map(this::convertToVO)
                 .collect(Collectors.toList());
         
         // 构建树形结构
-        return buildCategoryTree(categoryVOList);
+        List<CategoryVO> result = buildCategoryTree(categoryVOList);
+        
+        // 缓存结果
+        cacheService.setList(cacheKey, result, CacheConstants.CATEGORY_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return result;
     }
     
     /**
@@ -57,6 +80,14 @@ public class CommunityCategoryServiceImpl extends ServiceImpl<CommunityCategoryM
      */
     @Override
     public CategoryVO getCategoryDetail(Long categoryId) {
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.CATEGORY_DETAIL_CACHE_KEY_PREFIX + categoryId;
+        CategoryVO cachedCategory = cacheService.get(cacheKey, CategoryVO.class);
+        if (cachedCategory != null) {
+            log.debug("从缓存获取板块详情: {}", categoryId);
+            return cachedCategory;
+        }
+        
         CommunityCategory category = this.getById(categoryId);
         if (category == null) {
             return null;
@@ -78,6 +109,9 @@ public class CommunityCategoryServiceImpl extends ServiceImpl<CommunityCategoryM
         // 获取话题数量
         Integer topicCount = categoryMapper.countTopicsByCategoryId(categoryId);
         categoryVO.setTopicCount(topicCount);
+        
+        // 缓存结果
+        cacheService.set(cacheKey, categoryVO, CacheConstants.CATEGORY_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
         
         return categoryVO;
     }
@@ -102,6 +136,15 @@ public class CommunityCategoryServiceImpl extends ServiceImpl<CommunityCategoryM
         category.setUpdatedAt(LocalDateTime.now());
         
         this.save(category);
+        
+        // 清除相关缓存
+        cacheService.delete(CacheConstants.CATEGORY_TREE_CACHE_KEY);
+        cacheService.delete(CacheConstants.ALL_CATEGORIES_CACHE_KEY);
+        
+        if (category.getParentId() != null) {
+            cacheService.delete(CacheConstants.CATEGORY_DETAIL_CACHE_KEY_PREFIX + category.getParentId());
+        }
+        
         return category.getId();
     }
     
@@ -119,6 +162,8 @@ public class CommunityCategoryServiceImpl extends ServiceImpl<CommunityCategoryM
             return false;
         }
         
+        Long oldParentId = category.getParentId();
+        
         category.setName(categoryDTO.getName());
         category.setDescription(categoryDTO.getDescription());
         category.setIcon(categoryDTO.getIcon());
@@ -131,7 +176,30 @@ public class CommunityCategoryServiceImpl extends ServiceImpl<CommunityCategoryM
         }
         category.setUpdatedAt(LocalDateTime.now());
         
-        return this.updateById(category);
+        boolean result = this.updateById(category);
+        
+        // 清除相关缓存
+        if (result) {
+            cacheService.delete(CacheConstants.CATEGORY_DETAIL_CACHE_KEY_PREFIX + categoryId);
+            cacheService.delete(CacheConstants.CATEGORY_TREE_CACHE_KEY);
+            cacheService.delete(CacheConstants.ALL_CATEGORIES_CACHE_KEY);
+            
+            // 如果父级变更，清除旧父级和新父级的缓存
+            if (oldParentId != null && !oldParentId.equals(category.getParentId())) {
+                cacheService.delete(CacheConstants.CATEGORY_DETAIL_CACHE_KEY_PREFIX + oldParentId);
+            }
+            
+            if (category.getParentId() != null) {
+                cacheService.delete(CacheConstants.CATEGORY_DETAIL_CACHE_KEY_PREFIX + category.getParentId());
+            }
+            
+            // 清除用户可见分类缓存
+            // 这里使用通配符删除所有用户的可见分类缓存
+            // 实际应用中可能需要更精确的缓存失效策略
+            cacheService.deleteByPattern(CacheConstants.USER_VISIBLE_CATEGORIES_CACHE_KEY_PREFIX + "*");
+        }
+        
+        return result;
     }
     
     /**
@@ -165,6 +233,21 @@ public class CommunityCategoryServiceImpl extends ServiceImpl<CommunityCategoryM
         }
         
         boolean success = this.removeById(categoryId);
+        
+        // 清除相关缓存
+        if (success) {
+            cacheService.delete(CacheConstants.CATEGORY_DETAIL_CACHE_KEY_PREFIX + categoryId);
+            cacheService.delete(CacheConstants.CATEGORY_TREE_CACHE_KEY);
+            cacheService.delete(CacheConstants.ALL_CATEGORIES_CACHE_KEY);
+            
+            if (category.getParentId() != null) {
+                cacheService.delete(CacheConstants.CATEGORY_DETAIL_CACHE_KEY_PREFIX + category.getParentId());
+            }
+            
+            // 清除用户可见分类缓存
+            cacheService.deleteByPattern(CacheConstants.USER_VISIBLE_CATEGORIES_CACHE_KEY_PREFIX + "*");
+        }
+        
         return new DeleteResult(success, success ? null : "删除失败，请稍后重试");
     }
     
@@ -176,6 +259,16 @@ public class CommunityCategoryServiceImpl extends ServiceImpl<CommunityCategoryM
      */
     @Override
     public Page<CategoryVO> listCategories(int page, int size) {
+        // 对于分页数据，只缓存第一页
+        if (page == 1) {
+            String cacheKey = CacheConstants.ALL_CATEGORIES_CACHE_KEY + ":" + size;
+            Page<CategoryVO> cachedPage = cacheService.get(cacheKey, Page.class);
+            if (cachedPage != null) {
+                log.debug("从缓存获取板块列表");
+                return cachedPage;
+            }
+        }
+        
         Page<CommunityCategory> categoryPage = new Page<>(page, size);
         Page<CommunityCategory> resultPage = categoryMapper.selectCategoriesWithTopicCount(categoryPage);
         
@@ -185,6 +278,12 @@ public class CommunityCategoryServiceImpl extends ServiceImpl<CommunityCategoryM
                 .map(this::convertToVO)
                 .collect(Collectors.toList());
         voPage.setRecords(records);
+        
+        // 缓存第一页数据
+        if (page == 1) {
+            String cacheKey = CacheConstants.ALL_CATEGORIES_CACHE_KEY + ":" + size;
+            cacheService.set(cacheKey, voPage, CacheConstants.CATEGORY_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        }
         
         return voPage;
     }
@@ -205,7 +304,16 @@ public class CommunityCategoryServiceImpl extends ServiceImpl<CommunityCategoryM
         category.setSortOrder(sortOrder);
         category.setUpdatedAt(LocalDateTime.now());
         
-        return this.updateById(category);
+        boolean result = this.updateById(category);
+        
+        // 清除相关缓存
+        if (result) {
+            cacheService.delete(CacheConstants.CATEGORY_DETAIL_CACHE_KEY_PREFIX + categoryId);
+            cacheService.delete(CacheConstants.CATEGORY_TREE_CACHE_KEY);
+            cacheService.delete(CacheConstants.ALL_CATEGORIES_CACHE_KEY);
+        }
+        
+        return result;
     }
     
     /**
@@ -215,6 +323,14 @@ public class CommunityCategoryServiceImpl extends ServiceImpl<CommunityCategoryM
      */
     @Override
     public List<CategoryVO> getUserVisibleCategories(Long userId) {
+        // 尝试从缓存获取
+        String cacheKey = CacheConstants.USER_VISIBLE_CATEGORIES_CACHE_KEY_PREFIX + (userId == null ? "anonymous" : userId);
+        List<CategoryVO> cachedCategories = cacheService.getList(cacheKey, CategoryVO.class);
+        if (cachedCategories != null) {
+            log.debug("从缓存获取用户可见板块列表: {}", userId);
+            return cachedCategories;
+        }
+        
         // 获取所有板块
         List<CommunityCategory> allCategories = this.list();
         
@@ -240,7 +356,12 @@ public class CommunityCategoryServiceImpl extends ServiceImpl<CommunityCategoryM
                 .collect(Collectors.toList());
         
         // 构建树形结构
-        return buildCategoryTree(categoryVOList);
+        List<CategoryVO> result = buildCategoryTree(categoryVOList);
+        
+        // 缓存结果
+        cacheService.setList(cacheKey, result, CacheConstants.USER_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        
+        return result;
     }
     
     /**

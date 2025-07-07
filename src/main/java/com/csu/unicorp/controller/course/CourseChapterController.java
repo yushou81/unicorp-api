@@ -70,7 +70,7 @@ public class CourseChapterController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN')")
     public ResultVO<CourseChapterVO> updateChapter(
             @PathVariable @Parameter(description = "章节ID") Integer id,
             @RequestBody @Valid CourseChapterDTO chapterDTO,
@@ -164,7 +164,7 @@ public class CourseChapterController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN')")
     public ResultVO<Boolean> updateSequence(
             @PathVariable @Parameter(description = "章节ID") Integer id,
             @RequestParam @Parameter(description = "顺序") Integer sequence,
@@ -185,7 +185,7 @@ public class CourseChapterController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN', 'EN_TEACHER')")
     public ResultVO<Boolean> associateResource(
             @PathVariable @Parameter(description = "章节ID") Integer id,
             @PathVariable @Parameter(description = "资源ID") Integer resourceId,
@@ -206,7 +206,7 @@ public class CourseChapterController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'SYSADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN')")
     public ResultVO<Boolean> removeResource(
             @PathVariable @Parameter(description = "章节ID") Integer id,
             @PathVariable @Parameter(description = "资源ID") Integer resourceId,

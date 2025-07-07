@@ -30,6 +30,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -39,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/v1/community/categories")
 @RequiredArgsConstructor
 @Tag(name = "社区板块API", description = "社区板块相关接口")
+@Slf4j
 public class CommunityCategoryController {
     
     private final CommunityCategoryService categoryService;
@@ -55,6 +57,7 @@ public class CommunityCategoryController {
                 schema = @Schema(implementation = ResultVO.class)))
     })
     public ResultVO<List<CategoryVO>> getCategoryTree() {
+        log.info("获取板块树形结构");
         List<CategoryVO> categoryTree = categoryService.getCategoryTree();
         return ResultVO.success("获取板块树形结构成功", categoryTree);
     }

@@ -8,6 +8,7 @@ import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.course.CourseDiscussionMapper;
 import com.csu.unicorp.mapper.course.DualTeacherCourseMapper;
 import com.csu.unicorp.mapper.UserMapper;
+import com.csu.unicorp.service.impl.course.CourseDiscussionServiceImpl;
 import com.csu.unicorp.vo.CourseDiscussionVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

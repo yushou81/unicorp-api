@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 竞赛获奖Controller
@@ -237,5 +238,62 @@ public class CompetitionAwardController {
         Integer verifierId = ((CustomUserDetails) userDetails).getUserId();
         CompetitionAwardVO award = competitionAwardService.verifyCompetitionAward(id, verifierId, verifyDTO);
         return ResultVO.success(award);
+    }
+    
+    @GetMapping("/school")
+    @Operation(summary = "获取学校学生竞赛获奖列表", description = "获取当前教师或管理员所属学校的学生竞赛获奖列表")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PreAuthorize("hasRole('TEACHER') or hasRole('SCH_ADMIN')")
+    public ResultVO<Page<CompetitionAwardVO>> getSchoolStudentAwards(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+        Page<CompetitionAwardVO> awards = competitionAwardService.getSchoolStudentAwards(userId, page - 1, size);
+        return ResultVO.success(awards);
+    }
+    
+    @GetMapping("/school/statistics")
+    @Operation(summary = "获取学校竞赛获奖统计数据", description = "获取当前教师或管理员所属学校的竞赛获奖统计数据")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PreAuthorize("hasRole('TEACHER') or hasRole('SCH_ADMIN')")
+    public ResultVO<Map<String, Object>> getSchoolAwardStatistics(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+        Map<String, Object> statistics = competitionAwardService.getSchoolAwardStatistics(userId);
+        return ResultVO.success(statistics);
+    }
+    
+    @GetMapping("/school/by-student")
+    @Operation(summary = "获取学校指定学生的竞赛获奖列表", description = "获取学校指定学生的竞赛获奖列表")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PreAuthorize("hasRole('TEACHER') or hasRole('SCH_ADMIN')")
+    public ResultVO<List<CompetitionAwardVO>> getSchoolStudentAwardsByStudent(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam Integer studentId) {
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+        List<CompetitionAwardVO> awards = competitionAwardService.getSchoolStudentAwardsByStudent(userId, studentId);
+        return ResultVO.success(awards);
     }
 } 

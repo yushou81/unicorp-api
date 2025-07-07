@@ -11,11 +11,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -85,6 +87,63 @@ public class AchievementStatisticsController {
     @PreAuthorize("hasRole('TEACHER') or hasRole('SCH_ADMIN')")
     public ResultVO<Map<String, Object>> getOrganizationAchievementStatistics(@PathVariable Integer organizationId) {
         Map<String, Object> statistics = achievementStatisticsService.getOrganizationAchievementStatistics(organizationId);
+        return ResultVO.success(statistics);
+    }
+    
+    @GetMapping("/school/students")
+    @Operation(summary = "获取学校学生成果概览列表", description = "获取当前教师或管理员所属学校的学生成果概览列表")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PreAuthorize("hasRole('TEACHER') or hasRole('SCH_ADMIN')")
+    public ResultVO<Page<StudentAchievementOverviewVO>> getSchoolStudentsAchievementOverview(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+        Page<StudentAchievementOverviewVO> overviews = achievementStatisticsService.getSchoolStudentsAchievementOverview(userId, page, size);
+        return ResultVO.success(overviews);
+    }
+    
+    @GetMapping("/school/top-students")
+    @Operation(summary = "获取学校成果优秀学生列表", description = "获取当前教师或管理员所属学校的成果优秀学生列表")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PreAuthorize("hasRole('TEACHER') or hasRole('SCH_ADMIN')")
+    public ResultVO<List<StudentAchievementOverviewVO>> getSchoolTopStudents(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "10") int limit) {
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+        List<StudentAchievementOverviewVO> topStudents = achievementStatisticsService.getSchoolTopStudents(userId, limit);
+        return ResultVO.success(topStudents);
+    }
+    
+    @GetMapping("/school/statistics")
+    @Operation(summary = "获取学校成果统计数据", description = "获取当前教师或管理员所属学校的成果统计数据")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PreAuthorize("hasRole('TEACHER') or hasRole('SCH_ADMIN')")
+    public ResultVO<Map<String, Object>> getSchoolAchievementStatistics(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+        Map<String, Object> statistics = achievementStatisticsService.getSchoolAchievementStatistics(userId);
         return ResultVO.success(statistics);
     }
 } 

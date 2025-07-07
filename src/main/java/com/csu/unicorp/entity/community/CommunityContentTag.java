@@ -1,5 +1,6 @@
 package com.csu.unicorp.entity.community;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -19,7 +20,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("community_content_tag")
-public class CommunityContentTag {
+public class CommunityContentTag implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
     
     /**
      * 主键ID

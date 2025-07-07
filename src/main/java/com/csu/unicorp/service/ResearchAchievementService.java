@@ -7,6 +7,7 @@ import com.csu.unicorp.vo.achievement.ResearchAchievementVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 科研成果Service接口
@@ -43,7 +44,7 @@ public interface ResearchAchievementService {
     /**
      * 根据类型分页获取公开的科研成果列表
      * 
-     * @param type 成果类型
+     * @param type 科研成果类型
      * @param page 页码
      * @param size 每页大小
      * @return 公开科研成果分页列表
@@ -63,7 +64,7 @@ public interface ResearchAchievementService {
     /**
      * 获取科研成果详情
      * 
-     * @param id 成果ID
+     * @param id 科研成果ID
      * @param viewerIp 查看者IP，用于记录访问记录
      * @return 科研成果详情
      */
@@ -74,62 +75,78 @@ public interface ResearchAchievementService {
      * 
      * @param userId 用户ID
      * @param researchAchievementCreationDTO 科研成果创建DTO
-     * @param file 科研成果文件（可选）
-     * @param coverImage 封面图片（可选）
+     * @param file 成果文件
+     * @param coverImage 封面图片
      * @return 创建成功的科研成果
      */
-    ResearchAchievementVO createResearchAchievement(Integer userId, ResearchAchievementCreationDTO researchAchievementCreationDTO, 
-                                                  MultipartFile file, MultipartFile coverImage);
+    ResearchAchievementVO createResearchAchievement(Integer userId, ResearchAchievementCreationDTO researchAchievementCreationDTO, MultipartFile file, MultipartFile coverImage);
     
     /**
      * 更新科研成果
      * 
-     * @param id 成果ID
+     * @param id 科研成果ID
      * @param userId 用户ID
      * @param researchAchievementCreationDTO 科研成果创建DTO
-     * @param file 科研成果文件（可选）
-     * @param coverImage 封面图片（可选）
+     * @param file 成果文件
+     * @param coverImage 封面图片
      * @return 更新后的科研成果
      */
-    ResearchAchievementVO updateResearchAchievement(Integer id, Integer userId, ResearchAchievementCreationDTO researchAchievementCreationDTO,
-                                                  MultipartFile file, MultipartFile coverImage);
+    ResearchAchievementVO updateResearchAchievement(Integer id, Integer userId, ResearchAchievementCreationDTO researchAchievementCreationDTO, MultipartFile file, MultipartFile coverImage);
     
     /**
      * 删除科研成果
      * 
-     * @param id 成果ID
+     * @param id 科研成果ID
      * @param userId 用户ID
      * @return 是否删除成功
      */
     boolean deleteResearchAchievement(Integer id, Integer userId);
     
     /**
-     * 上传科研成果文件
-     * 
-     * @param id 成果ID
-     * @param userId 用户ID
-     * @param file 文件
-     * @return 上传后的科研成果
-     */
-    ResearchAchievementVO uploadFile(Integer id, Integer userId, MultipartFile file);
-    
-    /**
-     * 上传科研成果封面图片
-     * 
-     * @param id 成果ID
-     * @param userId 用户ID
-     * @param file 图片文件
-     * @return 上传后的科研成果
-     */
-    ResearchAchievementVO uploadCoverImage(Integer id, Integer userId, MultipartFile file);
-    
-    /**
      * 认证科研成果
      * 
-     * @param id 成果ID
+     * @param id 科研成果ID
      * @param verifierId 认证人ID
      * @param verifyDTO 认证DTO
      * @return 认证后的科研成果
      */
     ResearchAchievementVO verifyResearchAchievement(Integer id, Integer verifierId, AchievementVerifyDTO verifyDTO);
+    
+    /**
+     * 获取学校学生科研成果列表
+     * 
+     * @param userId 当前教师或管理员ID
+     * @param page 页码
+     * @param size 每页大小
+     * @return 学生科研成果分页列表
+     */
+    Page<ResearchAchievementVO> getSchoolStudentResearchAchievements(Integer userId, int page, int size);
+    
+    /**
+     * 根据类型获取学校学生科研成果列表
+     * 
+     * @param userId 当前教师或管理员ID
+     * @param type 科研成果类型
+     * @param page 页码
+     * @param size 每页大小
+     * @return 学生科研成果分页列表
+     */
+    Page<ResearchAchievementVO> getSchoolStudentResearchAchievementsByType(Integer userId, String type, int page, int size);
+    
+    /**
+     * 获取学校指定学生的科研成果列表
+     * 
+     * @param userId 当前教师或管理员ID
+     * @param studentId 学生ID
+     * @return 学生科研成果列表
+     */
+    List<ResearchAchievementVO> getSchoolStudentResearchAchievementsByStudent(Integer userId, Integer studentId);
+    
+    /**
+     * 获取学校科研成果统计数据
+     * 
+     * @param userId 当前教师或管理员ID
+     * @return 学校科研成果统计数据
+     */
+    Map<String, Object> getSchoolResearchStatistics(Integer userId);
 } 

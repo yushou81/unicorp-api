@@ -126,11 +126,20 @@ public interface DualTeacherCourseService {
     void updateEnrollmentStatus(Integer enrollmentId, String status, UserDetails userDetails);
     
     /**
-     * 获取课程已报名学生列表
+     * 获取课程学生列表
      * 
-     * @param courseId 课程ID
+     * @param id 课程ID
      * @param userDetails 当前登录用户
      * @return 学生列表
      */
-    List<UserVO> getCourseStudents(Integer courseId, UserDetails userDetails);
+    List<UserVO> getCourseStudents(Integer id, UserDetails userDetails);
+    
+    /**
+     * 检查学生是否已报名课程
+     * 
+     * @param courseId 课程ID
+     * @param userDetails 当前登录用户
+     * @return 是否已报名
+     */
+    boolean isStudentEnrolled(Integer courseId, UserDetails userDetails);
 } 

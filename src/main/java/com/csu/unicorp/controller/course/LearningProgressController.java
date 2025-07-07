@@ -155,7 +155,7 @@ public class LearningProgressController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResultVO.class)))
     })
-    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'SCH_ADMIN','STUDENT')")
     public ResultVO<Boolean> initializeChapterProgress(
             @PathVariable @Parameter(description = "章节ID") Integer chapterId,
             @AuthenticationPrincipal UserDetails userDetails) {

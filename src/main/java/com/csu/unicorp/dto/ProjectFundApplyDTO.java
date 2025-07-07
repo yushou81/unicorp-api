@@ -10,4 +10,5 @@ public class ProjectFundApplyDTO {
     private String purpose;
     private Integer applicantId;
     private List<String> attachments;
+    private java.sql.Timestamp createTime; // 申请创建时间
 }

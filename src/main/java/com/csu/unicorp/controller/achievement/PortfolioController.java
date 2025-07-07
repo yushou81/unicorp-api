@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 作品集Controller
@@ -295,5 +296,83 @@ public class PortfolioController {
     public ResultVO<Boolean> likePortfolioItem(@PathVariable Integer id) {
         boolean result = portfolioService.likePortfolioItem(id);
         return ResultVO.success(result);
+    }
+    
+    @GetMapping("/school/items")
+    @Operation(summary = "获取学校学生作品列表", description = "获取当前教师或管理员所属学校的学生作品列表")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PreAuthorize("hasRole('TEACHER') or hasRole('SCH_ADMIN')")
+    public ResultVO<Page<PortfolioItemVO>> getSchoolStudentPortfolioItems(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+        Page<PortfolioItemVO> portfolioItems = portfolioService.getSchoolStudentPortfolioItems(userId, page - 1, size);
+        return ResultVO.success(portfolioItems);
+    }
+    
+    @GetMapping("/school/items/category/{category}")
+    @Operation(summary = "根据分类获取学校学生作品列表", description = "根据分类获取当前教师或管理员所属学校的学生作品列表")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PreAuthorize("hasRole('TEACHER') or hasRole('SCH_ADMIN')")
+    public ResultVO<Page<PortfolioItemVO>> getSchoolStudentPortfolioItemsByCategory(
+            @PathVariable String category,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+        Page<PortfolioItemVO> portfolioItems = portfolioService.getSchoolStudentPortfolioItemsByCategory(userId, category, page - 1, size);
+        return ResultVO.success(portfolioItems);
+    }
+    
+    @GetMapping("/school/items/by-student")
+    @Operation(summary = "获取学校指定学生的作品列表", description = "获取学校指定学生的作品列表")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PreAuthorize("hasRole('TEACHER') or hasRole('SCH_ADMIN')")
+    public ResultVO<List<PortfolioItemVO>> getSchoolStudentPortfolioItemsByStudent(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam Integer studentId) {
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+        List<PortfolioItemVO> portfolioItems = portfolioService.getSchoolStudentPortfolioItemsByStudent(userId, studentId);
+        return ResultVO.success(portfolioItems);
+    }
+    
+    @GetMapping("/school/statistics")
+    @Operation(summary = "获取学校作品统计数据", description = "获取当前教师或管理员所属学校的作品统计数据")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "获取成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "权限不足",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PreAuthorize("hasRole('TEACHER') or hasRole('SCH_ADMIN')")
+    public ResultVO<Map<String, Object>> getSchoolPortfolioStatistics(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+        Map<String, Object> statistics = portfolioService.getSchoolPortfolioStatistics(userId);
+        return ResultVO.success(statistics);
     }
 } 

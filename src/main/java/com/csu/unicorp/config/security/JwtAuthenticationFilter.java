@@ -1,6 +1,7 @@
 package com.csu.unicorp.config.security;
 
 import com.csu.unicorp.common.utils.JwtUtil;
+import com.csu.unicorp.service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,6 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(
@@ -56,6 +58,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt = authHeader.substring(7);
         
         try {
+            // 检查令牌是否在黑名单中
+            if (tokenBlacklistService.isBlacklisted(jwt)) {
+                log.warn("令牌已被撤销: {}", jwt);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("{\"code\":401,\"message\":\"令牌已被撤销，请重新登录\",\"data\":null}");
+                return;
+            }
+            
             // 从JWT中提取账号
             final String userAccount = jwtUtil.extractUsername(jwt);
             
