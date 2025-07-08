@@ -1,0 +1,3158 @@
+openapi: 3.0.3
+info:
+  title: UniCorp社区API
+  description: |
+    UniCorp社区模块API文档，包含社区话题、问题、回答、评论、标签、板块、通知和交互功能。
+  version: 1.0.0
+  contact:
+    name: UniCorp开发团队
+servers:
+  - url: http://localhost:8081/api
+    description: 本地开发服务器
+tags:
+  - name: 社区话题
+    description: 社区话题相关接口
+  - name: 社区问题
+    description: 社区问题相关接口
+  - name: 社区回答
+    description: 社区问题回答相关接口
+  - name: 社区评论
+    description: 社区评论相关接口
+  - name: 社区标签
+    description: 社区标签相关接口
+  - name: 社区板块
+    description: 社区板块相关接口
+  - name: 社区通知
+    description: 社区通知相关接口
+  - name: 社区交互
+    description: 社区点赞、收藏相关接口
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 使用JWT Bearer Token进行认证
+  
+  schemas:
+    ResultVO:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 状态码，200表示成功
+          example: 200
+        message:
+          type: string
+          description: 响应消息
+          example: 操作成功
+        data:
+          type: object
+          description: 响应数据
+        success:
+          type: boolean
+          description: 是否成功
+          example: true
+    
+    PageResult:
+      type: object
+      properties:
+        records:
+          type: array
+          description: 分页数据列表
+          items:
+            type: object
+        total:
+          type: integer
+          description: 总记录数
+          example: 100
+        size:
+          type: integer
+          description: 每页大小
+          example: 10
+        current:
+          type: integer
+          description: 当前页码
+          example: 1
+        pages:
+          type: integer
+          description: 总页数
+          example: 10
+    
+    TopicVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 话题ID
+        title:
+          type: string
+          description: 话题标题
+        content:
+          type: string
+          description: 话题内容
+        authorId:
+          type: integer
+          format: int64
+          description: 作者ID
+        authorName:
+          type: string
+          description: 作者名称
+        authorAvatar:
+          type: string
+          description: 作者头像
+        categoryId:
+          type: integer
+          format: int64
+          description: 板块ID
+        categoryName:
+          type: string
+          description: 板块名称
+        viewCount:
+          type: integer
+          description: 浏览次数
+        likeCount:
+          type: integer
+          description: 点赞数
+        commentCount:
+          type: integer
+          description: 评论数
+        favoriteCount:
+          type: integer
+          description: 收藏数
+        isSticky:
+          type: boolean
+          description: 是否置顶
+        isEssence:
+          type: boolean
+          description: 是否精华
+        isLiked:
+          type: boolean
+          description: 当前用户是否点赞
+        isFavorited:
+          type: boolean
+          description: 当前用户是否收藏
+        tags:
+          type: array
+          description: 标签列表
+          items:
+            $ref: '#/components/schemas/TagVO'
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新时间
+    
+    QuestionVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 问题ID
+        title:
+          type: string
+          description: 问题标题
+        content:
+          type: string
+          description: 问题内容
+        authorId:
+          type: integer
+          format: int64
+          description: 作者ID
+        authorName:
+          type: string
+          description: 作者名称
+        authorAvatar:
+          type: string
+          description: 作者头像
+        viewCount:
+          type: integer
+          description: 浏览次数
+        likeCount:
+          type: integer
+          description: 点赞数
+        answerCount:
+          type: integer
+          description: 回答数
+        favoriteCount:
+          type: integer
+          description: 收藏数
+        isSolved:
+          type: boolean
+          description: 是否已解决
+        acceptedAnswerId:
+          type: integer
+          format: int64
+          description: 被采纳的回答ID
+        isLiked:
+          type: boolean
+          description: 当前用户是否点赞
+        isFavorited:
+          type: boolean
+          description: 当前用户是否收藏
+        tags:
+          type: array
+          description: 标签列表
+          items:
+            $ref: '#/components/schemas/TagVO'
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新时间
+    
+    AnswerVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 回答ID
+        questionId:
+          type: integer
+          format: int64
+          description: 问题ID
+        content:
+          type: string
+          description: 回答内容
+        authorId:
+          type: integer
+          format: int64
+          description: 作者ID
+        authorName:
+          type: string
+          description: 作者名称
+        authorAvatar:
+          type: string
+          description: 作者头像
+        likeCount:
+          type: integer
+          description: 点赞数
+        commentCount:
+          type: integer
+          description: 评论数
+        isAccepted:
+          type: boolean
+          description: 是否被采纳
+        isLiked:
+          type: boolean
+          description: 当前用户是否点赞
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新时间
+    
+    CommentVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 评论ID
+        content:
+          type: string
+          description: 评论内容
+        authorId:
+          type: integer
+          format: int64
+          description: 作者ID
+        authorName:
+          type: string
+          description: 作者名称
+        authorAvatar:
+          type: string
+          description: 作者头像
+        targetId:
+          type: integer
+          format: int64
+          description: 目标ID
+        targetType:
+          type: string
+          description: 目标类型（topic, question, answer, comment）
+        parentId:
+          type: integer
+          format: int64
+          description: 父评论ID
+        replyToId:
+          type: integer
+          format: int64
+          description: 回复用户ID
+        replyToName:
+          type: string
+          description: 回复用户名称
+        likeCount:
+          type: integer
+          description: 点赞数
+        isLiked:
+          type: boolean
+          description: 当前用户是否点赞
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+    
+    TagVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 标签ID
+        name:
+          type: string
+          description: 标签名称
+        description:
+          type: string
+          description: 标签描述
+        useCount:
+          type: integer
+          description: 使用次数
+    
+    CategoryVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 板块ID
+        name:
+          type: string
+          description: 板块名称
+        description:
+          type: string
+          description: 板块描述
+        icon:
+          type: string
+          description: 板块图标
+        parentId:
+          type: integer
+          format: int64
+          description: 父板块ID
+        sortOrder:
+          type: integer
+          description: 排序顺序
+        topicCount:
+          type: integer
+          description: 话题数量
+        children:
+          type: array
+          description: 子板块列表
+          items:
+            $ref: '#/components/schemas/CategoryVO'
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+    
+    NotificationVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 通知ID
+        userId:
+          type: integer
+          format: int64
+          description: 接收用户ID
+        title:
+          type: string
+          description: 通知标题
+        content:
+          type: string
+          description: 通知内容
+        type:
+          type: string
+          description: 通知类型
+        targetId:
+          type: integer
+          format: int64
+          description: 目标ID
+        targetType:
+          type: string
+          description: 目标类型
+        senderId:
+          type: integer
+          format: int64
+          description: 发送者ID
+        senderName:
+          type: string
+          description: 发送者名称
+        senderAvatar:
+          type: string
+          description: 发送者头像
+        isRead:
+          type: boolean
+          description: 是否已读
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+    
+    TopicDTO:
+      type: object
+      required:
+        - title
+        - content
+        - categoryId
+      properties:
+        title:
+          type: string
+          description: 话题标题
+        content:
+          type: string
+          description: 话题内容
+        categoryId:
+          type: integer
+          format: int64
+          description: 板块ID
+        tagIds:
+          type: array
+          description: 标签ID列表
+          items:
+            type: integer
+            format: int64
+    
+    QuestionDTO:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          description: 问题标题
+        content:
+          type: string
+          description: 问题内容
+        tagIds:
+          type: array
+          description: 标签ID列表
+          items:
+            type: integer
+            format: int64
+    
+    AnswerDTO:
+      type: object
+      required:
+        - questionId
+        - content
+      properties:
+        questionId:
+          type: integer
+          format: int64
+          description: 问题ID
+        content:
+          type: string
+          description: 回答内容
+    
+    CommentDTO:
+      type: object
+      required:
+        - targetId
+        - targetType
+        - content
+      properties:
+        targetId:
+          type: integer
+          format: int64
+          description: 目标ID
+        targetType:
+          type: string
+          description: 目标类型（topic, question, answer, comment）
+        content:
+          type: string
+          description: 评论内容
+        parentId:
+          type: integer
+          format: int64
+          description: 父评论ID
+        replyToId:
+          type: integer
+          format: int64
+          description: 回复用户ID
+    
+    CategoryDTO:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: 板块名称
+        description:
+          type: string
+          description: 板块描述
+        icon:
+          type: string
+          description: 板块图标
+        parentId:
+          type: integer
+          format: int64
+          description: 父板块ID
+        sortOrder:
+          type: integer
+          description: 排序顺序
+    
+    DeleteResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 是否成功
+        errorMessage:
+          type: string
+          description: 错误信息
+
+paths:
+  /v1/community/topics:
+    post:
+      tags:
+        - 社区话题
+      summary: 创建话题
+      description: 创建新的话题，需要登录
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TopicDTO'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: integer
+                        format: int64
+                        description: 话题ID
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权访问该板块
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    
+    get:
+      tags:
+        - 社区话题
+      summary: 获取最新话题列表
+      description: 获取最新话题列表
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/TopicVO'
+  
+  /v1/community/topics/{topicId}:
+    get:
+      tags:
+        - 社区话题
+      summary: 获取话题详情
+      description: 根据话题ID获取话题详情
+      parameters:
+        - name: topicId
+          in: path
+          description: 话题ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/TopicVO'
+        '404':
+          description: 话题不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    
+    put:
+      tags:
+        - 社区话题
+      summary: 更新话题
+      description: 更新话题信息，需要是话题作者或管理员
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: topicId
+          in: path
+          description: 话题ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TopicDTO'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权更新该话题
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 话题不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    
+    delete:
+      tags:
+        - 社区话题
+      summary: 删除话题
+      description: 删除话题，需要是话题作者或管理员
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: topicId
+          in: path
+          description: 话题ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权删除该话题
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 话题不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+                
+  /v1/community/topics/hot:
+    get:
+      tags:
+        - 社区话题
+      summary: 获取热门话题列表
+      description: 获取热门话题列表
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/TopicVO'
+  
+  /v1/community/topics/latest:
+    get:
+      tags:
+        - 社区话题
+      summary: 获取最新话题列表
+      description: 获取最新话题列表
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/TopicVO'
+  
+  /v1/community/topics/essence:
+    get:
+      tags:
+        - 社区话题
+      summary: 获取精华话题列表
+      description: 获取精华话题列表
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/TopicVO'
+  
+  /v1/community/topics/search:
+    get:
+      tags:
+        - 社区话题
+      summary: 搜索话题
+      description: 根据关键词搜索话题
+      parameters:
+        - name: keyword
+          in: query
+          description: 搜索关键词
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 搜索成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/TopicVO'
+  
+  /v1/community/topics/user/{userId}:
+    get:
+      tags:
+        - 社区话题
+      summary: 获取用户话题列表
+      description: 获取指定用户发布的话题列表
+      parameters:
+        - name: userId
+          in: path
+          description: 用户ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/TopicVO'
+  
+  /v1/community/topics/category/{categoryId}:
+    get:
+      tags:
+        - 社区话题
+      summary: 获取板块话题列表
+      description: 获取指定板块的话题列表
+      parameters:
+        - name: categoryId
+          in: path
+          description: 板块ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/TopicVO'
+        '403':
+          description: 无权访问该板块
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 板块不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/topics/{topicId}/sticky:
+    put:
+      tags:
+        - 社区话题
+      summary: 设置话题置顶状态
+      description: 设置话题是否置顶，需要管理员权限
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: topicId
+          in: path
+          description: 话题ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: isSticky
+          in: query
+          description: 是否置顶
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: 设置成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权操作
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 话题不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/topics/{topicId}/essence:
+    put:
+      tags:
+        - 社区话题
+      summary: 设置话题精华状态
+      description: 设置话题是否为精华，需要管理员权限
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: topicId
+          in: path
+          description: 话题ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: isEssence
+          in: query
+          description: 是否精华
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: 设置成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权操作
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 话题不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/topics/recommend:
+    get:
+      tags:
+        - 社区话题
+      summary: 获取推荐话题列表
+      description: 获取推荐话题列表
+      parameters:
+        - name: limit
+          in: query
+          description: 限制数量
+          required: false
+          schema:
+            type: integer
+            default: 5
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/TopicVO'
+                          
+  # 社区问题API
+  /v1/community/questions:
+    post:
+      tags:
+        - 社区问题
+      summary: 创建问题
+      description: 创建新的问题，需要登录
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionDTO'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: integer
+                        format: int64
+                        description: 问题ID
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/questions/{questionId}:
+    get:
+      tags:
+        - 社区问题
+      summary: 获取问题详情
+      description: 根据问题ID获取问题详情
+      parameters:
+        - name: questionId
+          in: path
+          description: 问题ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/QuestionVO'
+        '404':
+          description: 问题不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    
+    put:
+      tags:
+        - 社区问题
+      summary: 更新问题
+      description: 更新问题信息，需要是问题作者或管理员
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: questionId
+          in: path
+          description: 问题ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionDTO'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权更新该问题
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 问题不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    
+    delete:
+      tags:
+        - 社区问题
+      summary: 删除问题
+      description: 删除问题，需要是问题作者或管理员
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: questionId
+          in: path
+          description: 问题ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权删除该问题
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 问题不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/questions/hot:
+    get:
+      tags:
+        - 社区问题
+      summary: 获取热门问题列表
+      description: 获取热门问题列表
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/QuestionVO'
+  
+  /v1/community/questions/latest:
+    get:
+      tags:
+        - 社区问题
+      summary: 获取最新问题列表
+      description: 获取最新问题列表
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/QuestionVO'
+  
+  /v1/community/questions/search:
+    get:
+      tags:
+        - 社区问题
+      summary: 搜索问题
+      description: 根据关键词搜索问题
+      parameters:
+        - name: keyword
+          in: query
+          description: 搜索关键词
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 搜索成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/QuestionVO'
+  
+  /v1/community/questions/user/{userId}:
+    get:
+      tags:
+        - 社区问题
+      summary: 获取用户问题列表
+      description: 获取指定用户发布的问题列表
+      parameters:
+        - name: userId
+          in: path
+          description: 用户ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/QuestionVO'
+  
+  /v1/community/questions/unsolved:
+    get:
+      tags:
+        - 社区问题
+      summary: 获取未解决问题列表
+      description: 获取未解决的问题列表
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/QuestionVO'
+  
+  /v1/community/questions/{questionId}/solved:
+    put:
+      tags:
+        - 社区问题
+      summary: 标记问题为已解决
+      description: 标记问题为已解决并采纳指定答案，需要是问题作者
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: questionId
+          in: path
+          description: 问题ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: answerId
+          in: query
+          description: 被采纳的答案ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 设置成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权操作
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 问题或答案不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/questions/{questionId}/related:
+    get:
+      tags:
+        - 社区问题
+      summary: 获取相关问题列表
+      description: 根据当前问题获取相关问题推荐
+      parameters:
+        - name: questionId
+          in: path
+          description: 问题ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          description: 限制数量
+          required: false
+          schema:
+            type: integer
+            default: 5
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/QuestionVO'
+        '404':
+          description: 问题不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  # 社区回答API
+  /v1/community/answers:
+    post:
+      tags:
+        - 社区回答
+      summary: 创建回答
+      description: 创建问题的回答，需要登录
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnswerDTO'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: integer
+                        format: int64
+                        description: 回答ID
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 问题不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/answers/{answerId}:
+    get:
+      tags:
+        - 社区回答
+      summary: 获取回答详情
+      description: 根据回答ID获取回答详情
+      parameters:
+        - name: answerId
+          in: path
+          description: 回答ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AnswerVO'
+        '404':
+          description: 回答不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    
+    put:
+      tags:
+        - 社区回答
+      summary: 更新回答
+      description: 更新回答信息，需要是回答作者或管理员
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: answerId
+          in: path
+          description: 回答ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnswerDTO'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权更新该回答
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 回答不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    
+    delete:
+      tags:
+        - 社区回答
+      summary: 删除回答
+      description: 删除回答，需要是回答作者或管理员
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: answerId
+          in: path
+          description: 回答ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权删除该回答
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 回答不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/answers/question/{questionId}:
+    get:
+      tags:
+        - 社区回答
+      summary: 获取问题的回答列表
+      description: 获取指定问题的回答列表
+      parameters:
+        - name: questionId
+          in: path
+          description: 问题ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: sort
+          in: query
+          description: 排序方式
+          required: false
+          schema:
+            type: string
+            default: latest
+            enum:
+              - latest
+              - hot
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/AnswerVO'
+        '404':
+          description: 问题不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/answers/user/{userId}:
+    get:
+      tags:
+        - 社区回答
+      summary: 获取用户的回答列表
+      description: 获取指定用户的回答列表
+      parameters:
+        - name: userId
+          in: path
+          description: 用户ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/AnswerVO'
+                                  
+  # 社区评论API
+  /v1/community/comments:
+    post:
+      tags:
+        - 社区评论
+      summary: 创建评论
+      description: 创建评论，需要登录
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentDTO'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: integer
+                        format: int64
+                        description: 评论ID
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 评论目标不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/comments/{commentId}:
+    delete:
+      tags:
+        - 社区评论
+      summary: 删除评论
+      description: 删除评论，需要是评论作者或管理员
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: commentId
+          in: path
+          description: 评论ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权删除该评论
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 评论不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/comments/topic/{topicId}:
+    get:
+      tags:
+        - 社区评论
+      summary: 获取话题的评论列表
+      description: 获取指定话题的评论列表
+      parameters:
+        - name: topicId
+          in: path
+          description: 话题ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/CommentVO'
+        '404':
+          description: 话题不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/comments/answer/{answerId}:
+    get:
+      tags:
+        - 社区评论
+      summary: 获取回答的评论列表
+      description: 获取指定回答的评论列表
+      parameters:
+        - name: answerId
+          in: path
+          description: 回答ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/CommentVO'
+        '404':
+          description: 回答不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/comments/{commentId}/replies:
+    get:
+      tags:
+        - 社区评论
+      summary: 获取评论的回复列表
+      description: 获取指定评论的回复列表
+      parameters:
+        - name: commentId
+          in: path
+          description: 评论ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/CommentVO'
+        '404':
+          description: 评论不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/comments/user/{userId}:
+    get:
+      tags:
+        - 社区评论
+      summary: 获取用户的评论列表
+      description: 获取指定用户的评论列表
+      parameters:
+        - name: userId
+          in: path
+          description: 用户ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/CommentVO'
+                                  
+  # 社区交互API
+  /v1/community/interactions/likes:
+    post:
+      tags:
+        - 社区交互
+      summary: 点赞
+      description: 对话题、问题、回答或评论点赞
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: targetId
+          in: query
+          description: 目标ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: targetType
+          in: query
+          description: 目标类型（topic, question, answer, comment）
+          required: true
+          schema:
+            type: string
+            enum:
+              - topic
+              - question
+              - answer
+              - comment
+      responses:
+        '200':
+          description: 点赞成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 目标不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    
+    delete:
+      tags:
+        - 社区交互
+      summary: 取消点赞
+      description: 取消对话题、问题、回答或评论的点赞
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: targetId
+          in: query
+          description: 目标ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: targetType
+          in: query
+          description: 目标类型（topic, question, answer, comment）
+          required: true
+          schema:
+            type: string
+            enum:
+              - topic
+              - question
+              - answer
+              - comment
+      responses:
+        '200':
+          description: 取消点赞成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/interactions/favorites:
+    post:
+      tags:
+        - 社区交互
+      summary: 收藏
+      description: 收藏话题或问题
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: targetId
+          in: query
+          description: 目标ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: targetType
+          in: query
+          description: 目标类型（topic, question）
+          required: true
+          schema:
+            type: string
+            enum:
+              - topic
+              - question
+      responses:
+        '200':
+          description: 收藏成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 目标不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    
+    delete:
+      tags:
+        - 社区交互
+      summary: 取消收藏
+      description: 取消收藏话题或问题
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: targetId
+          in: query
+          description: 目标ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: targetType
+          in: query
+          description: 目标类型（topic, question）
+          required: true
+          schema:
+            type: string
+            enum:
+              - topic
+              - question
+      responses:
+        '200':
+          description: 取消收藏成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/interactions/favorites/topics:
+    get:
+      tags:
+        - 社区交互
+      summary: 获取用户收藏的话题列表
+      description: 获取当前登录用户收藏的话题列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/TopicVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/interactions/favorites/questions:
+    get:
+      tags:
+        - 社区交互
+      summary: 获取用户收藏的问题列表
+      description: 获取当前登录用户收藏的问题列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/QuestionVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/interactions/likes/answers:
+    get:
+      tags:
+        - 社区交互
+      summary: 获取用户点赞的回答列表
+      description: 获取当前登录用户点赞的回答列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/AnswerVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/interactions/likes/check:
+    get:
+      tags:
+        - 社区交互
+      summary: 检查用户是否点赞
+      description: 检查当前登录用户是否对指定目标点赞
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: targetId
+          in: query
+          description: 目标ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: targetType
+          in: query
+          description: 目标类型（topic, question, answer, comment）
+          required: true
+          schema:
+            type: string
+            enum:
+              - topic
+              - question
+              - answer
+              - comment
+      responses:
+        '200':
+          description: 检查成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: boolean
+                        description: 是否已点赞
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/interactions/favorites/check:
+    get:
+      tags:
+        - 社区交互
+      summary: 检查用户是否收藏
+      description: 检查当前登录用户是否收藏指定目标
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: targetId
+          in: query
+          description: 目标ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: targetType
+          in: query
+          description: 目标类型（topic, question）
+          required: true
+          schema:
+            type: string
+            enum:
+              - topic
+              - question
+      responses:
+        '200':
+          description: 检查成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: boolean
+                        description: 是否已收藏
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  # 社区标签API
+  /v1/community/tags:
+    get:
+      tags:
+        - 社区标签
+      summary: 获取标签列表
+      description: 获取标签列表，可按使用频率排序
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: sort
+          in: query
+          description: 排序方式
+          required: false
+          schema:
+            type: string
+            default: useCount
+            enum:
+              - useCount
+              - name
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/TagVO'
+    
+    post:
+      tags:
+        - 社区标签
+      summary: 创建标签
+      description: 创建新标签，需要管理员权限
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: 标签名称
+                description:
+                  type: string
+                  description: 标签描述
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: integer
+                        format: int64
+                        description: 标签ID
+        '400':
+          description: 参数错误或标签已存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权创建标签
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/tags/{tagId}:
+    get:
+      tags:
+        - 社区标签
+      summary: 获取标签详情
+      description: 根据标签ID获取标签详情
+      parameters:
+        - name: tagId
+          in: path
+          description: 标签ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/TagVO'
+        '404':
+          description: 标签不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    
+    put:
+      tags:
+        - 社区标签
+      summary: 更新标签
+      description: 更新标签信息，需要管理员权限
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tagId
+          in: path
+          description: 标签ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 标签名称
+                description:
+                  type: string
+                  description: 标签描述
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '400':
+          description: 参数错误或标签名已存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权更新标签
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 标签不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    
+    delete:
+      tags:
+        - 社区标签
+      summary: 删除标签
+      description: 删除标签，需要管理员权限
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tagId
+          in: path
+          description: 标签ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权删除标签
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 标签不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/tags/search:
+    get:
+      tags:
+        - 社区标签
+      summary: 搜索标签
+      description: 根据关键词搜索标签
+      parameters:
+        - name: keyword
+          in: query
+          description: 搜索关键词
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: 限制数量
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 搜索成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/TagVO'
+  
+  /v1/community/tags/hot:
+    get:
+      tags:
+        - 社区标签
+      summary: 获取热门标签
+      description: 获取使用频率最高的标签
+      parameters:
+        - name: limit
+          in: query
+          description: 限制数量
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/TagVO'
+  
+  # 社区板块API
+  /v1/community/categories:
+    get:
+      tags:
+        - 社区板块
+      summary: 获取板块列表
+      description: 获取板块列表，包含子板块
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CategoryVO'
+    
+    post:
+      tags:
+        - 社区板块
+      summary: 创建板块
+      description: 创建新板块，需要管理员权限
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryDTO'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: integer
+                        format: int64
+                        description: 板块ID
+        '400':
+          description: 参数错误或板块名已存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权创建板块
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/categories/{categoryId}:
+    get:
+      tags:
+        - 社区板块
+      summary: 获取板块详情
+      description: 根据板块ID获取板块详情
+      parameters:
+        - name: categoryId
+          in: path
+          description: 板块ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CategoryVO'
+        '404':
+          description: 板块不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    
+    put:
+      tags:
+        - 社区板块
+      summary: 更新板块
+      description: 更新板块信息，需要管理员权限
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: categoryId
+          in: path
+          description: 板块ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryDTO'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '400':
+          description: 参数错误或板块名已存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权更新板块
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 板块不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    
+    delete:
+      tags:
+        - 社区板块
+      summary: 删除板块
+      description: 删除板块，需要管理员权限，且板块下不能有话题
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: categoryId
+          in: path
+          description: 板块ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '400':
+          description: 板块下存在话题，无法删除
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权删除板块
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 板块不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO' 

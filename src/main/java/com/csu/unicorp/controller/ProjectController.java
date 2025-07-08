@@ -1,161 +1,225 @@
 package com.csu.unicorp.controller;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.csu.unicorp.dto.ProjectCreationDTO;
-import com.csu.unicorp.entity.User;
-import com.csu.unicorp.service.ProjectService;
-import com.csu.unicorp.vo.ProjectMemberVO;
-import com.csu.unicorp.vo.ProjectVO;
-import com.csu.unicorp.vo.ResultVO;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
+import com.csu.unicorp.config.security.CustomUserDetails;
+import com.csu.unicorp.dto.*;
+import com.csu.unicorp.vo.*;
+import com.csu.unicorp.service.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-
-import com.csu.unicorp.mapper.UserMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import com.csu.unicorp.common.exception.BusinessException;
 
 /**
- * 项目控制器
+ * 项目合作管理模块 Controller
  */
-@Tag(name = "Projects", description = "合作项目管理")
 @RestController
 @RequestMapping("/v1/projects")
-@RequiredArgsConstructor
 public class ProjectController {
-
     private final ProjectService projectService;
-    private final UserMapper userMapper;
+    private final ProjectApplicationService applicationService;
+    private final ProjectProgressService progressService;
+    private final ProjectClosureService closureService;
+    private final ProjectDocumentService documentService;
+    private final ProjectFundService fundService;
+    private final ProjectLogService logService;
 
-    /**
-     * 获取项目列表
-     */
-    @Operation(summary = "获取项目列表(公开)", description = "获取所有状态为'recruiting'的项目列表，支持分页和搜索")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "成功获取项目列表",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ResultVO.class)))
-    })
-    @GetMapping
-    public ResultVO<IPage<ProjectVO>> getProjectList(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer organizationId,
-            @RequestParam(required = false) List<String> difficulty,
-            @RequestParam(required = false) List<String> supportLanguages,
-            @RequestParam(required = false) List<String> techFields,
-            @RequestParam(required = false) List<String> programmingLanguages,
-            @RequestParam(required = false, defaultValue = "all") String needstatus,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        User user = userMapper.findByUsername(userDetails.getUsername());
-        Integer userId = user != null ? user.getId() : null;
-        IPage<ProjectVO> result = projectService.getProjectList(
-                page, size, keyword, organizationId, difficulty, supportLanguages, techFields, programmingLanguages, userId, needstatus);
-        return ResultVO.success("获取项目列表成功", result);
+    public ProjectController(ProjectService projectService,
+                            ProjectApplicationService applicationService,
+                            ProjectProgressService progressService,
+                            ProjectClosureService closureService,
+                            ProjectDocumentService documentService,
+                            ProjectFundService fundService,
+                            ProjectLogService logService) {
+        this.projectService = projectService;
+        this.applicationService = applicationService;
+        this.progressService = progressService;
+        this.closureService = closureService;
+        this.documentService = documentService;
+        this.fundService = fundService;
+        this.logService = logService;
     }
 
-    /**
-     * 创建新项目
-     */
-    @Operation(summary = "[校/企] 创建新项目", description = "由教师或企业用户调用，用于发布一个新的合作项目")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "项目创建成功",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ProjectVO.class))),
-            @ApiResponse(responseCode = "403", description = "权限不足")
-    })
+    // 1.1 发布项目
     @PostMapping
-    @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER')")
-    public ResultVO<ProjectVO> createProject(
-            @Valid @RequestBody ProjectCreationDTO projectCreationDTO,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        ProjectVO project = projectService.createProject(projectCreationDTO, userDetails);
-        return ResultVO.success("项目创建成功", project);
+    public ResultVO<ProjectVO> createProject(@RequestBody ProjectCreationDTO dto) {
+    ProjectVO projectVO = projectService.createProject(dto);
+    return ResultVO.success("操作成功", projectVO);
+}
+
+@PutMapping
+public ResultVO<ProjectVO> updateProject(@RequestBody ProjectCreationDTO dto) {
+    if (dto.getProjectId() == null) {
+        throw new BusinessException("projectId不能为空");
+    }
+    ProjectVO projectVO = projectService.updateProject(dto);
+    return ResultVO.success("操作成功", projectVO);
+}
+
+
+
+    // 1.2 获取项目列表
+    @GetMapping
+public ResultVO<PageResultVO<ProjectVO>> getProjectList(
+        @RequestParam(required = false) String status,
+        @RequestParam(required = false) String initiatorType,
+        @RequestParam(required = false) String field,
+        @RequestParam(required = false) String keyword,
+        @RequestParam(required = false) Integer initiatorId, // 新增
+        @RequestParam(required = false) Integer  organizationId, // 新增
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "10") int pageSize,
+        @AuthenticationPrincipal CustomUserDetails userDetails
+        ) {
+            Integer userId = userDetails.getUserId();
+    PageResultVO<ProjectVO> list = projectService.getProjectList(status, initiatorType, field, keyword, initiatorId, organizationId, page, pageSize,userId);
+    return ResultVO.success("操作成功", list);
+}
+
+
+@PutMapping("/{projectId}/status")
+public ResultVO<ProjectVO> updateProjectStatus(
+        @PathVariable Integer projectId,
+        @RequestParam String status,
+        @RequestParam String reason) {
+    projectService.updateProjectStatus(projectId, status, reason);
+    return ResultVO.success("操作成功", null);
+}
+
+
+
+    // 1.3 获取项目详情
+    @GetMapping("/{projectId}")
+    public ResultVO<ProjectVO> getProject(@PathVariable Integer projectId) {
+        ProjectVO vo = projectService.getProjectById(projectId);
+        return ResultVO.success("操作成功", vo);
     }
 
-    /**
-     * 获取特定项目详情
-     */
-    @Operation(summary = "获取特定项目详情", description = "根据ID获取项目的详细信息")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "成功获取项目详情",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ResultVO.class))),
-            @ApiResponse(responseCode = "404", description = "项目未找到")
-    })
-    @GetMapping("/{id}")
-    public ResultVO<ProjectVO> getProject(@PathVariable Integer id) {
-        ProjectVO project = projectService.getProjectById(id);
-        return ResultVO.success("获取项目详情成功", project);
+    // 1.4 申请对接/合作
+    @PostMapping("/{projectId}/apply")
+    public ResultVO<ProjectApplicationVO> applyForProject(@PathVariable Integer projectId, @RequestBody ProjectApplicationDTO dto) {
+        ProjectApplicationVO vo = applicationService.applyForProject(projectId, dto);
+        return ResultVO.success("操作成功", vo);
     }
 
-    /**
-     * 更新项目信息
-     */
-    @Operation(summary = "[所有者] 更新项目信息", description = "更新已发布项目的信息")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "项目更新成功",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ProjectVO.class))),
-            @ApiResponse(responseCode = "403", description = "权限不足"),
-            @ApiResponse(responseCode = "404", description = "项目未找到")
-    })
-    @PutMapping("/{id}")
-    @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER','STUDENT')")
-    public ResultVO<ProjectVO> updateProject(
-            @PathVariable Integer id,
-            @Valid @RequestBody ProjectCreationDTO projectCreationDTO,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        ProjectVO project = projectService.updateProject(id, projectCreationDTO, userDetails);
-        return ResultVO.success("项目更新成功", project);
+
+    // 1.5 审核对接申请
+    @PostMapping("/{projectId}/applications/{applicationId}/review")
+    public ResultVO<ProjectApplicationVO> reviewApplication(@PathVariable Integer projectId, @PathVariable Integer applicationId, @RequestBody ProjectApplicationReviewDTO dto) {
+        ProjectApplicationVO vo = applicationService.reviewApplication(projectId, applicationId, dto);
+        return ResultVO.success("操作成功", vo);
     }
 
-    /**
-     * 删除项目
-     */
-    @Operation(summary = "[所有者] 删除项目", description = "逻辑删除一个项目")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "删除成功"),
-            @ApiResponse(responseCode = "403", description = "权限不足"),
-            @ApiResponse(responseCode = "404", description = "项目未找到")
-    })
-    @DeleteMapping("/{id}")
-    @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasAnyRole('TEACHER', 'EN_ADMIN', 'EN_TEACHER')")
-    public ResultVO<Void> deleteProject(
-            @PathVariable Integer id,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        projectService.deleteProject(id, userDetails);
-        return ResultVO.success("项目删除成功");
+
+    // 1.5.1 获取项目所有对接申请
+    @GetMapping("/{projectId}/applications")
+    public ResultVO<List<ProjectApplicationVO>> getProjectApplications(@PathVariable Integer projectId) {
+        List<ProjectApplicationVO> list = applicationService.getProjectApplications(projectId);
+        return ResultVO.success("操作成功", list);
     }
 
-    @DeleteMapping("/{projectId}/member/{userId}")
-    public ResultVO<?> removeProjectMember(
-            @PathVariable Integer projectId,
-            @PathVariable Integer userId) {
-        projectService.removeProjectMember(projectId, userId);
-        return ResultVO.success("移除成功");
+
+
+    @GetMapping("/application/my-applications")
+    public ResultVO<List<ProjectApplicationVO>> getMyApplications(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        Integer userId = userDetails.getUserId();
+        List<ProjectApplicationVO> list = applicationService.getMyProjectApplications(userId);
+        return ResultVO.success("操作成功",list);
+}
+
+
+
+
+
+
+    // 2.1 项目进度更新
+    @PostMapping("/{projectId}/progress")
+    public ResultVO<ProjectProgressVO> addProgress(@PathVariable Integer projectId, @RequestBody ProjectProgressDTO dto) {
+        ProjectProgressVO vo = progressService.addProgress(projectId, dto);
+        return ResultVO.success("操作成功", vo);
     }
 
-    @GetMapping("/{projectId}/members")
-    public ResultVO<List<ProjectMemberVO>> getProjectMembers(@PathVariable Integer projectId) {
-        List<ProjectMemberVO> members = projectService.getProjectMembers(projectId);
-        return ResultVO.success("查询成功", members);
+    // 2.1.1 获取项目进度列表
+    @GetMapping("/{projectId}/progress")
+    public ResultVO<List<ProjectProgressVO>> getProgressList(@PathVariable Integer projectId) {
+        List<ProjectProgressVO> list = progressService.getProgressList(projectId);
+        return ResultVO.success("操作成功", list);
+    }
+
+    // 2.2 项目结项
+    @PostMapping("/{projectId}/close")
+    public ResultVO<ProjectClosureVO> closeProject(@PathVariable Integer projectId, @RequestBody ProjectClosureDTO dto) {
+        ProjectClosureVO vo = closureService.closeProject(projectId, dto);
+        return ResultVO.success("操作成功", vo);
+    }
+
+    // 2.2.1 获取项目结项信息
+    @GetMapping("/{projectId}/closure")
+    public ResultVO<ProjectClosureVO> getClosure(@PathVariable Integer projectId) {
+        ProjectClosureVO vo = closureService.getClosure(projectId);
+        return ResultVO.success("操作成功", vo);
+    }
+
+  
+
+
+
+    // 3.1 上传合同/资料：没用
+    @PostMapping("/{projectId}/documents")
+    public ResultVO<ProjectDocumentVO> addDocument(@PathVariable Integer projectId, @RequestBody ProjectDocumentDTO dto) {
+        ProjectDocumentVO vo = documentService.addDocument(projectId, dto);
+        return ResultVO.success("操作成功", vo);
+    }
+
+    // 3.2 获取项目资料列表：没用
+    @GetMapping("/{projectId}/documents")
+    public ResultVO<List<ProjectDocumentVO>> getDocuments(@PathVariable Integer projectId) {
+        List<ProjectDocumentVO> list = documentService.getDocuments(projectId);
+        return ResultVO.success("操作成功", list);
+    }
+
+
+
+
+
+
+    // 4.1 经费申请
+    @PostMapping("/{projectId}/funds/apply")
+    public ResultVO<ProjectFundVO> applyFund(@PathVariable Integer projectId, @RequestBody ProjectFundApplyDTO dto) {
+        ProjectFundVO vo = fundService.applyFund(projectId, dto);
+        return ResultVO.success("操作成功", vo);
+    }
+
+    // 4.2 经费审批
+    @PostMapping("/{projectId}/funds/{fundId}/review")
+    public ResultVO<ProjectFundVO> reviewFund(@PathVariable Integer projectId, @PathVariable Integer fundId, @RequestBody ProjectFundReviewDTO dto) {
+        ProjectFundVO vo = fundService.reviewFund(projectId, fundId, dto);
+        return ResultVO.success("操作成功", vo);
+    }
+
+    // 4.3 经费使用记录
+    @GetMapping("/{projectId}/funds/records")
+    public ResultVO<List<ProjectFundRecordVO>> getFundRecords(@PathVariable Integer projectId) {
+        List<ProjectFundRecordVO> list = fundService.getFundRecords(projectId);
+        return ResultVO.success("操作成功", list);
+    }
+
+    @GetMapping("/{projectId}/funds")
+    public ResultVO<List<ProjectFundVO>> getFundList(@PathVariable Integer projectId) {
+        List<ProjectFundVO> list = fundService.getFundList(projectId);
+        return ResultVO.success("操作成功", list);
+    }
+
+
+
+
+
+
+
+
+    // 5.1 获取项目操作日志
+    @GetMapping("/{projectId}/logs")
+    public ResultVO<List<ProjectLogVO>> getProjectLogs(@PathVariable Integer projectId) {
+        List<ProjectLogVO> list = logService.getProjectLogs(projectId);
+        return ResultVO.success("操作成功", list);
     }
 }

@@ -1,0 +1,371 @@
+openapi: 3.0.3
+info:
+  title: UniCorp社区通知API
+  description: |
+    UniCorp社区通知模块API文档，包含社区通知相关功能。
+  version: 1.0.0
+  contact:
+    name: UniCorp开发团队
+servers:
+  - url: http://localhost:8081/api
+    description: 本地开发服务器
+tags:
+  - name: 社区通知
+    description: 社区通知相关接口
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 使用JWT Bearer Token进行认证
+  
+  schemas:
+    ResultVO:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 状态码，200表示成功
+          example: 200
+        message:
+          type: string
+          description: 响应消息
+          example: 操作成功
+        data:
+          type: object
+          description: 响应数据
+        success:
+          type: boolean
+          description: 是否成功
+          example: true
+    
+    PageResult:
+      type: object
+      properties:
+        records:
+          type: array
+          description: 分页数据列表
+          items:
+            type: object
+        total:
+          type: integer
+          description: 总记录数
+          example: 100
+        size:
+          type: integer
+          description: 每页大小
+          example: 10
+        current:
+          type: integer
+          description: 当前页码
+          example: 1
+        pages:
+          type: integer
+          description: 总页数
+          example: 10
+    
+    NotificationVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 通知ID
+        userId:
+          type: integer
+          format: int64
+          description: 接收用户ID
+        title:
+          type: string
+          description: 通知标题
+        content:
+          type: string
+          description: 通知内容
+        type:
+          type: string
+          description: 通知类型
+        targetId:
+          type: integer
+          format: int64
+          description: 目标ID
+        targetType:
+          type: string
+          description: 目标类型
+        senderId:
+          type: integer
+          format: int64
+          description: 发送者ID
+        senderName:
+          type: string
+          description: 发送者名称
+        senderAvatar:
+          type: string
+          description: 发送者头像
+        isRead:
+          type: boolean
+          description: 是否已读
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+
+paths:
+  # 社区通知API
+  /v1/community/notifications:
+    get:
+      tags:
+        - 社区通知
+      summary: 获取用户通知列表
+      description: 获取当前登录用户的通知列表
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: isRead
+          in: query
+          description: 是否已读
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/NotificationVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/notifications/{notificationId}:
+    get:
+      tags:
+        - 社区通知
+      summary: 获取通知详情
+      description: 获取通知详情，并标记为已读
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: notificationId
+          in: path
+          description: 通知ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/NotificationVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权查看该通知
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 通知不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+    
+    delete:
+      tags:
+        - 社区通知
+      summary: 删除通知
+      description: 删除通知
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: notificationId
+          in: path
+          description: 通知ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权删除该通知
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 通知不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/notifications/read/all:
+    put:
+      tags:
+        - 社区通知
+      summary: 标记所有通知为已读
+      description: 将当前登录用户的所有通知标记为已读
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 标记成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/notifications/read/{notificationId}:
+    put:
+      tags:
+        - 社区通知
+      summary: 标记通知为已读
+      description: 将指定通知标记为已读
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: notificationId
+          in: path
+          description: 通知ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 标记成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '403':
+          description: 无权操作该通知
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '404':
+          description: 通知不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/notifications/count/unread:
+    get:
+      tags:
+        - 社区通知
+      summary: 获取未读通知数量
+      description: 获取当前登录用户的未读通知数量
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResultVO'
+                  - type: object
+                    properties:
+                      data:
+                        type: integer
+                        description: 未读通知数量
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+  
+  /v1/community/notifications/delete/all:
+    delete:
+      tags:
+        - 社区通知
+      summary: 删除所有通知
+      description: 删除当前登录用户的所有通知
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultVO' 

@@ -1,65 +1,23 @@
 package com.csu.unicorp.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
+
+import com.baomidou.mybatisplus.annotation.TableId;
+import lombok.Data;
 
 /**
- * 项目申请实体类，对应project_applications表
+ * 项目对接/合作申请
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@TableName("project_applications")
 public class ProjectApplication {
-    /**
-     * 申请ID，自增主键
-     */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
-    
-    /**
-     * 关联的项目ID
-     */
+    @TableId
+    private Integer applicationId;
     private Integer projectId;
-    
-    /**
-     * 申请人的用户ID
-     */
-    private Integer userId;
-    
-    /**
-     * 申请状态：submitted-已提交，viewed-已查看，approved-已批准，rejected-已拒绝
-     */
-    private String status;
-    
-    /**
-     * 申请陈述或备注
-     */
-    private String applicationStatement;
-    
-    /**
-     * 逻辑删除标志
-     */
-    @TableLogic
-    private Boolean isDeleted;
-    
-    /**
-     * 创建时间
-     */
-    private Timestamp createdAt;
-    
-    /**
-     * 更新时间
-     */
-    private Timestamp updatedAt;
-} 
+    private String applicantType;
+    private Integer applicantId;
+    private String message;
+    private String status; // pending/approved/rejected
+    private Timestamp createTime; // 新增
+    private Timestamp updateTime; // 新增
+    private Timestamp approvedTime; // 新增：同意时间
+}
