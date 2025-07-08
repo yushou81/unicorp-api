@@ -1,0 +1,11 @@
+ 
+CREATE TABLE file_mapping (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    stored_name VARCHAR(255) NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    type VARCHAR(50),
+    upload_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE project_fund
+ADD COLUMN remark VARCHAR(255) NULL COMMENT '备注';

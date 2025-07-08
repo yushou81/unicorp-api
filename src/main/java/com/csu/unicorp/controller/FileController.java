@@ -1,5 +1,8 @@
 package com.csu.unicorp.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.csu.unicorp.entity.FileMapping;
+import com.csu.unicorp.mapper.FileMappingMapper;
 import com.csu.unicorp.service.FileService;
 import com.csu.unicorp.vo.ResultVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +15,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -36,6 +40,9 @@ import java.util.Map;
 public class FileController {
     
     private final FileService fileService;
+
+    @Autowired
+    private FileMappingMapper fileMappingMapper;
     
     /**
      * 文件上传接口
@@ -72,8 +79,14 @@ public class FileController {
             return ResponseEntity.notFound().build();
         }
         Resource resource = new UrlResource(file.toUri());
+
+        // 查找真实文件名
+        FileMapping mapping = fileMappingMapper
+        .selectOne(new QueryWrapper<FileMapping>().eq("stored_name", "resources/" + filename));
+        String originalName = (mapping != null) ? mapping.getOriginalName() : filename;
+
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                .body(resource);
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + originalName + "\"")
+        .body(resource);
     }
 } 

@@ -26,4 +26,5 @@ public class ProjectVO {
     private Timestamp updateTime; // 更新时间
     private Boolean hasApplied; // 是否已申请
 private String applicationStatus; // 申请状态（可选）
+private List<String> originalName;
 }

@@ -71,8 +71,15 @@ public ResultVO<PageResultVO<ProjectVO>> getProjectList(
         @AuthenticationPrincipal CustomUserDetails userDetails
         ) {
             Integer userId = userDetails.getUserId();
-    PageResultVO<ProjectVO> list = projectService.getProjectList(status, initiatorType, field, keyword, initiatorId, organizationId, page, pageSize,userId);
-    return ResultVO.success("操作成功", list);
+            if(organizationId!=null&&organizationId==-1){
+                Integer myOrganizationId = userDetails.getOrganizationId();
+                PageResultVO<ProjectVO> list = projectService.getProjectList(status, initiatorType, field, keyword, initiatorId, myOrganizationId, page, pageSize,userId);
+                return ResultVO.success("操作成功", list);
+            }else{
+                PageResultVO<ProjectVO> list = projectService.getMyProjectList(status, initiatorType, field, keyword, initiatorId, organizationId, page, pageSize,userId);
+                return ResultVO.success("操作成功", list);
+            }
+ 
 }
 
 
@@ -84,7 +91,6 @@ public ResultVO<ProjectVO> updateProjectStatus(
     projectService.updateProjectStatus(projectId, status, reason);
     return ResultVO.success("操作成功", null);
 }
-
 
 
     // 1.3 获取项目详情
@@ -120,10 +126,13 @@ public ResultVO<ProjectVO> updateProjectStatus(
 
 
     @GetMapping("/application/my-applications")
-    public ResultVO<List<ProjectApplicationVO>> getMyApplications(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        Integer userId = userDetails.getUserId();
-        List<ProjectApplicationVO> list = applicationService.getMyProjectApplications(userId);
-        return ResultVO.success("操作成功",list);
+public ResultVO<PageResultVO<ProjectApplicationVO>> getMyApplications(
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @RequestParam(defaultValue = "1") Integer page,
+        @RequestParam(defaultValue = "10") Integer pageSize) {
+    Integer userId = userDetails.getUserId();
+    PageResultVO<ProjectApplicationVO> list = applicationService.getMyProjectApplications(userId, page, pageSize);
+    return ResultVO.success("操作成功", list);
 }
 
 

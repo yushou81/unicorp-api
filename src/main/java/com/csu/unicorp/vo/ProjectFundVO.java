@@ -16,4 +16,5 @@ public class ProjectFundVO {
     private java.sql.Timestamp createTime; // 申请创建时间
 private java.sql.Timestamp approvedTime; // 同意时间
 private java.sql.Timestamp rejectedTime; // 拒绝时间
+private List<String> originalName;
 }

@@ -9,7 +9,9 @@ public interface ProjectService {
     ProjectVO createProject(ProjectCreationDTO dto);
     ProjectVO getProjectById(Integer projectId);
     PageResultVO<ProjectVO> getProjectList(String status, String initiatorType, String field, String keyword, Integer initiatorId,Integer organizationId, int page, int pageSize,Integer userId);
-    // 其它方法如 apply, review, progress, close, fund, log...
+    
+    PageResultVO<ProjectVO> getMyProjectList(String status, String initiatorType, String field, String keyword, Integer initiatorId,Integer organizationId, int page, int pageSize,Integer userId);
+    
     void updateProjectStatus(Integer projectId, String status,String reason);
 
     ProjectVO updateProject(ProjectCreationDTO dto);

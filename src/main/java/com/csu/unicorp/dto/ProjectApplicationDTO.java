@@ -7,4 +7,5 @@ public class ProjectApplicationDTO {
     private String applicantType;
     private Integer applicantId;
     private String message;
+    private String remark;
 }

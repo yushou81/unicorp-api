@@ -4,11 +4,14 @@ package com.csu.unicorp.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.csu.unicorp.dto.ProjectContractCreationDTO;
 import com.csu.unicorp.dto.ProjectContractStatusUpdateDTO;
+import com.csu.unicorp.entity.FileMapping;
 import com.csu.unicorp.entity.ProjectContract;
+import com.csu.unicorp.mapper.FileMappingMapper;
 import com.csu.unicorp.mapper.ProjectContractMapper;
 import com.csu.unicorp.service.ProjectContractService;
 import com.csu.unicorp.vo.ProjectContractVO;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -19,6 +22,8 @@ import java.util.stream.Collectors;
 public class ProjectContractServiceImpl implements ProjectContractService {
 
     private final ProjectContractMapper contractMapper;
+    @Autowired
+private FileMappingMapper fileMappingMapper;
 
     public ProjectContractServiceImpl(ProjectContractMapper contractMapper) {
         this.contractMapper = contractMapper;
@@ -71,13 +76,25 @@ public class ProjectContractServiceImpl implements ProjectContractService {
     }
 
     @Override
-    public List<ProjectContractVO> getContractsByProjectId(Integer projectId) {
-        List<ProjectContract> list = contractMapper.selectList(
-                new QueryWrapper<ProjectContract>().eq("project_id", projectId));
-        return list.stream().map(contract -> {
-            ProjectContractVO vo = new ProjectContractVO();
-            BeanUtils.copyProperties(contract, vo);
-            return vo;
-        }).collect(Collectors.toList());
-    }
+public List<ProjectContractVO> getContractsByProjectId(Integer projectId) {
+    List<ProjectContract> list = contractMapper.selectList(
+            new QueryWrapper<ProjectContract>().eq("project_id", projectId));
+    return list.stream().map(contract -> {
+        ProjectContractVO vo = new ProjectContractVO();
+        BeanUtils.copyProperties(contract, vo);
+
+        // 查找原始文件名
+        if (contract.getContractUrl() != null) {
+            FileMapping mapping = fileMappingMapper.selectOne(
+                new QueryWrapper<FileMapping>().eq("stored_name", contract.getContractUrl())
+            );
+            if (mapping != null) {
+                vo.setOriginalName(mapping.getOriginalName());
+            } else {
+                vo.setOriginalName(contract.getContractUrl());
+            }
+        }
+        return vo;
+    }).collect(Collectors.toList());
+}
 }

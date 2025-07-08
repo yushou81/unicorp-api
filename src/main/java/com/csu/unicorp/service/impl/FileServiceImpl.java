@@ -12,6 +12,9 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.csu.unicorp.entity.FileMapping;
+import com.csu.unicorp.mapper.FileMappingMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -42,6 +45,8 @@ public class FileServiceImpl implements FileService {
     @Value("${app.base-url:http://localhost:8081}")
     private String baseUrl;
 
+    @Autowired
+    private FileMappingMapper fileMappingMapper;
     @Override
     public String uploadFile(MultipartFile file, String type) {
         // 文件为空检查
@@ -84,6 +89,13 @@ public class FileServiceImpl implements FileService {
             // 保存文件
             Path filePath = uploadPath.resolve(uniqueFilename);
             Files.copy(file.getInputStream(), filePath);
+
+             // 保存映射
+            FileMapping mapping = new FileMapping();
+            mapping.setStoredName(subDir + "/" + uniqueFilename); // 存储名
+            mapping.setOriginalName(originalFilename);            // 真实名
+            mapping.setType(type);
+            fileMappingMapper.insert(mapping);
             
             // 返回文件相对路径
             return subDir + "/" + uniqueFilename;

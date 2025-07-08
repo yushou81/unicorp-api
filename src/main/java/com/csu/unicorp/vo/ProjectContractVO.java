@@ -17,4 +17,5 @@ public class ProjectContractVO {
     private Timestamp createTime;
     private Timestamp updateTime;
     private String remark;
+    private String originalName; // 合同文件的原始文件名
 }
