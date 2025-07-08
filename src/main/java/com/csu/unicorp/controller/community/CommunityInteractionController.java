@@ -68,7 +68,7 @@ public class CommunityInteractionController {
     })
     public ResultVO<Boolean> like(
             @RequestParam @Parameter(description = "目标ID") Long targetId,
-            @RequestParam @Parameter(description = "目标类型（topic, question, answer, comment）") String targetType,
+            @RequestParam @Parameter(description = "目标类型（topic, answer, comment）") String targetType,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = Long.valueOf(userDetails.getUser().getId());
         
