@@ -25,6 +25,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.config.security.JwtAuthenticationFilter;
+import com.csu.unicorp.config.security.OAuth2DebugFilter;
 import com.csu.unicorp.config.security.OAuth2LoginSuccessHandler;
 
 import io.swagger.v3.oas.models.Components;
@@ -33,6 +34,11 @@ import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Spring Security配置类
@@ -41,11 +47,13 @@ import lombok.RequiredArgsConstructor;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final OAuth2DebugFilter oAuth2DebugFilter;
     
     /**
      * CORS配置 - 允许所有来源访问
@@ -81,7 +89,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                     // 公共接口
-                    .requestMatchers("/v1/auth/login", "/v1/auth/register/**", "/v1/auth/refresh").permitAll()
+                    .requestMatchers("/v1/auth/login", "/v1/auth/register/**", "/v1/auth/refresh","/v1/auth/github/login-url").permitAll()
                     .requestMatchers("/v1/files/**").permitAll()
                     .requestMatchers("/v1/files/resumes/**").permitAll()
                     .requestMatchers("/v1/organizations/schools").permitAll()
@@ -139,6 +147,9 @@ public class SecurityConfig {
                     .requestMatchers("/v1/auth/search").authenticated()
                     // 聊天接口需要认证
                     .requestMatchers("/v1/chat/**").authenticated()
+                    // 科研成果封面上传接口需要认证
+                    .requestMatchers("/api/v1/research/*/cover").authenticated()
+                    .requestMatchers("/v1/research/*/cover").authenticated()
 
                     // 静态资源访问 - 权限验证通过拦截器而不是这里处理
                     .requestMatchers("/v1/files/resources/**").permitAll()
@@ -162,13 +173,19 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(oAuth2DebugFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 // 配置OAuth2登录
-                .oauth2Login(oauth2 -> oauth2
-                    .loginPage("/login")
-                    .successHandler(oAuth2LoginSuccessHandler)
-                    .defaultSuccessUrl("http://localhost:8082/login-success", true)
-                )
+                .oauth2Login(oauth2 -> {
+                    log.info("配置OAuth2登录");
+                    oauth2.loginPage("/login")
+                        .successHandler(oAuth2LoginSuccessHandler) // 直接使用注入的处理器
+                        .failureHandler((request, response, exception) -> {
+                            log.error("OAuth2登录失败: {}", exception.getMessage(), exception);
+                            response.sendRedirect("http://localhost:8082/login-error?error=" + URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8));
+                        });
+                    log.info("OAuth2登录配置完成");
+                })
                 .build();
     }
     

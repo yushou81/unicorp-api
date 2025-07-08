@@ -15,10 +15,16 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.csu.unicorp.common.constants.CacheConstants;
 import com.csu.unicorp.entity.community.CommunityAnswer;
+import com.csu.unicorp.entity.community.CommunityComment;
 import com.csu.unicorp.entity.community.CommunityLike;
+import com.csu.unicorp.entity.community.CommunityQuestion;
+import com.csu.unicorp.entity.community.CommunityTopic;
 import com.csu.unicorp.entity.User;
 import com.csu.unicorp.mapper.community.CommunityAnswerMapper;
+import com.csu.unicorp.mapper.community.CommunityCommentMapper;
 import com.csu.unicorp.mapper.community.CommunityLikeMapper;
+import com.csu.unicorp.mapper.community.CommunityQuestionMapper;
+import com.csu.unicorp.mapper.community.CommunityTopicMapper;
 import com.csu.unicorp.service.CacheService;
 import com.csu.unicorp.service.CommunityLikeService;
 import com.csu.unicorp.service.CommunityNotificationService;
@@ -38,6 +44,9 @@ public class CommunityLikeServiceImpl extends ServiceImpl<CommunityLikeMapper, C
     
     private final CommunityLikeMapper likeMapper;
     private final CommunityAnswerMapper answerMapper;
+    private final CommunityCommentMapper commentMapper;
+    private final CommunityQuestionMapper questionMapper;
+    private final CommunityTopicMapper topicMapper;
     private final CommunityNotificationService notificationService;
     private final UserService userService;
     private final CacheService cacheService;
@@ -61,6 +70,9 @@ public class CommunityLikeServiceImpl extends ServiceImpl<CommunityLikeMapper, C
         boolean result = save(like);
         
         if (result) {
+            // 更新对应内容的点赞数
+            updateContentLikeCount(contentType, contentId, true);
+            
             // 清除点赞计数缓存
             String countCacheKey = CacheConstants.CONTENT_LIKE_COUNT_CACHE_KEY_PREFIX + contentType + ":" + contentId;
             cacheService.delete(countCacheKey);
@@ -99,6 +111,9 @@ public class CommunityLikeServiceImpl extends ServiceImpl<CommunityLikeMapper, C
         boolean result = likeMapper.deleteUserLike(userId, contentType, contentId) > 0;
         
         if (result) {
+            // 更新对应内容的点赞数
+            updateContentLikeCount(contentType, contentId, false);
+            
             // 清除点赞计数缓存
             String countCacheKey = CacheConstants.CONTENT_LIKE_COUNT_CACHE_KEY_PREFIX + contentType + ":" + contentId;
             cacheService.delete(countCacheKey);
@@ -113,6 +128,49 @@ public class CommunityLikeServiceImpl extends ServiceImpl<CommunityLikeMapper, C
         }
         
         return result;
+    }
+    
+    /**
+     * 更新内容的点赞数
+     * @param contentType 内容类型
+     * @param contentId 内容ID
+     * @param isIncrement 是否增加点赞数（true增加，false减少）
+     */
+    private void updateContentLikeCount(String contentType, Long contentId, boolean isIncrement) {
+        try {
+            // 将contentType转换为大写
+            String type = contentType.toUpperCase();
+            
+            switch (type) {
+                case "TOPIC" -> {
+                    CommunityTopic topic = topicMapper.selectById(contentId);
+                    if (topic != null) {
+                        int count = topic.getLikeCount() != null ? topic.getLikeCount() : 0;
+                        topic.setLikeCount(isIncrement ? count + 1 : Math.max(0, count - 1));
+                        topicMapper.updateById(topic);
+                    }
+                }
+                case "ANSWER" -> {
+                    CommunityAnswer answer = answerMapper.selectById(contentId);
+                    if (answer != null) {
+                        int count = answer.getLikeCount() != null ? answer.getLikeCount() : 0;
+                        answer.setLikeCount(isIncrement ? count + 1 : Math.max(0, count - 1));
+                        answerMapper.updateById(answer);
+                    }
+                }
+                case "COMMENT" -> {
+                    CommunityComment comment = commentMapper.selectById(contentId);
+                    if (comment != null) {
+                        int count = comment.getLikeCount() != null ? comment.getLikeCount() : 0;
+                        comment.setLikeCount(isIncrement ? count + 1 : Math.max(0, count - 1));
+                        commentMapper.updateById(comment);
+                    }
+                }
+                default -> log.warn("未知的内容类型: {}", type);
+            }
+        } catch (Exception e) {
+            log.error("更新内容点赞数失败: contentType={}, contentId={}, isIncrement={}", contentType, contentId, isIncrement, e);
+        }
     }
     
     @Override

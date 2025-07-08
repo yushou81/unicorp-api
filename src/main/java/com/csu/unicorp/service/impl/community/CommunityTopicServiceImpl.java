@@ -15,8 +15,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.csu.unicorp.common.constants.CacheConstants;
 import com.csu.unicorp.dto.community.TopicDTO;
+import com.csu.unicorp.entity.User;
 import com.csu.unicorp.entity.community.CommunityContentTag;
 import com.csu.unicorp.entity.community.CommunityTopic;
+import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.mapper.community.CommunityContentTagMapper;
 import com.csu.unicorp.mapper.community.CommunityTopicMapper;
 import com.csu.unicorp.service.CacheService;
@@ -25,6 +27,7 @@ import com.csu.unicorp.service.CommunityFavoriteService;
 import com.csu.unicorp.service.CommunityLikeService;
 import com.csu.unicorp.service.CommunityTagService;
 import com.csu.unicorp.service.CommunityTopicService;
+import com.csu.unicorp.service.FileService;
 import com.csu.unicorp.vo.community.CategoryVO;
 import com.csu.unicorp.vo.community.TagVO;
 import com.csu.unicorp.vo.community.TopicVO;
@@ -47,7 +50,8 @@ public class CommunityTopicServiceImpl extends ServiceImpl<CommunityTopicMapper,
     private final CommunityLikeService likeService;
     private final CommunityFavoriteService favoriteService;
     private final CacheService cacheService;
-
+    private final UserMapper userMapper;
+    private final FileService fileService;
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createTopic(Long userId, TopicDTO topicDTO) {
@@ -127,32 +131,16 @@ public class CommunityTopicServiceImpl extends ServiceImpl<CommunityTopicMapper,
 
     @Override
     public TopicVO getTopicDetail(Long topicId, Long userId) {
-        // 尝试从缓存获取话题详情
-        String cacheKey = CacheConstants.TOPIC_DETAIL_CACHE_KEY_PREFIX + topicId;
-        TopicVO cachedTopic = cacheService.get(cacheKey, TopicVO.class);
-        
-        if (cachedTopic != null) {
-            // 如果缓存存在，设置用户交互状态
-            if (userId != null) {
-                cachedTopic.setLiked(likeService.checkLike(userId, topicId, "TOPIC"));
-                cachedTopic.setFavorited(favoriteService.checkFavorite(userId, topicId, "TOPIC"));
-            }
-            
-            // 增加浏览次数（异步操作，不影响缓存）
-            incrementViewCount(topicId);
-            
-            return cachedTopic;
-        }
-        
-        // 缓存不存在，从数据库查询
+        // 从数据库查询
         CommunityTopic topic = topicMapper.selectById(topicId);
         if (topic == null || "DELETED".equals(topic.getStatus())) {
             return null;
         }
-        
+        log.info("getTopicDetail: topic={}", topic);
         TopicVO topicVO = convertToTopicVO(topic, userId);
         
         // 将话题详情缓存，有效期30分钟
+        String cacheKey = CacheConstants.TOPIC_DETAIL_CACHE_KEY_PREFIX + topicId;
         cacheService.set(cacheKey, topicVO, CacheConstants.TOPIC_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
         
         // 增加浏览次数
@@ -406,18 +394,32 @@ public class CommunityTopicServiceImpl extends ServiceImpl<CommunityTopicMapper,
             topicVO.setCategoryName(categoryVO.getName());
         }
         
-        // TODO: 获取用户信息，需要用户服务
-        topicVO.setUserName("用户" + topic.getUserId());
-        topicVO.setUserAvatar("/avatars/default/avatar.jpg");
+        // 获取用户信息
+        User user = userMapper.selectById(topic.getUserId());
+        if (user != null) {
+            topicVO.setUserName(user.getNickname());
+            if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+                topicVO.setUserAvatar(fileService.getFullFileUrl(user.getAvatar()));
+            } else {    
+                topicVO.setUserAvatar("/avatars/default/avatar.jpg");
+            }
+        } else {
+            topicVO.setUserName("用户" + topic.getUserId());
+            topicVO.setUserAvatar("/avatars/default/avatar.jpg");
+        }
         
         // 获取标签列表
         List<TagVO> tagList = tagService.getTopicTags(topic.getId());
         topicVO.setTags(tagList != null ? tagList : Collections.emptyList());
-        
+
+        log.info("convertToTopicVO: topic={}", topic);
         // 设置当前用户是否已点赞、收藏
+        log.info("checkLike1: userId={}, topicId={}", userId, topic.getId());
         if (userId != null) {
-            topicVO.setLiked(likeService.checkLike(userId, topic.getId(), "TOPIC"));
-            topicVO.setFavorited(favoriteService.checkFavorite(userId, topic.getId(), "TOPIC"));
+            log.info("checkLike2: userId={}, topicId={}", userId, topic.getId());
+            topicVO.setLiked(likeService.checkLike(userId, topic.getId(), "topic"));
+            topicVO.setFavorited(favoriteService.checkFavorite(userId, topic.getId(), "topic"));
+            log.info("checkFavorite: userId={}, topicId={}", userId, topic.getId());
         } else {
             topicVO.setLiked(false);
             topicVO.setFavorited(false);

@@ -149,4 +149,14 @@ public interface ResearchAchievementService {
      * @return 学校科研成果统计数据
      */
     Map<String, Object> getSchoolResearchStatistics(Integer userId);
+    
+    /**
+     * 更新科研成果封面图片
+     * 
+     * @param id 科研成果ID
+     * @param userId 用户ID
+     * @param coverImage 封面图片
+     * @return 更新后的科研成果
+     */
+    ResearchAchievementVO updateResearchAchievementCover(Integer id, Integer userId, MultipartFile coverImage);
 } 

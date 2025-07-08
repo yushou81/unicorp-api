@@ -70,20 +70,7 @@ public class CommunityAnswerServiceImpl extends ServiceImpl<CommunityAnswerMappe
 
     @Override
     public AnswerVO getAnswerDetail(Long answerId, Long userId) {
-        // 尝试从缓存获取
-        String cacheKey = CacheConstants.ANSWER_DETAIL_CACHE_KEY_PREFIX + answerId;
-        AnswerVO cachedAnswer = cacheService.get(cacheKey, AnswerVO.class);
-        if (cachedAnswer != null) {
-            log.debug("从缓存获取回答详情: {}", answerId);
-            // 更新用户交互状态
-            if (userId != null) {
-                cachedAnswer.setLiked(likeService.checkLike(userId, answerId, "ANSWER"));
-            } else {
-                cachedAnswer.setLiked(false);
-            }
-            return cachedAnswer;
-        }
-        
+        // 直接从数据库获取最新数据
         CommunityAnswer answer = getById(answerId);
         if (answer == null) {
             return null;
@@ -91,9 +78,9 @@ public class CommunityAnswerServiceImpl extends ServiceImpl<CommunityAnswerMappe
         
         AnswerVO answerVO = convertToVO(answer, userId);
         
-        // 缓存回答详情，不包含用户交互状态
-        AnswerVO cacheData = convertToVO(answer, null);
-        cacheService.set(cacheKey, cacheData, CacheConstants.ANSWER_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        // 缓存回答详情
+        String cacheKey = CacheConstants.ANSWER_DETAIL_CACHE_KEY_PREFIX + answerId;
+        cacheService.set(cacheKey, answerVO, CacheConstants.ANSWER_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
         
         return answerVO;
     }

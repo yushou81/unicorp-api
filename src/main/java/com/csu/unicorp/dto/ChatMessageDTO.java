@@ -29,6 +29,11 @@ public class ChatMessageDTO {
     private String content;
     
     /**
+     * 会话ID
+     */
+    private Long sessionId;
+    
+    /**
      * 消息类型枚举
      */
     public enum MessageType {

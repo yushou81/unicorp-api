@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csu.unicorp.config.security.CustomUserDetails;
+import com.csu.unicorp.service.CommunityAnswerService;
 import com.csu.unicorp.service.CommunityFavoriteService;
 import com.csu.unicorp.service.CommunityLikeService;
+import com.csu.unicorp.service.CommunityQuestionService;
+import com.csu.unicorp.service.CommunityTopicService;
 import com.csu.unicorp.vo.ResultVO;
 import com.csu.unicorp.vo.community.AnswerVO;
 import com.csu.unicorp.vo.community.QuestionVO;
@@ -41,6 +44,9 @@ public class CommunityInteractionController {
     
     private final CommunityLikeService likeService;
     private final CommunityFavoriteService favoriteService;
+    private final CommunityQuestionService questionService;
+    private final CommunityAnswerService answerService;
+    private final CommunityTopicService topicService;
     
     /**
      * 点赞
@@ -66,9 +72,9 @@ public class CommunityInteractionController {
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
-    public ResultVO<Boolean> like(
+    public ResultVO<?> like(
             @RequestParam @Parameter(description = "目标ID") Long targetId,
-            @RequestParam @Parameter(description = "目标类型（topic, question, answer, comment）") String targetType,
+            @RequestParam @Parameter(description = "目标类型（topic, answer, comment）") String targetType,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = Long.valueOf(userDetails.getUser().getId());
         
@@ -82,7 +88,23 @@ public class CommunityInteractionController {
             return ResultVO.error(404, "目标不存在");
         }
         
-        return ResultVO.success("点赞成功");
+        // 根据目标类型返回不同的结果
+        if ("topic".equals(targetType)) {
+            // 获取更新后的话题信息
+            TopicVO topicVO = topicService.getTopicDetail(targetId, userId);
+            return ResultVO.success("点赞成功", topicVO);
+        } else if ("question".equals(targetType)) {
+            // 获取更新后的问题信息
+            QuestionVO questionVO = questionService.getQuestionDetail(targetId, userId);
+            return ResultVO.success("点赞成功", questionVO);
+        } else if ("answer".equals(targetType)) {
+            // 获取更新后的回答信息
+            AnswerVO answerVO = answerService.getAnswerDetail(targetId, userId);
+            return ResultVO.success("点赞成功", answerVO);
+        } else {
+            // 评论或其他类型，返回简单结果
+            return ResultVO.success("点赞成功");
+        }
     }
     
     /**
@@ -106,7 +128,7 @@ public class CommunityInteractionController {
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
-    public ResultVO<Boolean> unlike(
+    public ResultVO<?> unlike(
             @RequestParam @Parameter(description = "目标ID") Long targetId,
             @RequestParam @Parameter(description = "目标类型（topic, question, answer, comment）") String targetType,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -119,7 +141,23 @@ public class CommunityInteractionController {
         
         likeService.unlike(userId, targetId, targetType);
         
-        return ResultVO.success("取消点赞成功");
+        // 根据目标类型返回不同的结果
+        if ("topic".equals(targetType)) {
+            // 获取更新后的话题信息
+            TopicVO topicVO = topicService.getTopicDetail(targetId, userId);
+            return ResultVO.success("取消点赞成功", topicVO);
+        } else if ("question".equals(targetType)) {
+            // 获取更新后的问题信息
+            QuestionVO questionVO = questionService.getQuestionDetail(targetId, userId);
+            return ResultVO.success("取消点赞成功", questionVO);
+        } else if ("answer".equals(targetType)) {
+            // 获取更新后的回答信息
+            AnswerVO answerVO = answerService.getAnswerDetail(targetId, userId);
+            return ResultVO.success("取消点赞成功", answerVO);
+        } else {
+            // 评论或其他类型，返回简单结果
+            return ResultVO.success("取消点赞成功");
+        }
     }
     
     /**
@@ -146,7 +184,7 @@ public class CommunityInteractionController {
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
-    public ResultVO<Boolean> favorite(
+    public ResultVO<?> favorite(
             @RequestParam @Parameter(description = "目标ID") Long targetId,
             @RequestParam @Parameter(description = "目标类型（topic, question）") String targetType,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -162,7 +200,18 @@ public class CommunityInteractionController {
             return ResultVO.error(404, "目标不存在");
         }
         
-        return ResultVO.success("收藏成功");
+        // 根据目标类型返回不同的结果
+        if ("topic".equals(targetType)) {
+            // 获取更新后的话题信息
+            TopicVO topicVO = topicService.getTopicDetail(targetId, userId);
+            return ResultVO.success("收藏成功", topicVO);
+        } else if ("question".equals(targetType)) {
+            // 获取更新后的问题信息
+            QuestionVO questionVO = questionService.getQuestionDetail(targetId, userId);
+            return ResultVO.success("收藏成功", questionVO);
+        } else {
+            return ResultVO.success("收藏成功");
+        }
     }
     
     /**
@@ -186,7 +235,7 @@ public class CommunityInteractionController {
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
-    public ResultVO<Boolean> unfavorite(
+    public ResultVO<?> unfavorite(
             @RequestParam @Parameter(description = "目标ID") Long targetId,
             @RequestParam @Parameter(description = "目标类型（topic, question）") String targetType,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -199,7 +248,18 @@ public class CommunityInteractionController {
         
         favoriteService.unfavorite(userId, targetId, targetType);
         
-        return ResultVO.success("取消收藏成功");
+        // 根据目标类型返回不同的结果
+        if ("topic".equals(targetType)) {
+            // 获取更新后的话题信息
+            TopicVO topicVO = topicService.getTopicDetail(targetId, userId);
+            return ResultVO.success("取消收藏成功", topicVO);
+        } else if ("question".equals(targetType)) {
+            // 获取更新后的问题信息
+            QuestionVO questionVO = questionService.getQuestionDetail(targetId, userId);
+            return ResultVO.success("取消收藏成功", questionVO);
+        } else {
+            return ResultVO.success("取消收藏成功");
+        }
     }
     
     /**
