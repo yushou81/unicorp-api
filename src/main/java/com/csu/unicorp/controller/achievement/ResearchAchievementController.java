@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -348,5 +349,39 @@ public class ResearchAchievementController {
         Integer userId = ((CustomUserDetails) userDetails).getUserId();
         Map<String, Object> statistics = researchAchievementService.getSchoolResearchStatistics(userId);
         return ResultVO.success(statistics);
+    }
+    
+    @PostMapping(value = "/{id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "上传科研成果封面图片", description = "为指定ID的科研成果上传封面图片")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "上传成功",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "400", description = "参数错误",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "403", description = "无权限",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class))),
+        @ApiResponse(responseCode = "404", description = "科研成果不存在",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = ResultVO.class)))
+    })
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResultVO<ResearchAchievementVO> uploadCoverImage(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestPart(value = "coverImage") MultipartFile coverImage) {
+        
+        Integer userId = ((CustomUserDetails) userDetails).getUserId();
+        log.info("用户 {} 正在为科研成果 {} 上传封面图片", userId, id);
+        
+        // 创建一个空的DTO，只用于传递给service方法
+        ResearchAchievementCreationDTO dto = new ResearchAchievementCreationDTO();
+        
+        // 调用service方法更新封面图片
+        ResearchAchievementVO achievement = researchAchievementService.updateResearchAchievementCover(id, userId, coverImage);
+        
+        return ResultVO.success("封面图片上传成功", achievement);
     }
 } 

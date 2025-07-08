@@ -144,6 +144,9 @@ public class SecurityConfig {
                     .requestMatchers("/v1/auth/search").authenticated()
                     // 聊天接口需要认证
                     .requestMatchers("/v1/chat/**").authenticated()
+                    // 科研成果封面上传接口需要认证
+                    .requestMatchers("/api/v1/research/*/cover").authenticated()
+                    .requestMatchers("/v1/research/*/cover").authenticated()
 
                     // 静态资源访问 - 权限验证通过拦截器而不是这里处理
                     .requestMatchers("/v1/files/resources/**").permitAll()

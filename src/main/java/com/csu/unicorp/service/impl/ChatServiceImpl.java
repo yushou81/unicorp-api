@@ -181,8 +181,28 @@ public class ChatServiceImpl implements ChatService {
     @Override
     @Transactional
     public ChatMessageVO sendMessage(ChatMessageDTO messageDTO) {
-        // 获取或创建会话
-        ChatSession session = getOrCreateSession(messageDTO.getSenderId(), messageDTO.getReceiverId());
+        // 设置默认消息类型
+        if (messageDTO.getType() == null) {
+            messageDTO.setType(ChatMessageDTO.MessageType.CHAT);
+        }
+        
+        // 获取会话ID
+        Long sessionId = messageDTO.getSessionId();
+        ChatSession session;
+        
+        if (sessionId != null) {
+            // 如果前端传递了sessionId，则直接使用
+            session = chatSessionMapper.selectById(sessionId);
+            // 验证会话是否存在且当前用户是会话成员
+            if (session == null || (!session.getUser1Id().equals(messageDTO.getSenderId()) 
+                    && !session.getUser2Id().equals(messageDTO.getSenderId()))) {
+                // 如果会话不存在或当前用户不是会话成员，则创建新会话
+                session = getOrCreateSession(messageDTO.getSenderId(), messageDTO.getReceiverId());
+            }
+        } else {
+            // 如果没有传递sessionId，则获取或创建会话
+            session = getOrCreateSession(messageDTO.getSenderId(), messageDTO.getReceiverId());
+        }
         
         // 创建并保存消息
         ChatMessage message = new ChatMessage();
@@ -195,7 +215,10 @@ public class ChatServiceImpl implements ChatService {
         saveMessage(message);
         
         // 转换为VO返回
-        return convertToMessageVO(message);
+        ChatMessageVO messageVO = convertToMessageVO(message);
+        messageVO.setType(messageDTO.getType()); // 设置消息类型
+        
+        return messageVO;
     }
     
     @Override

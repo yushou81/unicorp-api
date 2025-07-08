@@ -389,6 +389,49 @@ public class ResearchAchievementServiceImpl implements ResearchAchievementServic
         return statistics;
     }
     
+    @Override
+    @Transactional
+    public ResearchAchievementVO updateResearchAchievementCover(Integer id, Integer userId, MultipartFile coverImage) {
+        // 验证科研成果是否存在
+        ResearchAchievement achievement = researchAchievementMapper.selectById(id);
+        if (achievement == null || achievement.getIsDeleted()) {
+            throw new BusinessException("科研成果不存在");
+        }
+        
+        // 验证权限
+        if (!Objects.equals(achievement.getUserId(), userId)) {
+            throw new BusinessException("无权限修改此科研成果");
+        }
+        
+        // 如果已认证，不允许修改
+        if (achievement.getIsVerified()) {
+            throw new BusinessException("已认证的科研成果不允许修改");
+        }
+        
+        // 验证封面图片
+        if (coverImage == null || coverImage.isEmpty()) {
+            throw new BusinessException("封面图片不能为空");
+        }
+        
+        // 如果已有封面图片，先删除旧图片
+        if (achievement.getCoverImageUrl() != null && !achievement.getCoverImageUrl().isEmpty()) {
+            fileService.deleteFile(achievement.getCoverImageUrl());
+        }
+        
+        // 上传新的封面图片
+        String coverImageUrl = fileService.uploadFile(coverImage, "resources");
+        achievement.setCoverImageUrl(coverImageUrl);
+        
+        // 更新时间
+        achievement.setUpdatedAt(LocalDateTime.now());
+        
+        // 更新数据库
+        researchAchievementMapper.updateById(achievement);
+        
+        // 返回更新后的VO
+        return convertToVO(achievement);
+    }
+    
     /**
      * 将科研成果实体转换为VO
      *
