@@ -153,34 +153,17 @@ public class CommunityQuestionServiceImpl extends ServiceImpl<CommunityQuestionM
     
     @Override
     public QuestionVO getQuestionDetail(Long questionId, Long userId) {
-        // 尝试从缓存获取
-        String cacheKey = CacheConstants.QUESTION_DETAIL_CACHE_KEY_PREFIX + questionId;
-        QuestionVO cachedQuestion = cacheService.get(cacheKey, QuestionVO.class);
-        if (cachedQuestion != null) {
-            log.debug("从缓存获取问题详情: {}", questionId);
-            // 更新用户交互状态
-            if (userId != null) {
-                cachedQuestion.setFavorited(checkUserFavoritedQuestion(userId, questionId));
-            } else {
-                cachedQuestion.setFavorited(false);
-            }
-            return cachedQuestion;
-        }
-        
+        // 从数据库获取最新数据
         CommunityQuestion question = getById(questionId);
         if (question == null) {
             return null;
         }
         
-        QuestionVO questionVO = convertToQuestionVO(question, null);
+        QuestionVO questionVO = convertToQuestionVO(question, userId);
         
-        // 缓存问题详情，不包含用户交互状态
+        // 缓存问题详情
+        String cacheKey = CacheConstants.QUESTION_DETAIL_CACHE_KEY_PREFIX + questionId;
         cacheService.set(cacheKey, questionVO, CacheConstants.QUESTION_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
-        
-        // 设置用户交互状态
-        if (userId != null) {
-            questionVO.setFavorited(checkUserFavoritedQuestion(userId, questionId));
-        }
         
         return questionVO;
     }

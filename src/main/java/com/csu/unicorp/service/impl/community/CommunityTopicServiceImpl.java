@@ -131,32 +131,16 @@ public class CommunityTopicServiceImpl extends ServiceImpl<CommunityTopicMapper,
 
     @Override
     public TopicVO getTopicDetail(Long topicId, Long userId) {
-        // 尝试从缓存获取话题详情
-        String cacheKey = CacheConstants.TOPIC_DETAIL_CACHE_KEY_PREFIX + topicId;
-        TopicVO cachedTopic = cacheService.get(cacheKey, TopicVO.class);
-        
-        if (cachedTopic != null) {
-            // 如果缓存存在，设置用户交互状态
-            if (userId != null) {
-                cachedTopic.setLiked(likeService.checkLike(userId, topicId, "TOPIC"));
-                cachedTopic.setFavorited(favoriteService.checkFavorite(userId, topicId, "TOPIC"));
-            }
-            
-            // 增加浏览次数（异步操作，不影响缓存）
-            incrementViewCount(topicId);
-            
-            return cachedTopic;
-        }
-        
-        // 缓存不存在，从数据库查询
+        // 从数据库查询
         CommunityTopic topic = topicMapper.selectById(topicId);
         if (topic == null || "DELETED".equals(topic.getStatus())) {
             return null;
         }
-        
+        log.info("getTopicDetail: topic={}", topic);
         TopicVO topicVO = convertToTopicVO(topic, userId);
         
         // 将话题详情缓存，有效期30分钟
+        String cacheKey = CacheConstants.TOPIC_DETAIL_CACHE_KEY_PREFIX + topicId;
         cacheService.set(cacheKey, topicVO, CacheConstants.TOPIC_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
         
         // 增加浏览次数
