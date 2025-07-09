@@ -1,0 +1,142 @@
+openapi: 3.0.0
+info:
+  title: 创建学校API
+  description: 由系统管理员调用，创建一个新的学校组织
+  version: 1.0.0
+paths:
+  /v1/admin/schools:
+    post:
+      summary: 创建学校
+      description: 由系统管理员调用，创建一个新的学校组织，支持上传学校logo
+      tags:
+        - SYSAdmin
+      security:
+        - bearerAuth: []
+      operationId: createSchool
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - organizationName
+                - adminPassword
+                - adminEmail
+              properties:
+                organizationName:
+                  type: string
+                  description: 学校名称
+                description:
+                  type: string
+                  description: 学校描述
+                address:
+                  type: string
+                  description: 学校地址
+                website:
+                  type: string
+                  description: 学校网站
+                adminNickname:
+                  type: string
+                  description: 学校管理员昵称
+                adminPassword:
+                  type: string
+                  format: password
+                  description: 学校管理员密码
+                adminEmail:
+                  type: string
+                  format: email
+                  description: 学校管理员邮箱
+                logo:
+                  type: string
+                  format: binary
+                  description: 学校logo图片
+      responses:
+        '200':
+          description: 学校创建成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: 学校创建成功
+                  data:
+                    $ref: '#/components/schemas/OrganizationVO'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: 学校名称已存在
+                  data:
+                    type: null
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 403
+                  message:
+                    type: string
+                    example: 权限不足
+                  data:
+                    type: null
+components:
+  schemas:
+    OrganizationVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: 组织ID
+        organizationName:
+          type: string
+          description: 组织名称
+        type:
+          type: string
+          description: 组织类型(School/Enterprise)
+        description:
+          type: string
+          description: 组织描述
+        address:
+          type: string
+          description: 组织地址
+        website:
+          type: string
+          description: 组织网站
+        logoUrl:
+          type: string
+          description: 组织logo URL
+        status:
+          type: string
+          description: 组织状态(approved/pending)
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+        adminEmail:
+          type: string
+          format: email
+          description: 管理员邮箱
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

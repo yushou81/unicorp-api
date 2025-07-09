@@ -383,7 +383,7 @@ public class UserServiceImpl implements UserService {
     
     @Override
     @Transactional
-    public UserVO registerEnterprise(EnterpriseRegistrationDTO registrationDto) {
+    public UserVO registerEnterprise(EnterpriseRegistrationDTO registrationDto, MultipartFile logo, MultipartFile businessLicense) {
         // 检查邮箱是否已存在
         User existingUserByEmail = userMapper.selectByEmail(registrationDto.getAdminEmail());
         if (existingUserByEmail != null) {
@@ -404,6 +404,20 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException("该企业名称已被注册");
         }
         
+        // 上传企业logo
+        String logoPath = null;
+        if (logo != null && !logo.isEmpty()) {
+            logoPath = fileService.uploadFile(logo, "logos");
+        }
+        
+        // 上传营业执照
+        String businessLicensePath = null;
+        if (businessLicense != null && !businessLicense.isEmpty()) {
+            businessLicensePath = fileService.uploadFile(businessLicense, "business_licenses");
+        } else {
+            throw new BusinessException("营业执照不能为空");
+        }
+        
         // 创建企业组织
         Organization organization = new Organization();
         organization.setOrganizationName(registrationDto.getOrganizationName());
@@ -414,18 +428,19 @@ public class UserServiceImpl implements UserService {
         organization.setStatus("pending"); // 企业注册初始状态为待审核
         organization.setLatitude(registrationDto.getLatitude());
         organization.setLongitude(registrationDto.getLongitude());
+        organization.setLogoUrl(logoPath); // 设置企业logo
         
         // 创建企业详情
         EnterpriseDetail enterpriseDetail = new EnterpriseDetail();
         enterpriseDetail.setIndustry(registrationDto.getIndustry());
         enterpriseDetail.setCompanySize(registrationDto.getCompanySize());
-        enterpriseDetail.setBusinessLicenseUrl(registrationDto.getBusinessLicenseUrl());
+        enterpriseDetail.setBusinessLicenseUrl(businessLicensePath);
         
         // 保存企业信息
         Integer organizationId = enterpriseService.createEnterprise(organization, enterpriseDetail);
         
         // 生成企业管理员账号
-        String generatedAccount = "ent_" + accountGenerator.generateStudentAccount(organization).substring(0, 8);
+        String generatedAccount = accountGenerator.generateStudentAccount(organization).substring(0, 8);
         
         // 创建企业管理员账号
         User user = new User();

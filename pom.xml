@@ -228,6 +228,17 @@
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-commons</artifactId>
 </dependency>
+        <!-- 视频处理依赖 -->
+        <dependency>
+            <groupId>ws.schild</groupId>
+            <artifactId>jave-core</artifactId>
+            <version>3.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>ws.schild</groupId>
+            <artifactId>jave-all-deps</artifactId>
+            <version>3.3.1</version>
+        </dependency>
     </dependencies>
 
     <build>

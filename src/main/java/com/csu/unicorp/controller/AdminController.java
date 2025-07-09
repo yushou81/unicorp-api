@@ -22,14 +22,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 
 /**
  * 管理员接口
  */
-@Tag(name = "Admin", description = "系统管理员后台接口")
+@Tag(name = "SYSAdmin", description = "系统管理员后台接口")
 @RestController
 @RequestMapping("/v1/admin")
 @SecurityRequirement(name = "bearerAuth")
@@ -53,8 +56,32 @@ public class AdminController {
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class)))
     })
-    @PostMapping("/schools")
-    public ResultVO<OrganizationVO> createSchool(@Valid @RequestBody SchoolCreationDTO schoolCreationDTO) {
+    @PostMapping(value = "/schools", consumes = "multipart/form-data")
+    public ResultVO<OrganizationVO> createSchool(
+            @RequestParam @NotBlank(message = "学校名称不能为空") String organizationName,
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) String address,
+            @RequestParam(required = false) String website,
+            @RequestParam(required = false) String adminNickname,
+            @RequestParam @NotBlank(message = "管理员密码不能为空") String adminPassword,
+            @RequestParam @NotBlank(message = "管理员邮箱不能为空") @Email(message = "管理员邮箱格式不正确") String adminEmail,
+            @RequestPart(value = "logo", required = false) MultipartFile logo) {
+        
+        // 组装SchoolCreationDTO对象
+        SchoolCreationDTO schoolCreationDTO = new SchoolCreationDTO();
+        schoolCreationDTO.setOrganizationName(organizationName);
+        schoolCreationDTO.setDescription(description);
+        schoolCreationDTO.setAddress(address);
+        schoolCreationDTO.setWebsite(website);
+        schoolCreationDTO.setAdminNickname(adminNickname);
+        schoolCreationDTO.setAdminPassword(adminPassword);
+        schoolCreationDTO.setAdminEmail(adminEmail);
+        
+        // 处理logo上传
+        if (logo != null && !logo.isEmpty()) {
+            schoolCreationDTO.setLogoFile(logo);
+        }
+        
         OrganizationVO organization = organizationService.createSchool(schoolCreationDTO);
         return ResultVO.success("学校创建成功", organization);
     }

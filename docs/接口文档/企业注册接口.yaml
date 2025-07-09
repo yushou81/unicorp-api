@@ -1,0 +1,148 @@
+openapi: 3.0.0
+info:
+  title: 企业注册API
+  description: 企业代表进行公开注册。注册后，企业和其管理员账号状态均为'pending'，需要系统管理员审核
+  version: 1.0.0
+paths:
+  /v1/auth/register/enterprise:
+    post:
+      summary: 企业注册接口
+      description: 企业代表进行公开注册。注册后，企业和其管理员账号状态均为'pending'，需要系统管理员审核
+      tags:
+        - Authentication
+      operationId: registerEnterprise
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - organizationName
+                - adminPassword
+                - adminEmail
+                - logo
+                - businessLicense
+              properties:
+                organizationName:
+                  type: string
+                  description: 企业名称
+                description:
+                  type: string
+                  description: 企业描述
+                address:
+                  type: string
+                  description: 企业地址
+                website:
+                  type: string
+                  description: 企业网站
+                industry:
+                  type: string
+                  description: 所属行业
+                companySize:
+                  type: string
+                  description: 公司规模
+                latitude:
+                  type: number
+                  format: double
+                  description: 纬度
+                longitude:
+                  type: number
+                  format: double
+                  description: 经度
+                adminNickname:
+                  type: string
+                  description: 企业管理员昵称
+                adminPassword:
+                  type: string
+                  format: password
+                  description: 企业管理员密码
+                adminEmail:
+                  type: string
+                  format: email
+                  description: 企业管理员邮箱
+                adminPhone:
+                  type: string
+                  pattern: ^1[3-9]\d{9}$
+                  description: 企业管理员手机号
+                logo:
+                  type: string
+                  format: binary
+                  description: 企业logo图片
+                businessLicense:
+                  type: string
+                  format: binary
+                  description: 企业营业执照文件
+      responses:
+        '200':
+          description: 注册申请已提交，等待审核
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: 企业注册申请已提交，等待审核
+                  data:
+                    $ref: '#/components/schemas/UserVO'
+        '400':
+          description: 无效的输入，或邮箱/手机号/企业名称已存在
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: 该邮箱已被注册
+                  data:
+                    type: null
+components:
+  schemas:
+    UserVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: 用户ID
+        account:
+          type: string
+          description: 用户账号
+        nickname:
+          type: string
+          description: 用户昵称
+        email:
+          type: string
+          format: email
+          description: 用户邮箱
+        phone:
+          type: string
+          description: 用户手机号
+        avatar:
+          type: string
+          description: 用户头像URL
+        status:
+          type: string
+          description: 用户状态
+        organizationId:
+          type: integer
+          format: int32
+          description: 所属组织ID
+        organizationName:
+          type: string
+          description: 所属组织名称
+        role:
+          type: string
+          description: 用户角色
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间

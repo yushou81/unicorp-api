@@ -1,0 +1,244 @@
+openapi: 3.0.3
+info:
+  title: 审计日志API
+  description: 提供系统审计日志的查询和统计功能
+  version: 1.0.0
+  contact:
+    name: UniCorp Team
+    email: unicorp@example.com
+servers:
+  - url: http://localhost:8081
+    description: 本地开发服务器
+tags:
+  - name: Audit
+    description: 审计日志管理
+paths:
+  /v1/admin/audit/logs:
+    get:
+      tags:
+        - Audit
+      summary: 分页查询审计日志
+      description: 根据条件查询审计日志记录
+      operationId: getLogs
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: userId
+          in: query
+          description: 用户ID
+          required: false
+          schema:
+            type: integer
+        - name: action
+          in: query
+          description: 操作类型
+          required: false
+          schema:
+            type: string
+        - name: startTime
+          in: query
+          description: 开始时间
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: endTime
+          in: query
+          description: 结束时间
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogPageResult'
+      security:
+        - bearerAuth: []
+  /v1/admin/audit/statistics:
+    get:
+      tags:
+        - Audit
+      summary: 获取日志统计信息
+      description: 获取系统日志的统计数据
+      operationId: getStatistics
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogStatisticsResult'
+      security:
+        - bearerAuth: []
+components:
+  schemas:
+    ResultVO:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 状态码，200表示成功
+          example: 200
+        message:
+          type: string
+          description: 响应消息
+          example: 操作成功
+        data:
+          type: object
+          description: 响应数据
+    AuditLogPageResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultVO'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                records:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AuditLogVO'
+                total:
+                  type: integer
+                  description: 总记录数
+                  example: 100
+                size:
+                  type: integer
+                  description: 每页大小
+                  example: 10
+                current:
+                  type: integer
+                  description: 当前页码
+                  example: 1
+                pages:
+                  type: integer
+                  description: 总页数
+                  example: 10
+    LogStatisticsResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultVO'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/LogStatisticsVO'
+    AuditLogVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 日志ID
+          example: 1
+        userId:
+          type: integer
+          description: 用户ID
+          example: 1
+        username:
+          type: string
+          description: 用户名
+          example: admin
+        action:
+          type: string
+          description: 操作类型
+          example: LOGIN
+        module:
+          type: string
+          description: 操作模块
+          example: 用户管理
+        description:
+          type: string
+          description: 操作描述
+          example: 用户登录
+        ipAddress:
+          type: string
+          description: IP地址
+          example: 192.168.1.1
+        userAgent:
+          type: string
+          description: 用户代理
+          example: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+        requestMethod:
+          type: string
+          description: 请求方法
+          example: POST
+        requestUrl:
+          type: string
+          description: 请求URL
+          example: /api/v1/auth/login
+        requestParams:
+          type: string
+          description: 请求参数
+          example: "{\"username\":\"admin\"}"
+        status:
+          type: string
+          description: 操作状态
+          example: SUCCESS
+        errorMessage:
+          type: string
+          description: 错误信息
+          example: null
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: 2023-01-01T12:00:00
+    LogStatisticsVO:
+      type: object
+      properties:
+        totalLogs:
+          type: integer
+          description: 总日志数
+          example: 1000
+        todayLogs:
+          type: integer
+          description: 今日日志数
+          example: 100
+        successCount:
+          type: integer
+          description: 成功操作数
+          example: 950
+        failureCount:
+          type: integer
+          description: 失败操作数
+          example: 50
+        actionCounts:
+          type: object
+          additionalProperties:
+            type: integer
+          description: 各操作类型的数量统计
+          example:
+            LOGIN: 200
+            LOGOUT: 180
+            CREATE: 150
+            UPDATE: 300
+            DELETE: 50
+            QUERY: 120
+        userCounts:
+          type: object
+          additionalProperties:
+            type: integer
+          description: 用户操作数量统计
+          example:
+            1: 300
+            2: 250
+            3: 450
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

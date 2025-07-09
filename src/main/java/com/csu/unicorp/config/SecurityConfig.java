@@ -22,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpMethod;
 
 import com.csu.unicorp.common.constants.RoleConstants;
 import com.csu.unicorp.config.security.JwtAuthenticationFilter;
@@ -168,6 +169,14 @@ public class SecurityConfig {
                     .requestMatchers("/v1/admin/users/**").hasRole("SYSADMIN")
                     .requestMatchers("/v1/admin/organizations/**").hasRole("SYSADMIN")
                     .requestMatchers("/v1/admin/audit/**").hasRole("SYSADMIN")
+                    // 章节视频相关接口
+                    .requestMatchers("/v1/chapter-videos/{videoId}").authenticated()
+                    .requestMatchers("/v1/chapter-videos/chapter/{chapterId}").authenticated()
+                    .requestMatchers(HttpMethod.POST, "/v1/chapter-videos/{videoId}/progress").hasRole("STUDENT")
+                    .requestMatchers(HttpMethod.POST, "/v1/chapter-videos/{videoId}/complete").hasRole("STUDENT")
+                    .requestMatchers(HttpMethod.POST, "/v1/chapter-videos").hasAnyRole("TEACHER", "SCH_ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/v1/chapter-videos/{videoId}").hasAnyRole("TEACHER", "SCH_ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/v1/chapter-videos/{videoId}").hasAnyRole("TEACHER", "SCH_ADMIN")
                     // 其他所有请求需要认证
                     .anyRequest().authenticated()
                 )
@@ -182,7 +191,7 @@ public class SecurityConfig {
                         .successHandler(oAuth2LoginSuccessHandler) // 直接使用注入的处理器
                         .failureHandler((request, response, exception) -> {
                             log.error("OAuth2登录失败: {}", exception.getMessage(), exception);
-                            response.sendRedirect("http://localhost:8082/login-error?error=" + URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8));
+                            response.sendRedirect("http://localhost:8087/login-error?error=" + URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8));
                         });
                     log.info("OAuth2登录配置完成");
                 })

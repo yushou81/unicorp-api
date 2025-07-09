@@ -1,0 +1,303 @@
+{
+	"info": {
+		"_postman_id": "e8f45b2d-7a1c-4e5f-8f3c-9d8b5a6c8d7e",
+		"name": "双师课堂-章节视频测试",
+		"description": "双师课堂章节视频功能的API测试集合",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. 教师上传章节视频",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": []
+						},
+						{
+							"key": "chapterId",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "title",
+							"value": "Java基础入门视频",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "本视频介绍Java语言的基础知识，包括变量、数据类型、运算符等",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/chapter-videos",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"chapter-videos"
+					]
+				},
+				"description": "教师上传章节视频，需要教师或管理员权限"
+			},
+			"response": []
+		},
+		{
+			"name": "2. 获取视频详情",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/chapter-videos/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"chapter-videos",
+						"1"
+					]
+				},
+				"description": "获取指定ID的视频详情"
+			},
+			"response": []
+		},
+		{
+			"name": "3. 获取章节视频",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/chapter-videos/chapter/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"chapter-videos",
+						"chapter",
+						"1"
+					]
+				},
+				"description": "获取指定章节ID的视频"
+			},
+			"response": []
+		},
+		{
+			"name": "4. 更新视频信息",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"chapterId\": 1,\n    \"title\": \"Java基础入门视频（更新版）\",\n    \"description\": \"本视频介绍Java语言的基础知识，包括变量、数据类型、运算符等，新增了更多示例\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/chapter-videos/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"chapter-videos",
+						"1"
+					]
+				},
+				"description": "更新视频信息，需要教师或管理员权限"
+			},
+			"response": []
+		},
+		{
+			"name": "5. 学生更新观看进度",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/chapter-videos/1/progress?position=120",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"chapter-videos",
+						"1",
+						"progress"
+					],
+					"query": [
+						{
+							"key": "position",
+							"value": "120"
+						}
+					]
+				},
+				"description": "学生更新视频观看进度，需要学生权限"
+			},
+			"response": []
+		},
+		{
+			"name": "6. 学生标记视频已完成",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/chapter-videos/1/complete",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"chapter-videos",
+						"1",
+						"complete"
+					]
+				},
+				"description": "学生标记视频为已完成状态，需要学生权限"
+			},
+			"response": []
+		},
+		{
+			"name": "7. 删除视频",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/chapter-videos/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"chapter-videos",
+						"1"
+					]
+				},
+				"description": "删除视频，需要教师或管理员权限"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"pm.test(\"状态码是 200\", function () {",
+					"    pm.response.to.have.status(200);",
+					"});",
+					"",
+					"pm.test(\"响应包含成功状态码\", function () {",
+					"    var jsonData = pm.response.json();",
+					"    pm.expect(jsonData.code).to.eql(200);",
+					"});",
+					"",
+					"pm.test(\"响应时间少于500ms\", function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(500);",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "{{base_url}}"
+		},
+		{
+			"key": "token",
+			"value": "{{token}}"
+		}
+	]
+}

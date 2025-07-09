@@ -1,0 +1,660 @@
+openapi: 3.0.0
+info:
+  title: 推荐系统API文档 
+  description: 智能推荐系统相关接口，包括岗位推荐、人才推荐、用户行为记录和个人特征管理
+  version: 1.0.0
+  
+tags:
+  - name: 智能推荐
+    description: 智能推荐系统相关接口
+
+paths:
+  /v1/recommendations/jobs:
+    get:
+      summary: "[学生] 获取岗位推荐列表"
+      description: "获取为当前登录学生推荐的岗位列表"
+      tags:
+        - 智能推荐
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "获取岗位推荐列表成功"
+                  data:
+                    type: object
+                    properties:
+                      records:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/JobRecommendationVO'
+                      total:
+                        type: integer
+                        description: 总记录数
+                      size:
+                        type: integer
+                        description: 每页大小
+                      current:
+                        type: integer
+                        description: 当前页码
+                      pages:
+                        type: integer
+                        description: 总页数
+        '403':
+          description: 权限不足 (非学生用户)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/recommendations/talents:
+    get:
+      summary: "[企业] 获取人才推荐列表"
+      description: "获取为当前登录企业推荐的人才列表"
+      tags:
+        - 智能推荐
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: 每页大小
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "获取人才推荐列表成功"
+                  data:
+                    type: object
+                    properties:
+                      records:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/StudentTalentVO'
+                      total:
+                        type: integer
+                        description: 总记录数
+                      size:
+                        type: integer
+                        description: 每页大小
+                      current:
+                        type: integer
+                        description: 当前页码
+                      pages:
+                        type: integer
+                        description: 总页数
+        '403':
+          description: 权限不足 (非企业用户)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/recommendations/jobs/{id}:
+    patch:
+      summary: "[学生] 更新岗位推荐状态"
+      description: "更新指定岗位推荐的状态"
+      tags:
+        - 智能推荐
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: 推荐ID
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecommendationStatusUpdateDTO'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "更新推荐状态成功"
+                  data:
+                    type: boolean
+                    example: true
+        '400':
+          description: 无效的状态值
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 推荐不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/recommendations/talents/{id}:
+    patch:
+      summary: "[企业] 更新人才推荐状态"
+      description: "更新指定人才推荐的状态"
+      tags:
+        - 智能推荐
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: 推荐ID
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecommendationStatusUpdateDTO'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "更新推荐状态成功"
+                  data:
+                    type: boolean
+                    example: true
+        '400':
+          description: 无效的状态值
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 推荐不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/recommendations/behaviors:
+    post:
+      summary: "记录用户行为"
+      description: "记录用户的行为数据，用于个性化推荐"
+      tags:
+        - 智能推荐
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserBehaviorRecordDTO'
+      responses:
+        '200':
+          description: 记录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "记录行为成功"
+                  data:
+                    type: boolean
+                    example: true
+        '400':
+          description: 无效的行为类型或目标类型
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/recommendations/features/me:
+    get:
+      summary: "[学生] 获取个人特征"
+      description: "获取当前登录学生的个人特征信息"
+      tags:
+        - 智能推荐
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "获取个人特征成功"
+                  data:
+                    $ref: '#/components/schemas/UserFeatureVO'
+        '403':
+          description: 权限不足 (非学生用户)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: "[学生] 更新个人特征"
+      description: "更新当前登录学生的个人特征信息"
+      tags:
+        - 智能推荐
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserFeatureUpdateDTO'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "更新个人特征成功"
+                  data:
+                    $ref: '#/components/schemas/UserFeatureVO'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: 权限不足 (非学生用户)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/recommendations/statistics/behaviors:
+    get:
+      summary: "[学生] 获取行为统计"
+      description: "获取当前登录学生的行为统计数据"
+      tags:
+        - 智能推荐
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "获取行为统计成功"
+                  data:
+                    type: object
+                    additionalProperties: true
+                    description: 行为统计数据，键值对形式
+        '403':
+          description: 权限不足 (非学生用户)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/recommendations/jobs/generate:
+    post:
+      summary: "[学生] 生成岗位推荐"
+      description: "为当前登录学生生成岗位推荐"
+      tags:
+        - 智能推荐
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 生成成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "生成岗位推荐成功"
+                  data:
+                    type: integer
+                    description: 生成的推荐数量
+        '403':
+          description: 权限不足 (非学生用户)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/recommendations/talents/generate:
+    post:
+      summary: "[企业] 生成人才推荐"
+      description: "为当前登录企业生成人才推荐"
+      tags:
+        - 智能推荐
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 生成成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "生成人才推荐成功"
+                  data:
+                    type: integer
+                    description: 生成的推荐数量
+        '403':
+          description: 权限不足 (非企业用户)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    JobRecommendationVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 推荐ID
+        jobId:
+          type: integer
+          description: 岗位ID
+        jobTitle:
+          type: string
+          description: 岗位标题
+        organizationName:
+          type: string
+          description: 企业名称
+        organizationLogo:
+          type: string
+          description: 企业Logo
+        salary:
+          type: string
+          description: 薪资范围
+        location:
+          type: string
+          description: 工作地点
+        matchScore:
+          type: number
+          format: float
+          description: 匹配分数
+        status:
+          type: string
+          description: 推荐状态
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          
+    StudentTalentVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 推荐ID
+        studentId:
+          type: integer
+          description: 学生ID
+        studentName:
+          type: string
+          description: 学生姓名
+        avatar:
+          type: string
+          description: 学生头像
+        school:
+          type: string
+          description: 学校
+        major:
+          type: string
+          description: 专业
+        skills:
+          type: array
+          items:
+            type: string
+          description: 技能列表
+        matchScore:
+          type: number
+          format: float
+          description: 匹配分数
+        status:
+          type: string
+          description: 推荐状态
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          
+    RecommendationStatusUpdateDTO:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          description: "推荐状态，可选值：interested, not_interested, applied, viewed"
+          enum: [interested, not_interested, applied, viewed]
+          
+    UserBehaviorRecordDTO:
+      type: object
+      required:
+        - behaviorType
+        - targetType
+        - targetId
+      properties:
+        behaviorType:
+          type: string
+          description: "行为类型，可选值：view, click, apply, favorite, share"
+          enum: [view, click, apply, favorite, share]
+        targetType:
+          type: string
+          description: "目标类型，可选值：job, course, resource, project"
+          enum: [job, course, resource, project]
+        targetId:
+          type: integer
+          description: 目标ID
+        duration:
+          type: integer
+          description: 行为持续时间（秒）
+        detail:
+          type: string
+          description: 行为详情
+          
+    UserFeatureVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 特征ID
+        userId:
+          type: integer
+          description: 用户ID
+        preferredJobTypes:
+          type: array
+          items:
+            type: string
+          description: 偏好的工作类型
+        preferredIndustries:
+          type: array
+          items:
+            type: string
+          description: 偏好的行业
+        preferredLocations:
+          type: array
+          items:
+            type: string
+          description: 偏好的工作地点
+        preferredSalary:
+          type: string
+          description: 偏好的薪资范围
+        skills:
+          type: array
+          items:
+            type: string
+          description: 技能列表
+        interestTags:
+          type: array
+          items:
+            type: string
+          description: 兴趣标签
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新时间
+          
+    UserFeatureUpdateDTO:
+      type: object
+      properties:
+        preferredJobTypes:
+          type: array
+          items:
+            type: string
+          description: 偏好的工作类型
+        preferredIndustries:
+          type: array
+          items:
+            type: string
+          description: 偏好的行业
+        preferredLocations:
+          type: array
+          items:
+            type: string
+          description: 偏好的工作地点
+        preferredSalary:
+          type: string
+          description: 偏好的薪资范围
+        skills:
+          type: array
+          items:
+            type: string
+          description: 技能列表
+        interestTags:
+          type: array
+          items:
+            type: string
+          description: 兴趣标签
+          
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: "错误信息"
+        data:
+          type: null
+          
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 

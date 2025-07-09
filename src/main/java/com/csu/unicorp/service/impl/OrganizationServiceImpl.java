@@ -102,7 +102,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         if (schoolCreationDTO.getLogoFile() != null && !schoolCreationDTO.getLogoFile().isEmpty()) {
             try {
                 // 上传文件，获取存储路径
-                String logoPath = fileService.uploadFile(schoolCreationDTO.getLogoFile(), "logo");
+                String logoPath = fileService.uploadFile(schoolCreationDTO.getLogoFile(), "logos");
                 organization.setLogoUrl(logoPath);
             } catch (Exception e) {
                 throw new BusinessException("Logo上传失败: " + e.getMessage());

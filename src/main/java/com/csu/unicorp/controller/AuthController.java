@@ -26,6 +26,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,10 +132,40 @@ public class AuthController {
                 schema = @Schema(implementation = ResultVO.class))),
         @ApiResponse(responseCode = "400", description = "无效的输入，或邮箱/手机号/企业名称已存在")
     })
-    @PostMapping("/register/enterprise")
+    @PostMapping(value = "/register/enterprise", consumes = "multipart/form-data")
     @Log(value = LogActionType.REGISTER, module = "用户管理")
-    public ResultVO<UserVO> registerEnterprise(@Valid @RequestBody EnterpriseRegistrationDTO registrationDto) {
-        UserVO user = userService.registerEnterprise(registrationDto);
+    public ResultVO<UserVO> registerEnterprise(
+            @RequestParam @NotBlank(message = "企业名称不能为空") String organizationName,
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) String address,
+            @RequestParam(required = false) String website,
+            @RequestParam(required = false) String industry,
+            @RequestParam(required = false) String companySize,
+            @RequestParam(required = false) Double latitude,
+            @RequestParam(required = false) Double longitude,
+            @RequestParam(required = false) String adminNickname,
+            @RequestParam @NotBlank(message = "管理员密码不能为空") String adminPassword,
+            @RequestParam @NotBlank(message = "管理员邮箱不能为空") @Email(message = "管理员邮箱格式不正确") String adminEmail,
+            @RequestParam(required = false) @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确") String adminPhone,
+            @RequestPart("logo") MultipartFile logo,
+            @RequestPart("businessLicense") MultipartFile businessLicense) {
+        
+        // 组装EnterpriseRegistrationDTO对象
+        EnterpriseRegistrationDTO registrationDto = new EnterpriseRegistrationDTO();
+        registrationDto.setOrganizationName(organizationName);
+        registrationDto.setDescription(description);
+        registrationDto.setAddress(address);
+        registrationDto.setWebsite(website);
+        registrationDto.setIndustry(industry);
+        registrationDto.setCompanySize(companySize);
+        registrationDto.setLatitude(latitude);
+        registrationDto.setLongitude(longitude);
+        registrationDto.setAdminNickname(adminNickname);
+        registrationDto.setAdminPassword(adminPassword);
+        registrationDto.setAdminEmail(adminEmail);
+        registrationDto.setAdminPhone(adminPhone);
+        
+        UserVO user = userService.registerEnterprise(registrationDto, logo, businessLicense);
         return ResultVO.success("企业注册申请已提交，等待审核", user);
     }
     

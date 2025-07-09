@@ -1,0 +1,400 @@
+openapi: 3.0.3
+info:
+  title: 章节视频API
+  description: 提供双师课堂章节视频的上传、查询、播放等功能
+  version: 1.0.0
+  contact:
+    name: UniCorp Team
+    email: unicorp@example.com
+servers:
+  - url: http://localhost:8081
+    description: 本地开发服务器
+tags:
+  - name: 章节视频
+    description: 章节视频API，提供视频上传、查询、播放等功能
+paths:
+  /v1/chapter-videos:
+    post:
+      tags:
+        - 章节视频
+      summary: 上传章节视频
+      description: 为指定章节上传视频，需要教师或管理员权限
+      operationId: uploadVideo
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 视频文件
+                chapterId:
+                  type: integer
+                  description: 章节ID
+                title:
+                  type: string
+                  description: 视频标题
+                description:
+                  type: string
+                  description: 视频描述
+              required:
+                - file
+                - chapterId
+                - title
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterVideoResult'
+        '400':
+          description: 参数错误或权限不足
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+      security:
+        - bearerAuth: []
+  /v1/chapter-videos/{videoId}:
+    get:
+      tags:
+        - 章节视频
+      summary: 获取视频详情
+      description: 获取指定ID的视频详细信息
+      operationId: getVideoById
+      parameters:
+        - name: videoId
+          in: path
+          description: 视频ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterVideoResult'
+        '404':
+          description: 视频不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - 章节视频
+      summary: 更新视频信息
+      description: 更新指定ID的视频信息，需要教师或管理员权限
+      operationId: updateVideo
+      parameters:
+        - name: videoId
+          in: path
+          description: 视频ID
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChapterVideoDTO'
+        required: true
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterVideoResult'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+        '404':
+          description: 视频不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - 章节视频
+      summary: 删除视频
+      description: 删除指定ID的视频，需要教师或管理员权限
+      operationId: deleteVideo
+      parameters:
+        - name: videoId
+          in: path
+          description: 视频ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BooleanResult'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+        '404':
+          description: 视频不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+      security:
+        - bearerAuth: []
+  /v1/chapter-videos/chapter/{chapterId}:
+    get:
+      tags:
+        - 章节视频
+      summary: 获取章节视频
+      description: 获取指定章节的视频
+      operationId: getVideoByChapterId
+      parameters:
+        - name: chapterId
+          in: path
+          description: 章节ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterVideoResult'
+        '404':
+          description: 章节不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+      security:
+        - bearerAuth: []
+  /v1/chapter-videos/{videoId}/progress:
+    post:
+      tags:
+        - 章节视频
+      summary: 更新观看进度
+      description: 更新视频观看进度，仅限学生使用
+      operationId: updateWatchProgress
+      parameters:
+        - name: videoId
+          in: path
+          description: 视频ID
+          required: true
+          schema:
+            type: integer
+        - name: position
+          in: query
+          description: 当前位置(秒)
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BooleanResult'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+        '404':
+          description: 视频不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+      security:
+        - bearerAuth: []
+  /v1/chapter-videos/{videoId}/complete:
+    post:
+      tags:
+        - 章节视频
+      summary: 标记视频为已完成
+      description: 标记视频为已完成状态，仅限学生使用
+      operationId: markVideoCompleted
+      parameters:
+        - name: videoId
+          in: path
+          description: 视频ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 标记成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BooleanResult'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+        '404':
+          description: 视频不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+      security:
+        - bearerAuth: []
+components:
+  schemas:
+    ResultVO:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 状态码，200表示成功
+          example: 200
+        message:
+          type: string
+          description: 响应消息
+          example: 操作成功
+        data:
+          type: object
+          description: 响应数据
+    ChapterVideoDTO:
+      type: object
+      properties:
+        chapterId:
+          type: integer
+          description: 章节ID
+          example: 1
+        title:
+          type: string
+          description: 视频标题
+          example: 第一章：Java基础入门视频
+        description:
+          type: string
+          description: 视频描述
+          example: 本视频介绍Java语言的基础知识，包括变量、数据类型、运算符等
+      required:
+        - chapterId
+        - title
+    ChapterVideoVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 视频ID
+          example: 1
+        chapterId:
+          type: integer
+          description: 章节ID
+          example: 1
+        chapterTitle:
+          type: string
+          description: 章节标题
+          example: 第一章：Java基础
+        title:
+          type: string
+          description: 视频标题
+          example: 第一章：Java基础入门视频
+        description:
+          type: string
+          description: 视频描述
+          example: 本视频介绍Java语言的基础知识，包括变量、数据类型、运算符等
+        filePath:
+          type: string
+          description: 视频文件路径
+          example: upload/courses/videos/chapter1_intro.mp4
+        fileSize:
+          type: integer
+          format: int64
+          description: 视频文件大小(字节)
+          example: 15728640
+        duration:
+          type: integer
+          description: 视频时长(秒)
+          example: 600
+        coverImage:
+          type: string
+          description: 视频封面图片路径
+          example: upload/courses/videos/covers/chapter1_cover.jpg
+        uploaderId:
+          type: integer
+          description: 上传者ID
+          example: 5
+        uploaderName:
+          type: string
+          description: 上传者姓名
+          example: 张三
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: 2024-06-01T10:15:30
+        watchProgress:
+          type: integer
+          description: 观看进度(秒)
+          example: 120
+        isCompleted:
+          type: boolean
+          description: 是否看完
+          example: false
+        lastPosition:
+          type: integer
+          description: 上次观看位置(秒)
+          example: 120
+    ChapterVideoResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultVO'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ChapterVideoVO'
+    BooleanResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultVO'
+        - type: object
+          properties:
+            data:
+              type: boolean
+              example: true
+    ErrorResult:
+      allOf:
+        - $ref: '#/components/schemas/ResultVO'
+        - type: object
+          properties:
+            code:
+              type: integer
+              example: 400
+            message:
+              type: string
+              example: 参数错误或权限不足
+            data:
+              type: null
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 

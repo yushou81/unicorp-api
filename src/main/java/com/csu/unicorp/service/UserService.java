@@ -57,9 +57,11 @@ public interface UserService {
      * 企业注册
      * 
      * @param registrationDto 企业注册信息
+     * @param logo 企业logo图片
+     * @param businessLicense 营业执照文件
      * @return 注册成功的用户信息
      */
-    UserVO registerEnterprise(EnterpriseRegistrationDTO registrationDto);
+    UserVO registerEnterprise(EnterpriseRegistrationDTO registrationDto, MultipartFile logo, MultipartFile businessLicense);
     
     /**
      * 获取当前登录用户信息
@@ -251,6 +253,7 @@ public interface UserService {
      * @return 用户信息
      */
     UserVO searchUserByPhoneOrEmail(String keyword);
+    
     /**
      * 根据GitHub用户ID查询用户
      * 

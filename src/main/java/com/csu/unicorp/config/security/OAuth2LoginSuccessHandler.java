@@ -97,7 +97,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
                     handleGitHubLogin(oAuth2User, response);
                 } catch (Exception e) {
                     log.error("处理GitHub登录时发生错误: {}", e.getMessage(), e);
-                    response.sendRedirect("http://localhost:8082/login-error?reason=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8));
+                    response.sendRedirect("http://192.168.58.96:8087/login-error?reason=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8));
                 }
                 return;
             }
@@ -170,7 +170,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         }
         
         // 重定向到前端，带上token参数
-        String redirectUrl = "http://localhost:8082/login-success" +
+        String redirectUrl = "http://localhost:8087/login-success" +
                 "?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8) +
                 "&refreshToken=" + URLEncoder.encode(refreshToken, StandardCharsets.UTF_8) +
                 "&nickname=" + URLEncoder.encode(user.getNickname(), StandardCharsets.UTF_8) +
@@ -208,7 +208,7 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         String nickname = name != null && !name.isEmpty() ? name : login;
         log.info("设置用户昵称: {}", nickname);
         user.setNickname(nickname);
-        
+
         // 处理邮箱可能为null的情况
         if (email != null && !email.isEmpty()) {
             log.info("设置用户邮箱: {}", email);

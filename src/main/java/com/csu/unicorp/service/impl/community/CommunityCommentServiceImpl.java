@@ -226,7 +226,7 @@ public class CommunityCommentServiceImpl extends ServiceImpl<CommunityCommentMap
         // 尝试从缓存获取
         String cacheKey = CacheConstants.COMMENT_REPLIES_CACHE_KEY_PREFIX + commentId;
         List<CommentVO> cachedReplies = cacheService.getList(cacheKey, CommentVO.class);
-        if (cachedReplies != null) {
+        if (cachedReplies != null && !cachedReplies.isEmpty()) {
             log.debug("从缓存获取评论回复列表: {}", commentId);
             // 更新用户交互状态
             if (userId != null) {

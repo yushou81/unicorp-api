@@ -42,12 +42,6 @@ public class EnterpriseRegistrationDTO {
     private String companySize;
     
     /**
-     * 营业执照URL
-     */
-    @NotBlank(message = "营业执照URL不能为空")
-    private String businessLicenseUrl;
-    
-    /**
      * 纬度，可以为空
      */
     private Double latitude;
