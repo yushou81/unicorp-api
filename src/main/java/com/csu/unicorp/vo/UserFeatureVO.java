@@ -43,9 +43,14 @@ public class UserFeatureVO {
     private String preferredLocation;
     
     /**
-     * 偏好工作类型
+     * 偏好工作类型（单数形式，向后兼容）
      */
     private String preferredJobType;
+    
+    /**
+     * 偏好工作类型列表（复数形式，与接口文档一致）
+     */
+    private List<String> preferredJobTypes;
     
     /**
      * 更新时间

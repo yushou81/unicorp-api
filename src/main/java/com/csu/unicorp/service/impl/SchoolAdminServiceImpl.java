@@ -13,6 +13,7 @@ import com.csu.unicorp.mapper.OrganizationMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.RoleService;
 import com.csu.unicorp.service.SchoolAdminService;
+import com.csu.unicorp.service.UserService;
 import com.csu.unicorp.vo.UserVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,7 @@ public class SchoolAdminServiceImpl implements SchoolAdminService {
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
     private final AccountGenerator accountGenerator;
+    private final UserService userService;
     
     @Override
     public Page<UserVO> getAllUsers(Integer organizationId, Integer page, Integer size, Integer roleId) {
@@ -97,6 +99,9 @@ public class SchoolAdminServiceImpl implements SchoolAdminService {
         teacher.setPhone(teacherCreationDTO.getPhone());
         teacher.setOrganizationId(organizationId);
         teacher.setStatus("active");
+        
+        // 分配默认头像
+        teacher.setAvatar(userService.assignDefaultAvatar());
         
         userMapper.insert(teacher);
         

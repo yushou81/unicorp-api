@@ -30,10 +30,15 @@ public interface OrganizationMapper extends BaseMapper<Organization> {
      * 
      * @return 学校详细列表
      */
-    @Select("SELECT id, organization_name, type, description, website, logo_url, address " +
-            "FROM organizations " +
-            "WHERE type = 'School' AND status = 'approved' AND is_deleted = 0 " +
-            "ORDER BY organization_name")
+    @Select("SELECT o.id, o.organization_name, o.type, o.description, o.website, o.logo_url, o.address, " +
+            "o.latitude, o.longitude, u.email as admin_email " +
+            "FROM organizations o " +
+            "LEFT JOIN users u ON u.organization_id = o.id " + 
+            "LEFT JOIN user_roles ur ON ur.user_id = u.id " +
+            "LEFT JOIN roles r ON r.id = ur.role_id " +
+            "WHERE o.type = 'School' AND o.status = 'approved' AND o.is_deleted = 0 " +
+            "AND r.role_name = 'SCH_ADMIN' " +
+            "ORDER BY o.organization_name")
     List<OrganizationVO> selectAllApprovedSchoolsDetailed();
     
     /**
@@ -51,9 +56,14 @@ public interface OrganizationMapper extends BaseMapper<Organization> {
      * 
      * @return 企业详细列表
      */
-    @Select("SELECT id, organization_name, type, description, website, logo_url, address " +
-            "FROM organizations " +
-            "WHERE type = 'Enterprise' AND status = 'approved' AND is_deleted = 0 " +
-            "ORDER BY organization_name")
+    @Select("SELECT o.id, o.organization_name, o.type, o.description, o.website, o.logo_url, o.address, " +
+            "o.latitude, o.longitude, u.email as admin_email " +
+            "FROM organizations o " +
+            "LEFT JOIN users u ON u.organization_id = o.id " +
+            "LEFT JOIN user_roles ur ON ur.user_id = u.id " +
+            "LEFT JOIN roles r ON r.id = ur.role_id " +
+            "WHERE o.type = 'Enterprise' AND o.status = 'approved' AND o.is_deleted = 0 " +
+            "AND r.role_name = 'EN_ADMIN' " +
+            "ORDER BY o.organization_name")
     List<OrganizationVO> selectAllApprovedEnterprisesDetailed();
 } 

@@ -1,10 +1,10 @@
 # 服务器相关配置
 server:
-  port: 8081 # 设置应用的端口号，避免使用常见的8080以防冲突
-  address: 0.0.0.0 # 监听所有网络接口，使应用可以在局域网中访问
-
+  port: 8081  # 服务器端口
   servlet:
-    context-path: /api # 设置应用的统一访问前缀
+    context-path: /api  # 应用上下文路径
+  address: 0.0.0.0  # 服务器监听地址
+  external-ip: 192.168.1.4  # 服务器外部IP地址（用于构建完整URL）
 
 # Spring相关配置
 spring:
@@ -16,7 +16,7 @@ spring:
     name: unicorp-api # 应用名称
   # 数据库连接池配置
   datasource:
-    url: jdbc:mysql://localhost:3306/unicorp?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/unicorp-second?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root # 数据库用户名
     password: 123456 # 数据库密码
   # Redis配置
@@ -40,6 +40,23 @@ spring:
       cache-null-values: false  # 是否缓存空值
       use-key-prefix: true  # 是否使用键前缀
       key-prefix: "unicorp:"  # 键前缀
+  # 邮件配置
+  mail:
+    host: smtp.qq.com # QQ邮箱SMTP服务器
+    port: 465 # SMTP端口
+    username: 3337544217@qq.com # 您的QQ邮箱
+    password: plgzlqplaburchch # QQ邮箱授权码，非登录密码
+    protocol: smtps
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            enable: true
+    default-encoding: UTF-8
   # 文件上传配置
   servlet:
     multipart:
@@ -48,7 +65,7 @@ spring:
       max-request-size: 350MB # 单次请求最大大小
   # Flyway配置
   flyway:
-    enabled: true # 启用Flyway
+    enabled: false # 启用Flyway
     locations: classpath:db/migration # 迁移脚本位置
     baseline-on-migrate: true # 如果数据库不是空的，自动执行基准迁移
     out-of-order: false # 是否允许无序执行
@@ -86,7 +103,7 @@ spring:
             token-uri: https://github.com/login/oauth/access_token
             user-info-uri: https://api.github.com/user
             user-name-attribute: login
-            redirect-uri: http://192.168.58.96:8081/api/login/oauth2/code/github
+            redirect-uri: http://localhost:8081/api/login/oauth2/code/github
 # JWT配置
 jwt:
   secret: Oe8H9XZ3x2NpDQfY9vTr5qK6sLm7oP3aUv1wMxB2zC3yD4fE5gF6hG7jH8kJ

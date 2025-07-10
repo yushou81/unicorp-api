@@ -64,43 +64,44 @@
 
 ```
 unicorp-api/
-├── docs/                        # 项目文档
-│   ├── 第1次迭代/
-│   ├── 第2次迭代/
-│   ├── 第3次迭代/
-│   ├── 第4次迭代/
-│   ├── 第5次迭代/
-│   ├── 第6次迭代/
-│   ├── 第7次迭代/
-│   └── 第8次迭代/
-│       ├── 用户管理接口测试计划.md  # 用户管理接口测试计划
-│       └── 企业管理员接口测试计划.md # 企业管理员接口测试计划
-│   ├── github_login_integration_plan.md # GitHub登录集成计划
-│   ├── github_login_implementation.md # GitHub登录实现文档
-│   └── github_login_user_guide.md # GitHub登录前端使用指南
-├── src/                         # 源代码
-│   ├── main/
-│   │   ├── java/com/csu/unicorp/
-│   │   │   ├── common/          # 通用工具和常量
-│   │   │   ├── config/          # 配置类
-│   │   │   ├── controller/      # 控制器层
-│   │   │   ├── dto/             # 数据传输对象
-│   │   │   │   ├── UserStatusUpdateDTO.java  # 用户状态更新DTO
-│   │   │   │   └── UserUpdateDTO.java        # 用户基本信息更新DTO
-│   │   │   ├── entity/          # 实体类
-│   │   │   ├── mapper/          # MyBatis Mapper接口
-│   │   │   ├── service/         # 服务接口
-│   │   │   │   └── impl/        # 服务实现类
-│   │   │   └── vo/              # 视图对象
-│   │   └── resources/
-│   │       ├── db/migration/    # Flyway数据库迁移脚本
-│   │       ├── mapper/          # MyBatis XML映射文件
-│   │       ├── application.yml  # 应用配置文件
-│   │       └── ...
-│   └── test/                    # 测试代码
-├── upload/                      # 文件上传目录
-├── pom.xml                      # Maven项目配置文件
-└── README.md                    # 项目说明文档
+├── docs/                     # 文档目录
+├── src/                      # 源代码目录
+│   ├── main/                 # 主代码
+│   │   ├── java/             # Java代码
+│   │   │   └── com/csu/unicorp/
+│   │   │       ├── common/           # 通用工具和配置
+│   │   │       │   ├── annotation/   # 自定义注解
+│   │   │       │   ├── aspect/       # AOP切面
+│   │   │       │   ├── constants/    # 常量定义
+│   │   │       │   ├── exception/    # 异常处理
+│   │   │       │   └── utils/        # 工具类，包含验证码工具
+│   │   │       ├── config/           # 配置类
+│   │   │       │   └── security/     # 安全相关配置
+│   │   │       ├── controller/       # 控制器层
+│   │   │       │   ├── achievement/  # 成果相关控制器
+│   │   │       │   ├── community/    # 社区相关控制器
+│   │   │       │   ├── course/       # 课程相关控制器
+│   │   │       │   ├── job/          # 工作相关控制器
+│   │   │       │   └── log/          # 日志相关控制器
+│   │   │       ├── dto/              # 数据传输对象
+│   │   │       ├── entity/           # 实体类
+│   │   │       ├── interceptor/      # 拦截器
+│   │   │       ├── mapper/           # MyBatis Mapper接口
+│   │   │       ├── service/          # 服务层接口
+│   │   │       │   └── impl/         # 服务层实现类，包含邮件服务和验证码服务
+│   │   │       └── vo/               # 视图对象
+│   │   ├── resources/        # 资源文件
+│   │   │   ├── db/           # 数据库迁移脚本
+│   │   │   ├── mapper/       # MyBatis XML映射文件
+│   │   │   ├── static/       # 静态资源
+│   │   │   └── templates/    # 模板文件
+│   └── test/                 # 测试代码
+├── upload/                   # 上传文件存储目录
+├── docker-compose.yml        # Docker容器编排配置
+├── mvnw                      # Maven包装器（Unix/Linux）
+├── mvnw.cmd                  # Maven包装器（Windows）
+├── pom.xml                   # Maven项目配置
+└── README.md                 # 项目说明文档
 ```
 
 ## 数据库命名规范
@@ -197,6 +198,13 @@ unicorp-api/
 - 提供简历的增删改查完整功能
 - 优化了简历与岗位申请的关联关系
 - 移除了resumes表中user_id的唯一约束，使一个用户可以拥有多份简历
+
+### 第九次迭代 - 智能推荐系统
+- 实现了基于用户特征和岗位特征的智能推荐系统
+- 添加了岗位自动特征提取功能，企业发布岗位时自动分析提取关键词和技能要求
+- 支持用户设置个人特征（技能、兴趣、专业等）
+- 基于特征匹配推荐合适的岗位给用户
+- 支持用户行为分析，根据浏览、收藏、申请等行为优化推荐结果
 
 ### 9. 用户搜索功能
 - 添加了通过电话号码或邮箱搜索用户的功能

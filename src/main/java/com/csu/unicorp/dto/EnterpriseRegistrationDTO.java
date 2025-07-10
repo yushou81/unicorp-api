@@ -70,6 +70,12 @@ public class EnterpriseRegistrationDTO {
     private String adminEmail;
     
     /**
+     * 邮箱验证码
+     */
+    @NotBlank(message = "邮箱验证码不能为空")
+    private String emailVerificationCode;
+    
+    /**
      * 企业管理员手机号
      */
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")

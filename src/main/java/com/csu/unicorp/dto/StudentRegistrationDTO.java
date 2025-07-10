@@ -30,6 +30,12 @@ public class StudentRegistrationDTO {
     private String email;
     
     /**
+     * 邮箱验证码
+     */
+    @NotBlank(message = "邮箱验证码不能为空")
+    private String emailVerificationCode;
+    
+    /**
      * 手机号（选填）
      */
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")

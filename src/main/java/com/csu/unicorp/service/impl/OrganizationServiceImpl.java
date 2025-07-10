@@ -216,8 +216,12 @@ public class OrganizationServiceImpl implements OrganizationService {
             throw new ResourceNotFoundException("学校不存在或未通过审核");
         }
         
+        // 查询学校管理员邮箱
+        String adminEmail = findAdminEmail(organization.getId(), RoleConstants.DB_ROLE_SCHOOL_ADMIN);
+        
         // 转换为VO
         OrganizationVO vo = OrganizationVO.fromEntity(organization);
+        vo.setAdminEmail(adminEmail);
         
         // 处理logo URL，转换为完整路径
         if (vo.getLogoUrl() != null && !vo.getLogoUrl().isEmpty()) {
@@ -235,8 +239,12 @@ public class OrganizationServiceImpl implements OrganizationService {
             throw new ResourceNotFoundException("企业不存在或未通过审核");
         }
         
+        // 查询企业管理员邮箱
+        String adminEmail = findAdminEmail(organization.getId(), RoleConstants.DB_ROLE_ENTERPRISE_ADMIN);
+        
         // 转换为VO
         OrganizationVO vo = OrganizationVO.fromEntity(organization);
+        vo.setAdminEmail(adminEmail);
         
         // 处理logo URL，转换为完整路径
         if (vo.getLogoUrl() != null && !vo.getLogoUrl().isEmpty()) {
@@ -244,6 +252,32 @@ public class OrganizationServiceImpl implements OrganizationService {
         }
         
         return vo;
+    }
+    
+    /**
+     * 查找组织管理员的邮箱
+     * 
+     * @param organizationId 组织ID
+     * @param roleName 角色名称
+     * @return 管理员邮箱，如果未找到则返回null
+     */
+    private String findAdminEmail(Integer organizationId, String roleName) {
+        // 查询该组织下的所有用户
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("organization_id", organizationId)
+                    .eq("status", "active");
+        
+        List<User> users = userMapper.selectList(queryWrapper);
+        
+        // 过滤出管理员角色的用户
+        for (User user : users) {
+            String userRole = userMapper.selectRoleByUserId(user.getId());
+            if (roleName.equals(userRole)) {
+                return user.getEmail();
+            }
+        }
+        
+        return null;
     }
     
     @Override

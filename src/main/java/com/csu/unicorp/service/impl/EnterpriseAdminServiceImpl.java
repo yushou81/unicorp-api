@@ -13,6 +13,7 @@ import com.csu.unicorp.mapper.OrganizationMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.service.EnterpriseAdminService;
 import com.csu.unicorp.service.RoleService;
+import com.csu.unicorp.service.UserService;
 import com.csu.unicorp.vo.UserVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ public class EnterpriseAdminServiceImpl implements EnterpriseAdminService {
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
     private final AccountGenerator accountGenerator;
+    private final UserService userService;
     
     @Override
     public Page<UserVO> getAllUsers(Integer organizationId, Integer page, Integer size) {
@@ -92,6 +94,7 @@ public class EnterpriseAdminServiceImpl implements EnterpriseAdminService {
         mentor.setPhone(mentorCreationDTO.getPhone());
         mentor.setOrganizationId(organizationId);
         mentor.setStatus("active");
+        mentor.setAvatar(userService.assignDefaultAvatar()); // 设置默认头像
         
         userMapper.insert(mentor);
         

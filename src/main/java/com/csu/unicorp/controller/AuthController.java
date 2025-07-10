@@ -32,6 +32,8 @@ import jakarta.validation.constraints.Pattern;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * 认证相关接口
@@ -44,6 +46,12 @@ public class AuthController {
     
     private final UserService userService;
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+    
+    @Value("${server.port:8081}")
+    private int serverPort;
+    
+    @Value("${server.external-ip:#{null}}")
+    private String externalIp;
     
     /**
      * 用户登录
@@ -108,29 +116,29 @@ public class AuthController {
     /**
      * 学生注册
      */
-    @Operation(summary = "学生注册接口", description = "学生选择已存在的学校进行注册，并提供实名信息")
+    @Operation(summary = "学生注册接口", description = "学生选择已存在的学校进行注册，并提供实名信息和邮箱验证码")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "学生注册成功", 
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class))),
-        @ApiResponse(responseCode = "400", description = "无效的输入，或账号/邮箱已存在")
+        @ApiResponse(responseCode = "400", description = "无效的输入，账号/邮箱已存在，或验证码错误")
     })
     @PostMapping("/register/student")
     @Log(value = LogActionType.REGISTER, module = "用户管理")
     public ResultVO<UserVO> registerStudent(@Valid @RequestBody StudentRegistrationDTO registrationDto) {
-        UserVO user = userService.registerStudent(registrationDto);
+        UserVO user = userService.registerStudent(registrationDto, true); // 启用验证码检查
         return ResultVO.success("注册成功", user);
     }
     
     /**
      * 企业注册
      */
-    @Operation(summary = "企业注册接口", description = "企业代表进行公开注册。注册后，企业和其管理员账号状态均为'pending'，需要系统管理员审核")
+    @Operation(summary = "企业注册接口", description = "企业代表进行公开注册。注册后，企业和其管理员账号状态均为'pending'，需要系统管理员审核。需要提供邮箱验证码。")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "注册申请已提交，等待审核", 
                 content = @Content(mediaType = "application/json", 
                 schema = @Schema(implementation = ResultVO.class))),
-        @ApiResponse(responseCode = "400", description = "无效的输入，或邮箱/手机号/企业名称已存在")
+        @ApiResponse(responseCode = "400", description = "无效的输入，邮箱/手机号/企业名称已存在，或验证码错误")
     })
     @PostMapping(value = "/register/enterprise", consumes = "multipart/form-data")
     @Log(value = LogActionType.REGISTER, module = "用户管理")
@@ -146,6 +154,7 @@ public class AuthController {
             @RequestParam(required = false) String adminNickname,
             @RequestParam @NotBlank(message = "管理员密码不能为空") String adminPassword,
             @RequestParam @NotBlank(message = "管理员邮箱不能为空") @Email(message = "管理员邮箱格式不正确") String adminEmail,
+            @RequestParam @NotBlank(message = "邮箱验证码不能为空") String emailVerificationCode,
             @RequestParam(required = false) @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确") String adminPhone,
             @RequestPart("logo") MultipartFile logo,
             @RequestPart("businessLicense") MultipartFile businessLicense) {
@@ -163,9 +172,10 @@ public class AuthController {
         registrationDto.setAdminNickname(adminNickname);
         registrationDto.setAdminPassword(adminPassword);
         registrationDto.setAdminEmail(adminEmail);
+        registrationDto.setEmailVerificationCode(emailVerificationCode);
         registrationDto.setAdminPhone(adminPhone);
         
-        UserVO user = userService.registerEnterprise(registrationDto, logo, businessLicense);
+        UserVO user = userService.registerEnterprise(registrationDto, logo, businessLicense, true); // 启用验证码检查
         return ResultVO.success("企业注册申请已提交，等待审核", user);
     }
     
@@ -260,8 +270,21 @@ public class AuthController {
                 schema = @Schema(implementation = ResultVO.class)))
     })
     @GetMapping("/github/login-url")
-    public ResultVO<String> getGitHubLoginUrl() {
-        return ResultVO.success("获取GitHub登录URL成功", "/oauth2/authorization/github");
+    public ResultVO<String> getGitHubLoginUrl(HttpServletRequest request) {
+
+        String host = externalIp;
+        
+        // 获取当前服务器的地址和端口
+        String serverAddress = request.getScheme() + "://" + host;
+        if (serverPort != 80 && serverPort != 443) {
+            serverAddress += ":" + serverPort;
+        }
+        
+        // 构建完整的GitHub登录URL
+        String fullLoginUrl = serverAddress + "/api/v1/auth/oauth2/authorization/github";
+        
+        log.info("构建GitHub登录URL: {}", fullLoginUrl);
+        return ResultVO.success("获取GitHub登录URL成功", fullLoginUrl);
     }
     
     /**

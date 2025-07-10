@@ -194,6 +194,12 @@ public class RecommendationServiceImpl implements RecommendationService {
         featureVO.setEducationLevel(userFeature.getEducationLevel());
         featureVO.setPreferredLocation(userFeature.getPreferredLocation());
         featureVO.setPreferredJobType(userFeature.getPreferredJobType());
+        
+        // 设置preferredJobTypes，如果preferredJobType不为空，则将其作为列表中的唯一元素
+        if (userFeature.getPreferredJobType() != null && !userFeature.getPreferredJobType().isEmpty()) {
+            featureVO.setPreferredJobTypes(List.of(userFeature.getPreferredJobType()));
+        }
+        
         featureVO.setUpdatedAt(userFeature.getUpdatedAt());
         
         // 解析JSON格式的技能和兴趣
@@ -259,7 +265,16 @@ public class RecommendationServiceImpl implements RecommendationService {
         userFeature.setMajor(featureDTO.getMajor());
         userFeature.setEducationLevel(featureDTO.getEducationLevel());
         userFeature.setPreferredLocation(featureDTO.getPreferredLocation());
+        
+        // 处理偏好工作类型，优先使用preferredJobTypes
+        if (featureDTO.getPreferredJobTypes() != null && !featureDTO.getPreferredJobTypes().isEmpty()) {
+            // 如果有多个工作类型，使用第一个作为单一工作类型
+            userFeature.setPreferredJobType(featureDTO.getPreferredJobTypes().get(0));
+        } else if (featureDTO.getPreferredJobType() != null) {
+            // 如果没有preferredJobTypes但有preferredJobType，则使用preferredJobType
         userFeature.setPreferredJobType(featureDTO.getPreferredJobType());
+        }
+        
         userFeature.setUpdatedAt(LocalDateTime.now());
         
         // 将列表转换为JSON字符串

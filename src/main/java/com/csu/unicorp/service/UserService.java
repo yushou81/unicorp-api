@@ -54,6 +54,15 @@ public interface UserService {
     UserVO registerStudent(StudentRegistrationDTO registrationDto);
     
     /**
+     * 学生注册
+     * 
+     * @param registrationDto 学生注册信息
+     * @param checkVerification 是否检查验证码
+     * @return 注册成功的用户信息
+     */
+    UserVO registerStudent(StudentRegistrationDTO registrationDto, boolean checkVerification);
+    
+    /**
      * 企业注册
      * 
      * @param registrationDto 企业注册信息
@@ -62,6 +71,17 @@ public interface UserService {
      * @return 注册成功的用户信息
      */
     UserVO registerEnterprise(EnterpriseRegistrationDTO registrationDto, MultipartFile logo, MultipartFile businessLicense);
+    
+    /**
+     * 企业注册（带验证码检查）
+     * 
+     * @param registrationDto 企业注册信息
+     * @param logo 企业logo图片
+     * @param businessLicense 营业执照文件
+     * @param checkVerification 是否检查验证码
+     * @return 注册成功的用户信息
+     */
+    UserVO registerEnterprise(EnterpriseRegistrationDTO registrationDto, MultipartFile logo, MultipartFile businessLicense, boolean checkVerification);
     
     /**
      * 获取当前登录用户信息

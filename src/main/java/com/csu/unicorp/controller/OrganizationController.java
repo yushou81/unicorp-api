@@ -120,7 +120,7 @@ public class OrganizationController {
     })
     @PostMapping("/organizations/{id}/logo")
     @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("@securityService.isOrganizationAdmin(#id) or hasRole('SYSTEM_ADMIN')")
+    @PreAuthorize("@securityService.isOrganizationAdmin(#id) or hasRole('SYSADMIN')")
     public ResultVO<String> uploadOrganizationLogo(
             @PathVariable Integer id,
             @RequestParam("file") MultipartFile file) {

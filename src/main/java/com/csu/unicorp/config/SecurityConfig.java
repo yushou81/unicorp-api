@@ -91,6 +91,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                     // 公共接口
                     .requestMatchers("/v1/auth/login", "/v1/auth/register/**", "/v1/auth/refresh","/v1/auth/github/login-url").permitAll()
+                    .requestMatchers("/v1/email/verification-code").permitAll() // 邮箱验证码接口
                     .requestMatchers("/v1/files/**").permitAll()
                     .requestMatchers("/v1/files/resumes/**").permitAll()
                     .requestMatchers("/v1/organizations/schools").permitAll()
@@ -191,7 +192,7 @@ public class SecurityConfig {
                         .successHandler(oAuth2LoginSuccessHandler) // 直接使用注入的处理器
                         .failureHandler((request, response, exception) -> {
                             log.error("OAuth2登录失败: {}", exception.getMessage(), exception);
-                            response.sendRedirect("http://localhost:8087/login-error?error=" + URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8));
+                            response.sendRedirect("http://localhost:8082/login-error?error=" + URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8));
                         });
                     log.info("OAuth2登录配置完成");
                 })

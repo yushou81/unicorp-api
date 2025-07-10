@@ -95,6 +95,23 @@ public class OrganizationVO {
         vo.setAddress(organization.getAddress());
         vo.setLatitude(organization.getLatitude());
         vo.setLongitude(organization.getLongitude());
+        // 注意：这里没有设置adminEmail，因为Organization实体中没有这个字段
+        // 在从数据库直接查询到OrganizationVO时，adminEmail会被自动映射
+        return vo;
+    }
+    
+    /**
+     * 将Organization实体转换为OrganizationVO，并设置管理员邮箱
+     * 
+     * @param organization 组织实体
+     * @param adminEmail 管理员邮箱
+     * @return 组织视图对象
+     */
+    public static OrganizationVO fromEntity(Organization organization, String adminEmail) {
+        OrganizationVO vo = fromEntity(organization);
+        if (vo != null) {
+            vo.setAdminEmail(adminEmail);
+        }
         return vo;
     }
 } 

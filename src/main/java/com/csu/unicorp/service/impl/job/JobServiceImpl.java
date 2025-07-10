@@ -20,6 +20,7 @@ import com.csu.unicorp.mapper.job.JobMapper;
 import com.csu.unicorp.mapper.OrganizationMapper;
 import com.csu.unicorp.mapper.UserMapper;
 import com.csu.unicorp.mapper.EnterpriseDetailMapper;
+import com.csu.unicorp.service.JobFeatureService;
 import com.csu.unicorp.service.JobService;
 import com.csu.unicorp.vo.JobCategoryVO;
 import com.csu.unicorp.vo.JobVO;
@@ -53,6 +54,7 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
     private final JobCategoryMapper jobCategoryMapper;
     private final JobCategoryRelationMapper jobCategoryRelationMapper;
     private final EnterpriseDetailMapper enterpriseDetailMapper;
+    private final JobFeatureService jobFeatureService;
     
     /**
      * 分页查询岗位列表
@@ -219,6 +221,15 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
         relation.setCategoryId(dto.getCategoryId());
         jobCategoryRelationMapper.insert(relation);
         
+        // 自动生成岗位特征
+        try {
+            jobFeatureService.generateJobFeature(job.getId());
+            log.info("成功为岗位生成特征，jobId={}", job.getId());
+        } catch (Exception e) {
+            log.error("生成岗位特征失败，jobId={}，错误：{}", job.getId(), e.getMessage());
+            // 不影响岗位创建的主流程，即使特征生成失败也继续
+        }
+        
         return job.getId();
     }
     
@@ -349,6 +360,15 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
         relation.setJobId(id);
         relation.setCategoryId(dto.getCategoryId());
         jobCategoryRelationMapper.insert(relation);
+        
+        // 更新岗位特征
+        try {
+            jobFeatureService.generateJobFeature(id);
+            log.info("成功更新岗位特征，jobId={}", id);
+        } catch (Exception e) {
+            log.error("更新岗位特征失败，jobId={}，错误：{}", id, e.getMessage());
+            // 不影响岗位更新的主流程，即使特征更新失败也继续
+        }
         
         return updated;
     }

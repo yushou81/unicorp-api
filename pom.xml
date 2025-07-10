@@ -239,6 +239,17 @@
             <artifactId>jave-all-deps</artifactId>
             <version>3.3.1</version>
         </dependency>
+        <!-- 添加邮件发送依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <!-- 添加jakarta.mail依赖 -->
+        <dependency>
+            <groupId>jakarta.mail</groupId>
+            <artifactId>jakarta.mail-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

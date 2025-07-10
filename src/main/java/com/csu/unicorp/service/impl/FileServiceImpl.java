@@ -42,8 +42,18 @@ public class FileServiceImpl implements FileService {
     @Value("${app.upload.max-size:10485760}")
     private long maxFileSize; // 默认10MB
     
-//    @Value("${app.base-url:http://localhost:8081}")
-    private String baseUrl = "http://192.168.58.96:8081";
+    @Value("${server.external-ip:#{null}}")
+    private String externalIp;
+    
+    @Value("${server.port:8081}")
+    private int serverPort;
+    
+    private String getBaseUrl() {
+        if (externalIp == null) {
+            return null;
+        }
+        return "http://" + externalIp + ":" + serverPort;
+    }
 
     @Autowired
     private FileMappingMapper fileMappingMapper;
@@ -111,7 +121,7 @@ public class FileServiceImpl implements FileService {
         try {
             // 如果提供的是完整URL，转换为相对路径
             String relativePath = fileUrl;
-            if (fileUrl.startsWith(baseUrl)) {
+            if (fileUrl.startsWith(getBaseUrl())) {
                 relativePath = fileUrl.substring(fileUrl.indexOf("/api/v1/files/") + "/api/v1/files/".length());
             }
             
@@ -139,7 +149,7 @@ public class FileServiceImpl implements FileService {
         if (relativePath == null || relativePath.isEmpty()) {
             return null;
         }
-        return baseUrl + "/api/v1/files/" + relativePath;
+        return getBaseUrl() + "/api/v1/files/" + relativePath;
     }
 
 
@@ -183,7 +193,7 @@ public class FileServiceImpl implements FileService {
         try {
             // 如果提供的是完整URL，转换为相对路径
             String relativePath = fileUrl;
-            if (fileUrl.startsWith(baseUrl)) {
+            if (fileUrl.startsWith(getBaseUrl())) {
                 relativePath = fileUrl.substring(fileUrl.indexOf("/api/v1/files/") + "/api/v1/files/".length());
             }
             

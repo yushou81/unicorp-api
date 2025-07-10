@@ -43,6 +43,7 @@ import com.csu.unicorp.service.OrganizationService;
 import com.csu.unicorp.service.RoleService;
 import com.csu.unicorp.service.TokenBlacklistService;
 import com.csu.unicorp.service.UserService;
+import com.csu.unicorp.service.VerificationCodeService;
 import com.csu.unicorp.vo.TokenVO;
 import com.csu.unicorp.vo.UserVO;
 
@@ -90,6 +91,7 @@ public class UserServiceImpl implements UserService {
     private final LoginAttemptService loginAttemptService;
     private final CacheService cacheService;
     private final UserDetailsService userDetailsService;
+    private final VerificationCodeService verificationCodeService;
     
     @Override
     public TokenVO login(LoginCredentialsDTO loginDto) {
@@ -317,10 +319,28 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserVO registerStudent(StudentRegistrationDTO registrationDto) {
+        // 调用带验证码检查的方法，并将检查参数设为false（默认不检查，保持原来的行为）
+        return registerStudent(registrationDto, false);
+    }
+    
+    @Override
+    @Transactional
+    public UserVO registerStudent(StudentRegistrationDTO registrationDto, boolean checkVerification) {
         // 检查邮箱是否已存在
         User existingUserByEmail = userMapper.selectByEmail(registrationDto.getEmail());
         if (existingUserByEmail != null) {
             throw new BusinessException("该邮箱已被注册");
+        }
+        
+        // 验证邮箱验证码
+        if (checkVerification) {
+            boolean codeValid = verificationCodeService.verifyEmailCode(
+                    registrationDto.getEmail(), 
+                    registrationDto.getEmailVerificationCode());
+            
+            if (!codeValid) {
+                throw new BusinessException("邮箱验证码不正确或已过期");
+            }
         }
         
         // 如果提供了手机号，检查是否已存在
@@ -384,10 +404,28 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserVO registerEnterprise(EnterpriseRegistrationDTO registrationDto, MultipartFile logo, MultipartFile businessLicense) {
+        // 调用带验证码检查的方法，将检查参数设为false（默认不检查，保持原来的行为）
+        return registerEnterprise(registrationDto, logo, businessLicense, false);
+    }
+    
+    @Override
+    @Transactional
+    public UserVO registerEnterprise(EnterpriseRegistrationDTO registrationDto, MultipartFile logo, MultipartFile businessLicense, boolean checkVerification) {
         // 检查邮箱是否已存在
         User existingUserByEmail = userMapper.selectByEmail(registrationDto.getAdminEmail());
         if (existingUserByEmail != null) {
             throw new BusinessException("该邮箱已被注册");
+        }
+        
+        // 验证邮箱验证码
+        if (checkVerification) {
+            boolean codeValid = verificationCodeService.verifyEmailCode(
+                    registrationDto.getAdminEmail(), 
+                    registrationDto.getEmailVerificationCode());
+            
+            if (!codeValid) {
+                throw new BusinessException("邮箱验证码不正确或已过期");
+            }
         }
         
         // 如果提供了手机号，检查是否已存在
